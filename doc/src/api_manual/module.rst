@@ -508,6 +508,8 @@ This section contains other constants that are used for Advanced Queueing.
 Connection Authorization Modes
 ------------------------------
 
+.. autoclass:: AuthMode
+
 The Connection Authorization mode constants belong to the enumeration called
 ``AuthMode``. They are possible values for the ``mode`` parameters of
 :meth:`oracledb.connect()`, :meth:`oracledb.create_pool()`,
@@ -545,6 +547,8 @@ cx_Oracle driver.
 
 Pipeline Operation Types
 ------------------------
+
+.. autoclass:: PipelineOpType
 
 The Pipeline Operation type constants belong to the enumeration called
 ``PipelineOpType``. The pipelining constants listed below are used to identify
@@ -647,6 +651,8 @@ the messages that are sent.
 Connection Pool Get Modes
 -------------------------
 
+.. autoclass:: PoolGetMode
+
 The Connection Pool Get mode constants belong to the enumeration called
 ``PoolGetMode``. They are possible values for the ``getmode`` parameters of
 :meth:`oracledb.create_pool()`, :meth:`oracledb.create_pool_async()`,
@@ -675,6 +681,8 @@ cx_Oracle driver.
 
 Connection Pool Purity Constants
 --------------------------------
+
+.. autoclass:: Purity
 
 The Connection Pool Purity constants belong to the enumeration called
 ``Purity``. They are possible values for the :ref:`drcp` ``purity`` parameter
@@ -1066,6 +1074,8 @@ below.
 Vector Format Constants
 -----------------------
 
+.. autoclass:: VectorFormat
+
 These constants belong to the enumeration called ``VectorFormat`` and are
 possible values for the :attr:`FetchInfo.vector_format` attribute.
 
@@ -1133,6 +1143,8 @@ See :ref:`exception` for usage information.
     With python-oracledb every exception object has exactly one argument in the
     ``args`` tuple. This argument is an ``oracledb._Error`` object which has
     the following six read-only attributes.
+
+.. autoclass:: _Error
 
 .. attribute:: _Error.code
 

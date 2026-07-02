@@ -1156,6 +1156,7 @@ from .connection import (  # noqa: E402
     connect as connect,
     connect_async as connect_async,
     Connection as Connection,
+    Xid as Xid,
 )
 
 from .cursor import (  # noqa: E402

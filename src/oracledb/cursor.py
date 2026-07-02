@@ -29,7 +29,7 @@
 # fetching results from queries.
 # -----------------------------------------------------------------------------
 
-from typing import Any, Callable
+from typing import Any, Callable, Type
 
 from . import connection as connection_module
 from . import errors
@@ -210,7 +210,7 @@ class BaseCursor(metaclass=BaseMetaClass):
 
     def arrayvar(
         self,
-        typ: DbType | DbObjectType | type,
+        typ: DbType | DbObjectType | Type,
         value: list | int,
         size: int = 0,
     ) -> Var:
@@ -538,7 +538,7 @@ class BaseCursor(metaclass=BaseMetaClass):
 
     def var(
         self,
-        typ: DbType | DbObjectType | type,
+        typ: DbType | DbObjectType | Type,
         size: int = 0,
         arraysize: int = 1,
         inconverter: Callable = None,

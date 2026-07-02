@@ -34,6 +34,17 @@ extensions = [
     "sphinx.ext.autodoc",
 ]
 
+# turn on nitpicky mode
+nitpicky = True
+nitpick_ignore = [
+    ("py:class", "array.array"),
+    ("py:class", "collections.abc.Sequence"),
+    ("py:class", "datetime.date"),
+    ("py:class", "datetime.datetime"),
+    ("py:class", "ssl.TLSVersion"),
+]
+keep_warnings = True
+
 # preserve defaults in function signatures
 autodoc_preserve_defaults = True
 

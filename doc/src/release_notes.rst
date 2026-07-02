@@ -761,8 +761,8 @@ Common Changes
     :ref:`oci_tokens <ocicloudnativeauthplugin>` and
     :ref:`azure_tokens <azurecloudnativeauthplugin>` plugins which make use of
     this functionality.
-#)  Added attributes :attr:`DbObjectAttribute.precision`,
-    :attr:`DbObjectAttribute.scale`, and :attr:`DbObjectAttribute.max_size` that
+#)  Added attributes :attr:`DbObjectAttr.precision`,
+    :attr:`DbObjectAttr.scale`, and :attr:`DbObjectAttr.max_size` that
     provide additional metadata about
     :ref:`database object attributes <dbobjectattr>`.
 #)  The attribute :attr:`oracledb.defaults.config_dir <Defaults.config_dir>` is
@@ -993,7 +993,7 @@ Thick Mode Changes
 ++++++++++++++++++
 
 #)  Variables containing cursors, LOBs or DbObject values now return the same
-    instances when calling :meth:`Variable.getvalue()`, matching Thin mode
+    instances when calling :meth:`Var.getvalue()`, matching Thin mode
     behavior. Previously, new instances were created for each call in Thick
     mode.
 
@@ -1270,7 +1270,7 @@ Thick Mode Changes
 
 #)  Added support for internal use of JSON in SODA with Oracle Client version
     23. This allows for seamless transfer of extended data types.
-#)  Fixed bug when calling :meth:`SodaDoc.getContent()` for SODA documents
+#)  Fixed bug when calling :meth:`SodaDocument.getContent()` for SODA documents
     that do not contain JSON.
 #)  Corrected support for Oracle Sharding.
 #)  Errors ``DPY-4011: the database or network closed the connection`` and
@@ -1593,7 +1593,7 @@ Common Changes
     <https://docs.python.org/3/library/warnings.html>`__ and adding a call like
     ``warnings.filterwarnings(action='ignore', module="oracledb")``
     *before* importing ``oracledb``.
-#)  Added support for the :attr:`~Variable.outconverter` being called when a
+#)  Added support for the ``Variable.outconverter`` being called when a
     null value is fetched from the database and the new parameter
     ``convert_nulls`` to the method :meth:`Cursor.var()` is passed the value
     ``True``
@@ -2154,7 +2154,7 @@ oracledb 1.0.0 (May 2022)
 #)  Added a boolean parameter ``cache_statement`` to :meth:`Cursor.prepare()`,
     giving applications control over statement caching.
 #)  Made improvements to statement cache invalidation (Thin mode only)
-#)  Added a :attr:`~Messageproperties.recipient` attribute to support recipient
+#)  Added a ``MessageProperties.recipient`` attribute to support recipient
     lists in :ref:`Oracle Advanced Queuing <aq>`.
 #)  Added a :attr:`~oracledb._Error.full_code` attribute to the Error object
     giving the top-level error prefix and the error number.
@@ -2326,7 +2326,7 @@ cx_Oracle 8.0 (June 2020)
     - The DB API :ref:`constants <types>` are now a specialized constant that
       matches to the corresponding database types, as recommended by the DB
       API.
-    - The variable attribute :data:`~Variable.type` now refers to one of the
+    - The variable attribute ``Variable.type`` now refers to one of the
       new database type constants if the variable does not contain objects
       (previously it was *None* in that case).
     - The attribute :data:`~LOB.type` was added to LOB values.
@@ -2336,7 +2336,7 @@ cx_Oracle 8.0 (June 2020)
       by the same connection or session pool and their schemas and names match.
     - All variables are now instances of the same class (previously each type
       was an instance of a separate variable type). The attribute
-      :data:`~Variable.type` can be examined to determine the database type it
+      ``Variable.type`` can be examined to determine the database type it
       is associated with.
     - The string representation of variables has changed to include the type
       in addition to the value.
@@ -2686,7 +2686,7 @@ cx_Oracle 7.0 (September 2018)
     higher. See :attr:`Connection.call_timeout`.
 #)  Added support for getting the contents of a SQL collection object as a
     dictionary, where the keys are the indices of the collection and the values
-    are the elements of the collection. See function :meth:`Object.asdict()`.
+    are the elements of the collection. See function :meth:`DbObject.asdict()`.
 #)  Added support for closing a session pool via the function
     ``SessionPool.close()``. Once closed, further attempts to use any
     connection that was acquired from the pool will result in the error
@@ -2710,7 +2710,7 @@ cx_Oracle 7.0 (September 2018)
     closed when the block ends. Attempts to set
     ``cx_Oracle.__future__.ctx_mgr_close`` are now ignored.
 #)  When a DML returning statement is executed, variables bound to it will
-    return an array when calling :meth:`Variable.getvalue()`. Attempts to set
+    return an array when calling ``Variable.getvalue()``. Attempts to set
     ``cx_Oracle.__future__.dml_ret_array_val`` are now ignored.
 #)  Support for Python 3.4 has been dropped.
 #)  Added additional test cases.
@@ -2753,8 +2753,8 @@ cx_Oracle 6.4 (July 2018)
       available to dequeue in an AQ queue. The new constant
       ``cx_Oracle.SUBSCR_NAMESPACE_AQ`` should be passed to the namespace
       parameter of function :meth:`Connection.subscribe()` in order to get this
-      functionality. Attributes :attr:`Message.queueName` and
-      :attr:`Message.consumerName` will be populated in notification messages
+      functionality. Attributes ``Message.queueName`` and
+      ``Message.consumerName`` will be populated in notification messages
       that are received when this namespace is used.
     - Added attribute :attr:`Message.registered` to let the notification
       callback know when the subscription that generated the notification is no
@@ -2909,8 +2909,8 @@ cx_Oracle 6.2 (March 2018)
       object or a collection, prevent the "owner" from being destroyed until
       the object that was retrieved has itself been destroyed.
     - correct handling of boundary numbers 1e126 and -1e126
-    - eliminate memory leak when calling :meth:`Connection.enq()` and
-      :meth:`Connection.deq()`
+    - eliminate memory leak when calling ``Connection.enq()`` and
+      ``Connection.deq()``
     - eliminate memory leak when setting NCHAR and NVARCHAR attributes of
       objects.
     - eliminate memory leak when fetching collection objects from the database.
@@ -2964,8 +2964,8 @@ cx_Oracle 6.1 (December 2017)
     - Support was added for converting numeric values in an object type
       attribute to integer and text, as requested (`ODPI-C issue 35
       <https://github.com/oracle/odpi/issues/35>`__).
-    - Setting attributes :attr:`DeqOptions.msgId` and
-      :attr:`MessageProperties.msgId` now works as expected.
+    - Setting attributes ``DeqOptions.msgId`` and
+      ``MessageProperties.msgId`` now works as expected.
     - The overflow check when using double values (Python floats) as input
       to float attributes of objects or elements of collections was removed as
       it didn't work anyway and is a well-known issue that cannot be prevented
@@ -3229,17 +3229,16 @@ cx_Oracle 6.0 beta 1 (April 2017)
 #)  Added parameter edition to the ``cx_Oracle.SessionPool()`` method.
 #)  Added support for universal rowids.
 #)  Added support for DML Returning of multiple rows.
-#)  Added attributes :attr:`Variable.actualElements` and
-    :attr:`Variable.values` to variables.
+#)  Added attributes ``actualElements`` and ``values`` to variables.
 #)  Added parameters region, sharding_key and super_sharding_key to the
     ``cx_Oracle.makedsn()`` method to support connecting to a sharded
     database (new in Oracle Database 12.2).
 #)  Added support for smallint and float data types in Oracle objects, as
     `requested <https://github.com/oracle/python-cx_Oracle/issues/4>`__.
 #)  An exception is no longer raised when a collection is empty for methods
-    :meth:`Object.first()` and :meth:`Object.last()`. Instead, the value *None*
-    is returned to be consistent with the methods :meth:`Object.next()` and
-    :meth:`Object.prev()`.
+    :meth:`DbObject.first()` and :meth:`DbObject.last()`. Instead, the value
+    *None* is returned to be consistent with the methods
+    :meth:`DbObject.next()` and :meth:`DbObject.prev()`.
 #)  If the environment variables NLS_LANG and NLS_NCHAR are being used, they
     must be set before the module is imported. Using the encoding and nencoding
     parameters to the ``cx_Oracle.connect()`` and
@@ -3281,20 +3280,20 @@ cx_Oracle 5.3 (March 2017)
     (available in Oracle 12.1).
 #)  Added support for large row counts (larger than 2 ** 32, available in
     Oracle 12.1)
-#)  Added support for :meth:`advanced queuing <Connection.deq()>`.
+#)  Added support for advanced queuing (AQ).
 #)  Added support for :meth:`scrollable cursors <Cursor.scroll()>`.
 #)  Added support for :attr:`edition based redefinition <Connection.edition>`.
-#)  Added support for :meth:`creating <ObjectType.newobject()>`, modifying and
-    binding user defined types and collections.
+#)  Added support for creating, modifying and binding user defined types and
+    collections.
 #)  Added support for creating, modifying and binding PL/SQL records and
     collections (available in Oracle 12.1).
-#)  Added support for binding :data:`native integers <cx_Oracle.NATIVE_INT>`.
+#)  Added support for binding native integers (cx_Oracle.NATIVE_INT).
 #)  Enabled statement caching.
 #)  Removed deprecated variable attributes maxlength and allocelems.
 #)  Corrected support for setting the encoding and nencoding parameters when
-    :meth:`creating a connection <cx_Oracle.Connection>` and added support for
-    setting these when creating a session pool. These can now be used instead
-    of setting the environment variables ``NLS_LANG`` and ``NLS_NCHAR``.
+    creating a connection and added support for setting these when creating a
+    session pool. These can now be used instead of setting the environment
+    variables ``NLS_LANG`` and ``NLS_NCHAR``.
 #)  Use *None* instead of *0* for items in the :attr:`Cursor.description` attribute
     that do not have any validity.
 #)  Changed driver name to match informal driver name standard used by Oracle
@@ -3318,10 +3317,9 @@ cx_Oracle 5.3 (March 2017)
     the twophase parameter is now deprecated.  Applications should set the
     internal_name and external_name attributes directly to a value appropriate
     to the application.
-#)  Added support for using application context when
-    :meth:`creating a connection <cx_Oracle.Connection>`. This should be used
-    in preference to the module, action and clientinfo parameters which are now
-    deprecated.
+#)  Added support for using application context when creating a connection.
+    This should be used in preference to the module, action and clientinfo
+    parameters which are now deprecated.
 #)  Reworked database change notification and continuous query notification to
     more closely align with the PL/SQL implementation and prepare for sending
     notifications for AQ messages. The following changes were made:

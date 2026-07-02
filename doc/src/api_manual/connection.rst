@@ -488,3 +488,8 @@ Connection Attributes
     .. dbapiattributeextension::
 
     .. versionadded:: 2.0.0
+
+
+.. autoclass:: Xid
+
+    This class is created by calling :meth:`Connection.xid()`.

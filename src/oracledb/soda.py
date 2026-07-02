@@ -110,8 +110,8 @@ class SodaDatabase(metaclass=BaseMetaClass):
         to use this method if your collection requires client-assigned keys or
         has non-JSON content; otherwise, you can pass your content directly to
         SODA write operations. SodaDocument attributes
-        :attr:`~SodaDoc.createdOn`, :attr:`~SodaDoc.lastModified`, and
-        :attr:`~SodaDoc.version` will be *None*.
+        :attr:`~SodaDocument.createdOn`, :attr:`~SodaDocument.lastModified`,
+        and :attr:`~SodaDocument.version` will be *None*.
 
         The ``content`` parameter can be a dictionary or list which will be
         transformed into a JSON string and then UTF-8 encoded. It can also be a

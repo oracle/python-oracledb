@@ -1345,9 +1345,9 @@ class Connection(BaseConnection):
     def shutdown(self, mode: int = 0) -> None:
         """
         Shuts down the database. In order to do this the connection must be
-        connected as :data:`~oracledb.SYSDBA` or :data:`~oracledb.SYSOPER`. Two
-        calls must be made unless the mode specified is
-        :data:`~oracledb.DBSHUTDOWN_ABORT`.
+        connected as :data:`~oracledb.AUTH_MODE_SYSDBA` or
+        :data:`~oracledb.AUTH_MODE_SYSOPER`. Two calls must be made unless the
+        mode specified is :data:`~oracledb.DBSHUTDOWN_ABORT`.
         """
         self._verify_connected()
         self._impl.shutdown(mode)
@@ -1361,8 +1361,9 @@ class Connection(BaseConnection):
         """
         Starts up the database. This is equivalent to the SQL*Plus command
         ``startup nomount``. The connection must be connected as
-        :data:`~oracledb.SYSDBA` or :data:`~oracledb.SYSOPER` with the
-        :data:`~oracledb.PRELIM_AUTH` option specified for this to work.
+        :data:`~oracledb.AUTH_MODE_SYSDBA` or
+        :data:`~oracledb.AUTH_MODE_SYSOPER` with the
+        :data:`~oracledb.AUTH_MODE_PRELIM` option specified for this to work.
 
         The ``pfile`` parameter, if specified, is expected to be a string
         identifying the location of the parameter file (PFILE) which will be
@@ -1403,7 +1404,7 @@ class Connection(BaseConnection):
 
         The ``protocol`` parameter specifies the protocol to use when
         notifications are sent. Currently the only valid value is
-        :data:`oracledb.SUBSCR_PROTO_OCI`.
+        :data:`oracledb.SUBSCR_PROTO_CALLBACK`.
 
         The ``callback`` is expected to be a callable that accepts a single
         parameter. A :ref:`message object <msgobjects>` is passed to this

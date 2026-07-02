@@ -1,5 +1,7 @@
 .. _deprecations:
 
+.. currentmodule:: oracledb
+
 ***********************************
 Deprecated and Desupported Features
 ***********************************
@@ -87,9 +89,9 @@ used for new development.
 
     * - Name
       - Comments
-    * - Calling :meth:`Variable.setvalue()` with a string value when the variable type is one of :data:`oracledb.DB_TYPE_BLOB`,
+    * - Calling :meth:`Var.setvalue()` with a string value when the variable type is one of :data:`oracledb.DB_TYPE_BLOB`,
         :data:`oracledb.DB_TYPE_CLOB` or :data:`oracledb.DB_TYPE_NCLOB`.
-      - Call :meth:`Connection.createlob()` with the value instead and pass the result to :meth:`Variable.setvalue()`.
+      - Call :meth:`Connection.createlob()` with the value instead and pass the result to :meth:`Var.setvalue()`.
     * - Setting an attribute of type :data:`oracledb.DB_TYPE_BLOB`, :data:`oracledb.DB_TYPE_CLOB` or :data:`oracledb.DB_TYPE_NCLOB` on a database object to a string value.
       - Call :meth:`Connection.createlob()` with the value instead and set the attribute with the result.
 
@@ -122,7 +124,7 @@ used for new development.
       - The encodings in use are always UTF-8.
     * - Parameter ``threaded`` of the :meth:`oracledb.connect()` method
       - This was used to allow the Oracle Client libraries to support threaded applications. This value is ignored in python-oracledb because the threaded OCI is always enabled in the Thick mode, and the option is not relevant to the Thin mode. The equivalent parameter was already deprecated for ``cx_Oracle.SessionPool()`` in cx_Oracle 8.2.
-    * - Attribute :attr:`Connection.maxBytesPerCharacter` of the Connection object
+    * - Attribute ``Connection.maxBytesPerCharacter`` of the Connection object
       - This was previously deprecated.  In python-oracledb 1.0 it will return a constant value of 4 since encodings are always UTF-8.
     * - Size argument, ``numRows`` of the :meth:`Cursor.fetchmany()` method
       - Rename the parameter to ``size``.
@@ -132,44 +134,44 @@ used for new development.
       - This method is no longer recommended for creating connections. Use the equivalent function :meth:`oracledb.connect()` instead.
     * - Attribute ``Cursor.bindarraysize`` of the Cursor object
       - Remove this attribute since it is no longer needed.
-    * - Constant :data:`~oracledb.ATTR_PURITY_DEFAULT`
+    * - Constant ``oracledb.ATTR_PURITY_DEFAULT``
       - Replace by :data:`oracledb.PURITY_DEFAULT`.
-    * - Constant :data:`~oracledb.ATTR_PURITY_NEW`
+    * - Constant ``oracledb.ATTR_PURITY_NEW``
       - Replace by :data:`oracledb.PURITY_NEW`.
-    * - Constant :data:`~oracledb.ATTR_PURITY_SELF`
+    * - Constant ``oracledb.ATTR_PURITY_SELF``
       - Replace by :data:`oracledb.PURITY_SELF`.
-    * - Constant :data:`~oracledb.SPOOL_ATTRVAL_WAIT`
+    * - Constant ``oracledb.SPOOL_ATTRVAL_WAIT``
       - Replace by :data:`oracledb.POOL_GETMODE_WAIT`.
-    * - Constant :data:`~oracledb.SPOOL_ATTRVAL_NOWAIT`
+    * - Constant ``oracledb.SPOOL_ATTRVAL_NOWAIT``
       - Replace by :data:`oracledb.POOL_GETMODE_NOWAIT`.
-    * - Constant :data:`~oracledb.SPOOL_ATTRVAL_FORCEGET`
+    * - Constant ``oracledb.SPOOL_ATTRVAL_FORCEGET``
       - Replace by :data:`oracledb.POOL_GETMODE_FORCEGET`.
-    * - Constant :data:`~oracledb.SPOOL_ATTRVAL_TIMEDWAIT`
+    * - Constant ``oracledb.SPOOL_ATTRVAL_TIMEDWAIT``
       - Replace by :data:`oracledb.POOL_GETMODE_TIMEDWAIT`.
-    * - Constant :data:`~oracledb.DEFAULT_AUTH`
+    * - Constant ``oracledb.DEFAULT_AUTH``
       - Replace by :data:`oracledb.AUTH_MODE_DEFAULT`.
-    * - Constant :data:`~oracledb.SYSASM`
+    * - Constant ``oracledb.SYSASM``
       - Replace by :data:`oracledb.AUTH_MODE_SYSASM`.
-    * - Constant :data:`~oracledb.SYSBKP`
+    * - Constant ``oracledb.SYSBKP``
       - Replace by :data:`oracledb.AUTH_MODE_SYSBKP`.
-    * - Constant :data:`~oracledb.SYSDBA`
+    * - Constant ``oracledb.SYSDBA``
       - Replace by :data:`oracledb.AUTH_MODE_SYSDBA`.
-    * - Constant :data:`~oracledb.SYSDGD`
+    * - Constant ``oracledb.SYSDGD``
       - Replace by :data:`oracledb.AUTH_MODE_SYSDGD`.
-    * - Constant :data:`~oracledb.SYSKMT`
+    * - Constant ``oracledb.SYSKMT``
       - Replace by :data:`oracledb.AUTH_MODE_SYSKMT`.
-    * - Constant :data:`~oracledb.SYSOPER`
+    * - Constant ``oracledb.SYSOPER``
       - Replace by :data:`oracledb.AUTH_MODE_SYSOPER`.
-    * - Constant :data:`~oracledb.SYSRAC`
+    * - Constant ``oracledb.SYSRAC``
       - Replace by :data:`oracledb.AUTH_MODE_SYSRAC`.
-    * - Constant :data:`~oracledb.PRELIM_AUTH`
+    * - Constant ``oracledb.PRELIM_AUTH``
       - Replace by :data:`oracledb.AUTH_MODE_PRELIM`.
-    * - Constant :data:`~oracledb.SUBSCR_PROTO_OCI`
+    * - Constant ``oracledb.SUBSCR_PROTO_OCI``
       - Replace by :data:`oracledb.SUBSCR_PROTO_CALLBACK`.
     * - Class name ObjectType
-      - Replace by the equivalent :ref:`DbObjectType<dbobjecttype>`.
+      - Replace by the equivalent :class:`oracledb.DbObjectType`.
     * - Class name Object
-      - Replace by the equivalent :ref:`DbObject <dbobject>`.
+      - Replace by the equivalent :class:`oracledb.DbObject`.
 
 .. list-table-with-summary:: Desupported in python-oracledb 1.0
     :header-rows: 1
@@ -283,11 +285,11 @@ used for new development.
     * - ``Message.queueName``
       - Replace with :attr:`Message.queue_name`
     * - ``Variable.actualElements``
-      - Replace with :attr:`Variable.actual_elements`
+      - Replace with :attr:`Var.actual_elements`
     * - ``Variable.bufferSize``
-      - Replace with :attr:`Variable.buffer_size`
+      - Replace with :attr:`Var.buffer_size`
     * - ``Variable.numElements``
-      - Replace with :attr:`Variable.num_elements`
+      - Replace with :attr:`Var.num_elements`
 
 
 .. list-table-with-summary:: Deprecated in cx_Oracle 8.0

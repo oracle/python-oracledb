@@ -304,7 +304,7 @@ following steps:
 
         DPI-1080: connection was closed by ORA-%d
 
-    * Scenario 3: Statement execution exceeded the :attr:`connection.call_timeout`
+    * Scenario 3: Statement execution exceeded the :attr:`Connection.call_timeout`
       value.
 
       python-oracledb Thin mode Error::
@@ -492,8 +492,8 @@ interesting:
   default_type, length, precision, scale)`` was deprecated in python-oracledb
   1.4 but will still work and will be removed in a future version.
 
-- The attribute :attr:`Connection.maxBytesPerCharacter` is deprecated. This
-  will return a constant value of *4* since encodings are always UTF-8.
+- The attribute ``Connection.maxBytesPerCharacter`` has been removed. This
+  used to return a constant value of *4* since encodings are always UTF-8.
 
 - In python-oracledb, the name of the size argument of
   :meth:`Cursor.fetchmany()` is ``size``. This change was done to comply with

@@ -42,9 +42,9 @@ The following code will also work:
 
    isinstance(pool, oracledb.ConnectionPool) == True
 
-The function :meth:`oracledb.SessionPool` that is used to create pools is
-deprecated in python-oracledb 1.0 and has been deprecated by the function
-:meth:`oracledb.create_pool`.
+The function ``oracledb.SessionPool`` that is used to create pools is
+deprecated in python-oracledb 1.0 and has been replaced by the function
+:meth:`oracledb.create_pool()`.
 
 .. _connpoolmethods:
 

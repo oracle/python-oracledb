@@ -662,18 +662,18 @@ This produces the output::
 
     ['First element', 'Second element', 'Third element', 'Fourth element']
 
-Note the use of :meth:`Object.aslist()` which returns the collection element
+Note the use of :meth:`DbObject.aslist()` which returns the collection element
 values in index order as a simple Python list. The indices themselves are lost
 in this approach. The associative array can be turned into a Python dictionary
-using :meth:`Object.asdict()`. If that value was printed in the previous
+using :meth:`DbObject.asdict()`. If that value was printed in the previous
 example instead, the output would be::
 
     {-1048576: 'First element', -576: 'Second element', 284: 'Third element', 8388608: 'Fourth element'}
 
 If the elements need to be traversed in index order, the methods
-:meth:`Object.first()` and :meth:`Object.next()` can be used. The method
-:meth:`Object.getelement()` can be used to acquire the element at a particular
-index. This is shown in the following code:
+:meth:`DbObject.first()` and :meth:`DbObject.next()` can be used. The method
+:meth:`DbObject.getelement()` can be used to acquire the element at a
+particular index. This is shown in the following code:
 
 .. code-block:: python
 
@@ -690,7 +690,7 @@ This produces the output::
     8388608 -> Fourth element
 
 Similarly, the elements can be traversed in reverse index order using the
-methods :meth:`Object.last()` and :meth:`Object.prev()` as shown in the
+methods :meth:`DbObject.last()` and :meth:`DbObject.prev()` as shown in the
 following code:
 
 .. code-block:: python

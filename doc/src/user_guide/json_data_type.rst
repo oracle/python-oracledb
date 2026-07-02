@@ -172,7 +172,7 @@ specify that the bind variable placeholder represents JSON:
      cursor.setinputsizes(oracledb.DB_TYPE_JSON)
      cursor.execute("insert into mytab (json_data) values (:1)", [oson])
 
-When fetching, use :meth:`Connection.decode_json()` to extract the values:
+When fetching, use :meth:`Connection.decode_oson()` to extract the values:
 
 .. code-block:: python
 

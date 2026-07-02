@@ -184,7 +184,7 @@ def init_oracle_client(
     version>"``, where <name> is the name of the driver and <version> is its
     version. There should be a single space character before and after the
     colon. If this parameter is not set, then the value specified in
-    :attr:`oracledb.defaults.driver_name <defaults.driver_name>` is used. If
+    :attr:`oracledb.defaults.driver_name <Defaults.driver_name>` is used. If
     the value of this attribute is *None*, then the default value in
     python-oracledb Thick mode is like "python-oracledb thk : <version>". See
     :ref:`otherinit`.

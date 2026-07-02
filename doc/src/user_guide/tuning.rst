@@ -337,7 +337,7 @@ For example:
         sum_rows += row[0]
     print(sum_rows)
 
-The :attr:`Cursor.arraysize`` value can also be set before calling the
+The :attr:`Cursor.arraysize` value can also be set before calling the
 procedure:
 
 .. code-block:: python
