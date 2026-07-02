@@ -1998,3 +1998,13 @@ def test_8082(test_env, conn, cursor):
         order by NumberValue""")
     fetched_df = pyarrow.table(ora_df).to_pandas()
     assert test_env.get_data_from_df(fetched_df) == data
+
+
+def test_8083(test_env, conn):
+    "8083 - test fetching data that is null by describe"
+    data = [(None, None), (None, None), (None, None)]
+    ora_df = conn.fetch_df_all(
+        "select null as c1, null as c2 from dual connect by level <= 3"
+    )
+    fetched_df = pyarrow.table(ora_df).to_pandas()
+    assert test_env.get_data_from_df(fetched_df) == data

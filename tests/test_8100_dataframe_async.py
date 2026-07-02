@@ -1749,3 +1749,13 @@ async def test_8169(test_env, async_conn, async_cursor):
         order by NumberValue""")
     fetched_df = pyarrow.table(ora_df).to_pandas()
     assert test_env.get_data_from_df(fetched_df) == data
+
+
+async def test_8170(test_env, async_conn):
+    "8170 - test fetching data that is null by describe"
+    data = [(None, None), (None, None), (None, None)]
+    ora_df = await async_conn.fetch_df_all(
+        "select null as c1, null as c2 from dual connect by level <= 3"
+    )
+    fetched_df = pyarrow.table(ora_df).to_pandas()
+    assert test_env.get_data_from_df(fetched_df) == data

@@ -29,6 +29,9 @@ Thin Mode Changes
     different from the one associated with the pool when the pool is full.
 #)  Fixed bug when attempting to load boolean values using Direct Path Load
     (`issue 593 <https://github.com/oracle/python-oracledb/issues/593>`__).
+#)  Fixed segfault when calling :meth:`Connection.fetch_df_all()` and
+    :meth:`Connection.fetch_df_batches()` with data that is null by describe
+    (`issue 597 <https://github.com/oracle/python-oracledb/issues/597>`__).
 #)  Fixed bug where :attr:`ConnectionPool.wait_timeout` returned the value in
     seconds instead of milliseconds.
 #)  Fixed segfault when calling :meth:`AsyncConnectionPool.release()` with a

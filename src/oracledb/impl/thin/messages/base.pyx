@@ -1047,6 +1047,8 @@ cdef class MessageWithData(Message):
                                          ORA_TYPE_NUM_LONG_RAW,
                                          ORA_TYPE_NUM_UROWID):
             column_value = None             # column is null by describe
+            if self.cursor_impl.fetching_arrow:
+                var_impl._arrow_array.append_null()
         elif ora_type_num == ORA_TYPE_NUM_ROWID:
             if not self.in_fetch:
                 column_value = buf.read_str(CS_FORM_IMPLICIT)
