@@ -237,6 +237,17 @@ class BaseConnection(metaclass=BaseMetaClass):
         return self._impl.get_db_name()
 
     @property
+    def db_unique_name(self) -> str:
+        """
+        This read-only attribute specifies the Oracle Database unique name
+        associated with the connection. It is the same value returned by the
+        SQL ``SELECT SYS_CONTEXT('USERENV', 'DB_UNIQUE_NAME') FROM DUAL``.
+        This attribute is only available in python-oracledb Thin mode.
+        """
+        self._verify_connected()
+        return self._impl.get_db_unique_name()
+
+    @property
     def dbop(self) -> str:
         """
         This write-only attribute sets the database operation that is to be

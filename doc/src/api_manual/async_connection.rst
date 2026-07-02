@@ -286,6 +286,10 @@ AsyncConnection Attributes
 
 .. autoproperty:: AsyncConnection.db_name
 
+.. autoproperty:: AsyncConnection.db_unique_name
+
+    .. versionadded:: 4.1.0
+
 .. autoproperty:: AsyncConnection.dbop
 
 .. autoproperty:: AsyncConnection.dsn

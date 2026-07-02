@@ -185,6 +185,8 @@ cdef class BaseProtocol:
                 <uint16_t> int(session_data["AUTH_SERIAL_NUM"])
         conn_impl._db_domain = session_data.get("AUTH_SC_DB_DOMAIN")
         conn_impl._db_name = session_data.get("AUTH_SC_DBUNIQUE_NAME")
+        conn_impl._db_unique_name = \
+                session_data.get("AUTH_SC_REAL_DBUNIQUE_NAME")
         conn_impl._max_open_cursors = \
                 int(session_data.get("AUTH_MAX_OPEN_CURSORS", 0))
         conn_impl._service_name = session_data.get("AUTH_SC_SERVICE_NAME")

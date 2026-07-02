@@ -265,6 +265,9 @@ cdef class BaseConnImpl:
     def get_db_name(self):
         errors._raise_not_supported("getting the database name")
 
+    def get_db_unique_name(self):
+        errors._raise_not_supported("getting the database unique name")
+
     def get_edition(self):
         errors._raise_not_supported("getting the edition")
 

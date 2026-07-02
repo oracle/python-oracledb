@@ -46,6 +46,8 @@ Common Changes
     :ref:`AWS Simple Storage Service (S3) <awss3provider>` and
     :ref:`AWS Secrets Manager <awssecretsmanagerprovider>` with
     the :ref:`oracledb.plugins.aws_config_provider <configawsplugin>` plugin.
+#)  Added connection property :attr:`Connection.db_unique_name` (and async
+    variant) to provide the database unique name.
 #)  Added support for fetching INTERVAL DAY TO SECOND and INTERVAL YEAR TO
     MONTH in :ref:`Arrow data frames <dataframeformat>` and added support for
     ingestion of INTERVAL DAY TO SECOND values from

@@ -80,6 +80,7 @@ cdef class BaseThinConnImpl(BaseConnImpl):
         uint32_t _max_open_cursors
         str _db_domain
         str _db_name
+        str _db_unique_name
         str _edition
         str _instance_name
         str _internal_name
@@ -315,6 +316,9 @@ cdef class BaseThinConnImpl(BaseConnImpl):
 
     def get_db_name(self):
         return self._db_name
+
+    def get_db_unique_name(self):
+        return self._db_unique_name
 
     def get_session_id(self):
         return self._session_id

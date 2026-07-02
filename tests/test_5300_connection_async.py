@@ -715,3 +715,13 @@ async def test_5358(test_env, attr_name):
         assert conn_value == expected_value or (
             isinstance(expected_value, list) and conn_value in expected_value
         )
+
+
+async def test_5359(async_cursor, test_env):
+    "5359 - test getting db_unique_name"
+    test_env.skip_unless_server_version(18, 5)
+    await async_cursor.execute(
+        "select sys_context('userenv', 'db_unique_name') from dual"
+    )
+    (expected_name,) = await async_cursor.fetchone()
+    assert async_cursor.connection.db_unique_name == expected_name

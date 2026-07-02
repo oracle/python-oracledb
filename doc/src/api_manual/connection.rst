@@ -334,6 +334,12 @@ Connection Attributes
 
     .. versionadded:: 2.0.0
 
+.. autoproperty:: Connection.db_unique_name
+
+    .. dbapiattributeextension::
+
+    .. versionadded:: 4.1.0
+
 .. autoproperty:: Connection.dbop
 
     .. dbapiattributeextension::

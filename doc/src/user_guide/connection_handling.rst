@@ -179,6 +179,23 @@ Alternatively, you can explicitly close a connection by calling.
 If you explicitly close connections you may also need to close other resources
 first.
 
+.. _getdbinfo:
+
+Getting Connected Database Information
+++++++++++++++++++++++++++++++++++++++
+
+After a connection has been established, applications can use certain
+:ref:`connection attributes <connattrs>` to identify the database and service
+that the connection is using.
+
+In python-oracledb Thin mode, you can use the
+:attr:`Connection.db_unique_name` attribute to identify the Oracle Database
+unique name associated with a connection. For example:
+
+.. code-block:: python
+
+    print(connection.db_unique_name)
+
 .. _connerrors:
 
 Common Connection Errors

@@ -963,3 +963,11 @@ def test_1161(conn, test_env, attr_name):
     else:
         with test_env.assert_raises_full_code("DPY-3001"):
             getattr(conn, attr_name)
+
+
+def test_1162(skip_unless_thin_mode, cursor, test_env):
+    "1162 - test getting db_unique_name"
+    test_env.skip_unless_server_version(18, 5)
+    cursor.execute("select sys_context('userenv', 'db_unique_name') from dual")
+    (expected_name,) = cursor.fetchone()
+    assert cursor.connection.db_unique_name == expected_name
