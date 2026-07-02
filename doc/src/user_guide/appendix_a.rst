@@ -23,6 +23,7 @@ For more details see :ref:`driverdiff` and :ref:`upgrading83`.
     :header-rows: 1
     :class: wy-table-responsive
     :align: center
+    :widths: 20 10 10 10
     :summary: The first column displays the Oracle feature. The second column indicates whether the feature is supported in python-oracledb Thin mode. The third column indicates whether the feature is supported in python-oracledb Thick mode. The fourth column indicates if the feature is supported in the obsolete cx_Oracle driver.
 
     * - Oracle Feature
@@ -383,6 +384,7 @@ APIs you may use other types, for example when binding numeric values.
     :header-rows: 1
     :class: wy-table-responsive
     :align: center
+    :widths: 20 28 22 30
     :summary: The first column displays the database data type. The second column displays the python-oracledb constant Name. The third column shows Python types that can be used. The fourth column contains notes.
 
     * - Oracle Database Type

@@ -124,6 +124,9 @@ Pooled connection examples:
 Note the use of a :ref:`heterogeneous <connpooltypes>` pool in the example
 above.  This is required in this scenario.
 
+Proxy users can also be used with token-based authentication. See
+:ref:`tokenauth` for more information.
+
 .. _extauth:
 
 External Authentication
@@ -565,6 +568,27 @@ Note that the ``access_token`` parameter should be set to a callable. This is
 useful when the connection pool needs to expand and create new connections but
 the current token has expired. In such a case, the callable should return a
 string specifying the new, valid access token.
+
+.. _proxyiamtokenauth:
+
+**Using Proxy Users with OCI IAM Token-Based Authentication**
+
+In both python-oracledb Thin and Thick modes, a proxy user can be specified
+when using OCI IAM token-based authentication by setting the ``proxy_user``
+parameter in :func:`oracledb.connect()` or :func:`oracledb.create_pool()`. The
+following example shows a standalone connection in python-oracledb Thin mode:
+
+.. code:: python
+
+    connection = oracledb.connect(
+        access_token=TokenHandlerIAM(),
+        proxy_user="mysessionuser",
+        dsn=mydb_low,
+        config_dir="path_to_unzipped_wallet",
+        wallet_location="location_of_pem_file",
+        wallet_password=wp)
+
+For more information on proxy users, see :ref:`proxyauth`.
 
 .. _iamauthconnstr:
 
@@ -1068,6 +1092,27 @@ Note that the ``access_token`` parameter should be set to a callable. This is
 useful when the connection pool needs to expand and create new connections but
 the current token has expired. In such a case, the callable should return a
 string specifying the new, valid Entra ID OAuth2 token.
+
+.. _proxyoauthtokenauth:
+
+**Using Proxy Users with OAuth 2.0 Token-Based Authentication**
+
+In both python-oracledb Thin and Thick modes, a proxy user can be specified
+when using OAuth 2.0 token-based authentication by setting the ``proxy_user``
+parameter in :func:`oracledb.connect()` or :func:`oracledb.create_pool()`. The
+following example shows a standalone connection in python-oracledb Thin mode:
+
+.. code:: python
+
+    connection = oracledb.connect(
+        access_token=TokenHandlerOAuth(),
+        proxy_user="mysessionuser",
+        dsn=mydb_low,
+        config_dir="path_to_unzipped_wallet",
+        wallet_location="location_of_pem_file",
+        wallet_password=wp)
+
+For more information on proxy users, see :ref:`proxyauth`.
 
 .. _oauth2connstr:
 
