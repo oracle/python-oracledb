@@ -566,3 +566,11 @@ def test_1024(test_env):
         oracledb.enquote_name('test_"1024b')
     with test_env.assert_raises_full_code("DPY-2074"):
         oracledb.enquote_name('"test_"1024c"')
+
+
+def test_1025(skip_unless_thin_mode, test_env):
+    "1025 - test invalid end user security context length"
+    with test_env.assert_raises_full_code("DPY-2072"):
+        oracledb.create_end_user_security_context(
+            end_user_identity="x" * 70000, database_access_token="y" * 70000
+        )
