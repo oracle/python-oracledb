@@ -319,6 +319,17 @@ class BaseConnection(metaclass=BaseMetaClass):
         self._impl.set_external_name(value)
 
     @property
+    def host(self) -> str:
+        """
+        This read-only attribute specifies the host on which the database is
+        running. When an HTTPS proxy is used, this returns the database host
+        and not the proxy host. This attribute is available only in
+        python-oracledb Thin mode.
+        """
+        self._verify_connected()
+        return self._impl.get_host()
+
+    @property
     def inputtypehandler(self) -> Callable:
         """
         This read-write attribute specifies a method called for each value that
@@ -360,6 +371,24 @@ class BaseConnection(metaclass=BaseMetaClass):
     def internal_name(self, value: str) -> None:
         self._verify_connected()
         self._impl.set_internal_name(value)
+
+    @property
+    def port(self) -> int:
+        """
+        This read-only attribute specifies the port to which this connection is
+        connected. It is available only in python-oracledb Thin mode.
+        """
+        self._verify_connected()
+        return self._impl.get_port()
+
+    @property
+    def protocol(self) -> str:
+        """
+        This read-only attribute specifies the protocol used by this
+        connection. It is available only in python-oracledb Thin mode.
+        """
+        self._verify_connected()
+        return self._impl.get_protocol()
 
     def is_healthy(self) -> bool:
         """

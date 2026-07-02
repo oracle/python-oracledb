@@ -947,3 +947,19 @@ def test_1160(skip_unless_thin_mode, conn, test_env):
     )
     with test_env.assert_raises_full_code("DPY-2073"):
         conn.set_end_user_security_context(context)
+
+
+@pytest.mark.parametrize("attr_name", ["host", "port", "protocol"])
+def test_1161(conn, test_env, attr_name):
+    "1161 - test getting connection networking attributes"
+    if conn.thin:
+        params = test_env.get_connect_params()
+        params.parse_connect_string(test_env.connect_string)
+        conn_value = getattr(conn, attr_name)
+        expected_value = getattr(params, attr_name)
+        assert conn_value == expected_value or (
+            isinstance(expected_value, list) and conn_value in expected_value
+        )
+    else:
+        with test_env.assert_raises_full_code("DPY-3001"):
+            getattr(conn, attr_name)

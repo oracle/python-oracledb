@@ -358,6 +358,12 @@ Connection Attributes
 
     .. dbapiattributeextension::
 
+.. autoproperty:: Connection.host
+
+    .. dbapiattributeextension::
+
+    .. versionadded:: 4.1.0
+
 .. autoproperty:: Connection.inputtypehandler
 
     See :ref:`inputtypehandlers`.
@@ -409,6 +415,18 @@ Connection Attributes
         still work but is deprecated and will be removed in a future version.
 
     .. dbapiattributeextension::
+
+.. autoproperty:: Connection.port
+
+    .. dbapiattributeextension::
+
+    .. versionadded:: 4.1.0
+
+.. autoproperty:: Connection.protocol
+
+    .. dbapiattributeextension::
+
+    .. versionadded:: 4.1.0
 
 .. autoproperty:: Connection.proxy_user
 

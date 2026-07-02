@@ -296,6 +296,10 @@ AsyncConnection Attributes
 
 .. autoproperty:: AsyncConnection.external_name
 
+.. autoproperty:: AsyncConnection.host
+
+    .. versionadded:: 4.1.0
+
 .. autoproperty:: AsyncConnection.inputtypehandler
 
 .. autoproperty:: AsyncConnection.instance_name
@@ -315,6 +319,14 @@ AsyncConnection Attributes
 .. autoproperty:: AsyncConnection.outputtypehandler
 
     See :ref:`outputtypehandlers`.
+
+.. autoproperty:: AsyncConnection.port
+
+    .. versionadded:: 4.1.0
+
+.. autoproperty:: AsyncConnection.protocol
+
+    .. versionadded:: 4.1.0
 
 .. autoproperty:: AsyncConnection.sdu
 

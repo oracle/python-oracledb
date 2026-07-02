@@ -274,6 +274,9 @@ cdef class BaseConnImpl:
     def get_handle(self):
         errors._raise_not_supported("getting the OCI service context handle")
 
+    def get_host(self):
+        errors._raise_not_supported("getting the host name")
+
     def get_instance_name(self):
         errors._raise_not_supported("getting the instance name")
 
@@ -290,6 +293,12 @@ cdef class BaseConnImpl:
         errors._raise_not_supported(
             "getting the maximum number of open cursors"
         )
+
+    def get_port(self):
+        errors._raise_not_supported("getting the port")
+
+    def get_protocol(self):
+        errors._raise_not_supported("getting the protocol")
 
     def get_sdu(self):
         errors._raise_not_supported("getting the session data unit (SDU)")

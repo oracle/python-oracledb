@@ -37,6 +37,7 @@ cdef class Transport:
         object _transport
         object _ssl_context
         str _ssl_sni_data
+        Address _address
         uint32_t _transport_num
         ssize_t _max_packet_size
         uint32_t _op_num
@@ -333,6 +334,7 @@ cdef class Transport:
         if sock.gettimeout() != 0:
             sock.settimeout(None)
         self._transport = transport
+        self._address = address
         self._transport_num = sock.fileno()
 
     cdef Packet read_packet(self, bint raise_exc=True):

@@ -21,6 +21,10 @@ Thin Mode Changes
 
 #)  Added support for :ref:`Oracle Deep Data Security <deepdatasecurity>` using
     :ref:`asyncio <concurrentprogramming>`.
+#)  Added read-only connection attributes :attr:`Connection.host`,
+    :attr:`Connection.port`, and :attr:`Connection.protocol` (and async
+    variants) to expose the database host, port, and protocol for Thin mode
+    connections.
 #)  Fixed bug when attempting to load boolean values using Direct Path Load
     (`issue 593 <https://github.com/oracle/python-oracledb/issues/593>`__).
 

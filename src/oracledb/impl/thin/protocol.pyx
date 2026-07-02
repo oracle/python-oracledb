@@ -254,6 +254,7 @@ cdef class Protocol(BaseProtocol):
             uint8_t packet_type, packet_flags = 0
             object ssl_context, connect_info
             ConnectParamsImpl temp_params
+            Address db_address = address
             str host, redirect_data
             Address temp_address
             int port, pos
@@ -265,7 +266,7 @@ cdef class Protocol(BaseProtocol):
         # establish initial TCP connection and get initial connect string
         host = address.ip_address
         port = address.port
-        self._connect_tcp(params, description, address, host, port,
+        self._connect_tcp(params, description, db_address, host, port,
                           connect_string)
 
         # send connect message and process response; this may request the
@@ -298,8 +299,11 @@ cdef class Protocol(BaseProtocol):
                 temp_address = temp_params._get_addresses()[0]
                 host = temp_address.host
                 port = temp_address.port
+                db_address = db_address.copy()
+                db_address.host = temp_address.host
+                db_address.port = temp_address.port
                 connect_string = redirect_data[pos + 1:]
-                self._connect_tcp(params, description, address, host, port,
+                self._connect_tcp(params, description, db_address, host, port,
                                   connect_string)
                 connect_message = None
                 packet_flags = TNS_PACKET_FLAG_REDIRECT
@@ -610,6 +614,7 @@ cdef class BaseAsyncProtocol(BaseProtocol):
             uint8_t packet_type, packet_flags = 0
             object ssl_context, connect_info
             ConnectParamsImpl temp_params
+            Address db_address = address
             str host, redirect_data
             object orig_transport
             Address temp_address
@@ -654,9 +659,13 @@ cdef class BaseAsyncProtocol(BaseProtocol):
                 temp_address = temp_params._get_addresses()[0]
                 host = temp_address.host
                 port = temp_address.port
+                db_address = db_address.copy()
+                db_address.host = host
+                db_address.port = port
                 connect_string = redirect_data[pos + 1:]
                 orig_transport = await self._connect_tcp(params, description,
-                                                         address, host, port)
+                                                         db_address, host,
+                                                         port)
                 connect_message = None
                 packet_flags = TNS_PACKET_FLAG_REDIRECT
             elif packet_type == TNS_PACKET_TYPE_ACCEPT:

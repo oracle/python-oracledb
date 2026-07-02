@@ -702,3 +702,16 @@ async def test_5357(test_env):
 
     async with test_env.get_connection_async(on_connect_callback=callback):
         assert counter == 1
+
+
+@pytest.mark.parametrize("attr_name", ["host", "port", "protocol"])
+async def test_5358(test_env, attr_name):
+    "5358 - test getting connection networking attributes"
+    params = test_env.get_connect_params()
+    params.parse_connect_string(test_env.connect_string)
+    async with test_env.get_connection_async() as conn:
+        conn_value = getattr(conn, attr_name)
+        expected_value = getattr(params, attr_name)
+        assert conn_value == expected_value or (
+            isinstance(expected_value, list) and conn_value in expected_value
+        )

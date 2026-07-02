@@ -328,6 +328,9 @@ cdef class BaseThinConnImpl(BaseConnImpl):
     def get_external_name(self):
         return self._external_name
 
+    def get_host(self):
+        return self._protocol._transport._address.host
+
     def get_instance_name(self):
         return self._instance_name
 
@@ -345,6 +348,12 @@ cdef class BaseThinConnImpl(BaseConnImpl):
 
     def get_max_open_cursors(self):
         return self._max_open_cursors
+
+    def get_port(self):
+        return self._protocol._transport._address.port
+
+    def get_protocol(self):
+        return self._protocol._transport._address.protocol
 
     def get_sdu(self):
         return self._protocol._caps.sdu
