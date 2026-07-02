@@ -36,6 +36,8 @@ Thin Mode Changes
 #)  Fixed bug in :func:`oracledb.create_end_user_security_context()` which
     prevented the second item (key) in a two-item tuple identity from being set
     to *None*.
+#)  Fixed bug where callers waiting on :meth:`ConnectionPool.acquire()` would
+    wait indefinitely after force closing the pool.
 #)  Fixed bug when attempting to use a proxy user with token authentication.
 
 Thick Mode Changes

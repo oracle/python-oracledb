@@ -159,6 +159,7 @@ cdef class BaseThinPoolImpl(BasePoolImpl):
                 conn_impl._is_pooled = False
             lst.clear()
         self._notify_bg_task()
+        self._condition.notify_all()
 
     cdef int _close_helper(self, bint force) except -1:
         """
@@ -632,10 +633,6 @@ cdef class ThinPoolImpl(BaseThinPoolImpl):
         """
         cdef PooledConnRequest request
 
-        # if pool is closed, raise an exception
-        if not self._open:
-            errors._raise_err(errors.ERR_POOL_NOT_OPEN)
-
         # session tagging has not been implemented yet
         if params.tag is not None:
             errors._raise_not_supported("session tagging")
@@ -828,10 +825,6 @@ cdef class AsyncThinPoolImpl(BaseThinPoolImpl):
         """
         cdef PooledConnRequest request
 
-        # if pool is closed, raise an exception
-        if not self._open:
-            errors._raise_err(errors.ERR_POOL_NOT_OPEN)
-
         # session tagging has not been implemented yet
         if params.tag is not None:
             errors._raise_not_supported("session tagging")
@@ -956,6 +949,10 @@ cdef class PooledConnRequest:
         # if an exception was raised in the background thread, raise it now
         if self.exception is not None:
             raise self.exception
+
+        # if the pool is closed, raise an exception
+        elif not pool._open:
+            errors._raise_err(errors.ERR_POOL_NOT_OPEN)
 
         # if the request is completed, waiting can end
         elif self.completed:

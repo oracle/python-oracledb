@@ -753,3 +753,16 @@ async def test_5549(test_env):
     pool.wait_timeout = 3000
     assert pool.wait_timeout == 3000
     await pool.close()
+
+
+async def test_5550(test_env):
+    "5550 - test force closing a pool wakes waiting acquire() calls"
+    pool = test_env.get_pool_async(min=1, max=1)
+
+    async def waiter():
+        with test_env.assert_raises_full_code("DPY-1002"):
+            await pool.acquire()
+
+    conn = await pool.acquire()
+    await asyncio.gather(waiter(), pool.close(force=True))
+    await conn.close()
