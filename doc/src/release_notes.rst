@@ -40,8 +40,9 @@ Thin Mode Changes
     prevented the second item (key) in a two-item tuple identity from being set
     to *None*.
 #)  Fixed bug where callers waiting on :meth:`ConnectionPool.acquire()` would
-    wait indefinitely after force closing the pool.
-#)  Fixed bug when attempting to use a proxy user with token authentication.
+    wait indefinitely after the pool was forcibly closed.
+#)  Fixed bug when attempting to use a proxy user with
+    :ref:`token authentication <tokenauth>`.
 
 Thick Mode Changes
 ++++++++++++++++++
