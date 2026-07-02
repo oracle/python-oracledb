@@ -365,6 +365,7 @@ cdef class ThickVarImpl(BaseVarImpl):
         """
         cdef:
             dpiData *data = &self._data[pos]
+            dpiIntervalDS *intervalDS
             dpiTimestamp *timestamp
             uint32_t ora_type_num
             OracleData ora_data
@@ -418,6 +419,13 @@ cdef class ThickVarImpl(BaseVarImpl):
             elif ora_type_num == DPI_ORACLE_TYPE_VECTOR:
                 _convert_from_python(value, self.metadata, &data.value,
                                      None)
+            elif ora_type_num == DPI_ORACLE_TYPE_INTERVAL_DS:
+                intervalDS = &data.value.asIntervalDS
+                intervalDS.days = ora_data.buffer.as_interval_ds.days
+                intervalDS.hours = ora_data.buffer.as_interval_ds.hours
+                intervalDS.minutes = ora_data.buffer.as_interval_ds.minutes
+                intervalDS.seconds = ora_data.buffer.as_interval_ds.seconds
+                intervalDS.fseconds = ora_data.buffer.as_interval_ds.fseconds
 
     cdef int _transform_element_to_arrow(self, uint32_t pos):
         """
