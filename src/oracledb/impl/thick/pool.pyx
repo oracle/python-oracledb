@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -46,9 +46,9 @@ cdef class ThickPoolImpl(BasePoolImpl):
             uint32_t password_len = 0, user_len = 0, connect_string_len = 0
             bytes token_bytes, private_key_bytes, connect_string_bytes
             bytes session_callback_bytes, name_bytes, driver_name_bytes
+            str full_user, token, private_key, connect_string
             bytes edition_bytes, user_bytes, password_bytes
             const char *connect_string_ptr = NULL
-            str token, private_key, connect_string
             dpiCommonCreateParams common_params
             dpiPoolCreateParams create_params
             const char *password_ptr = NULL
@@ -133,8 +133,9 @@ cdef class ThickPoolImpl(BasePoolImpl):
         create_params.externalAuth = params.externalauth
 
         # prepare user, password and connect string for use
-        if self.username is not None:
-            user_bytes = params.get_full_user().encode()
+        full_user = params.get_full_user()
+        if full_user is not None:
+            user_bytes = full_user.encode()
             user_ptr = user_bytes
             user_len = <uint32_t> len(user_bytes)
         password_bytes = params._get_password()
