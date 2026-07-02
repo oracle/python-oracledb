@@ -27,6 +27,7 @@ Thin Mode Changes
     connections.
 #)  Fixed bug when attempting to load boolean values using Direct Path Load
     (`issue 593 <https://github.com/oracle/python-oracledb/issues/593>`__).
+#)  Fixed bug when attempting to use a proxy user with token authentication.
 
 Thick Mode Changes
 ++++++++++++++++++
