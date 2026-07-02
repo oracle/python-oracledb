@@ -1,15 +1,11 @@
-# Deep Data Security Sample: Run Flow
+# Deep Data Security Samples
 
-Use this flow in:
-
-```bash
-cd python-oracledb/samples/deep_data_security/
-```
-This demo uses Microsoft Entra ID OAUTH tokens for overall authentication.
+The samples in this directory and its subdirectories use Microsoft Entra ID
+OAUTH tokens for overall authentication.
 
 ## Prerequisites
 
-- The database version must support Deep Data Security.
+- The database must support Deep Data Security (23.26.2 or higher).
 - Install the third-party Python library `msal` (used for Microsoft Entra token
   flows).
 ```bash
@@ -17,20 +13,23 @@ python -m pip install msal
 ```
 - Requires Microsoft Entra ID account
 
-## 1) Run required SQL setup scripts
+## 1) Set environment variables
 
-Run these scripts in the target database, in this order:
+Before running the samples, configure the required environment variables for
+Azure authentication and database connectivity. Replace all placeholder values
+with values from your own Azure and Oracle Database environment.
 
-1. `create_hr_schema.sql`
-   - Reference: https://github.com/paulparkinson/oracle-ai-for-sustainable-dev/blob/main/security/deepdatasecurity/sql-entraid/00_create_hr_sample_objects.sql
-2. `database_entra_external_auth.sql`
-   - Reference: https://github.com/paulparkinson/oracle-ai-for-sustainable-dev/blob/main/security/deepdatasecurity/sql-entraid/01_enable_database_free_entra_external_authentication.sql
-3. `setup_dds_demo.sql`
-   - Reference: https://github.com/paulparkinson/oracle-ai-for-sustainable-dev/blob/main/security/deepdatasecurity/sql-entraid/setup_entraid_dds_demo.sql
+The sample scripts use two sources of configuration:
 
-## 2) Set environment variables
+1. **Azure authentication variables** are read directly from environment
+   variables by the token-acquisition scripts.
+2. **Database connection variables** are loaded through
+   `python-oracledb/samples/sample_env.py`. These variables usually use the
+   `PYO_SAMPLES_*` prefix.
 
-Set these environment variables (replace placeholder values with your own):
+### Azure authentication variables
+
+Set the following variables for Azure user token and DB token acquisition:
 
 ```bash
 # User token acquisition
@@ -38,7 +37,7 @@ export AZURE_USER_CLIENT_ID="user app client id"
 export AZURE_USER_AUTHORITY="azure user authority"
 export AZURE_USER_SCOPES="azure user scope"
 
-# DB token acquisition
+# Database token acquisition
 export AZURE_DB_CLIENT_ID="db app client id"
 export AZURE_DB_CLIENT_CREDENTIAL="client secret"
 export AZURE_DB_AUTHORITY="azure db authority"
@@ -48,13 +47,73 @@ export AZURE_DB_SCOPES="azure db scope"
 export AZURE_USERNAME="your azure username"
 ```
 
-Also `python-oracledb/samples/sample_env.py` must be configured.
+### Application roles and usernames
 
-- `end_user_identity` is the end-user access token fetched by the script using
-  the Python `msal` library.
+Configure these environment variables to match your Azure application's role
+names and user login emails.
 
-## 3) Set end-user identity (required for both samples)
+```bash
+# Azure role name for employees
+export DEMO_EMPLOYEES_AZURE_ROLE="AZURE_EMPLOYEES"
+# Azure role name for managers
+export DEMO_MANAGERS_AZURE_ROLE="AZURE_MANAGERS"
+# Username (email address) for employee
+export DEMO_EMPLOYEE_USERNAME="employee@example.com"
+# Username (email address) for manager
+export DEMO_MANAGER_USERNAME="manager@example.com"
+```
 
+```bash
+export DB_TENANT_ID="your tenant id"
+export DB_APP_ID="your app id"
+export DB_APP_ID_URI="your app id uri"
+```
+
+These values are used by `setup_schema.py` when configuring database external
+authentication.
+
+### Database connection variables
+
+The following variables are read through
+`python-oracledb/samples/sample_env.py`. Replace the example values with values
+from your Oracle Database environment:
+
+```bash
+export PYO_SAMPLES_CONNECT_STRING="myhost.example.com/myservice"
+export PYO_SAMPLES_MAIN_USER="app_user"
+export PYO_SAMPLES_MAIN_PASSWORD="change_me"
+export PYO_SAMPLES_WALLET_LOCATION="/path/to/wallet"
+export PYO_SAMPLES_WALLET_PASSWORD="wallet_password"
+```
+
+
+## 2) Ensure main sample schema has already been created. If not, run this:
+
+```bash
+python ../../create_schema.py
+```
+
+The main sample `create_schema.py` script creates the application user and
+base sample schema objects used by all python-oracledb samples. It must be run
+first because these samples depend on that application user already existing.
+
+
+## 3) Run required SQL setup script
+
+```bash
+python setup_schema.py
+```
+
+The `setup_schema.py` script then configures the objects specific to
+these samples, including the HR sample data, Deep Data Security policy setup,
+and the Microsoft Entra external-authentication values read from the
+environment.
+
+
+## 4) Set end-user identity (required for both samples)
+
+`end_user_identity` is the end-user access token fetched by the script using
+the Python `msal` library.
 Both sample programs require setting the end-user identity before the query
 steps:
 
@@ -73,7 +132,7 @@ Security policies (row filtering and column masking) are enforced for that
 user.
 
 
-## 4) Run the Deep Data Security sample Python program
+## 5) Run the Deep Data Security sample Python program
 
 Run either sample to observe the same Deep Data Security behavior before and
 after setting context:
@@ -87,10 +146,14 @@ python deep_data_security_pool.py
 ### What these sample programs do
 
 - Connect to Oracle Database using settings from `sample_env`
-- Use Azure values (`AZURE_USER_CLIENT_ID`, `AZURE_USER_AUTHORITY`, `AZURE_USER_SCOPES`, `AZURE_USERNAME`, `AZURE_DB_CLIENT_ID`, `AZURE_DB_CLIENT_CREDENTIAL`, `AZURE_DB_AUTHORITY`, `AZURE_DB_SCOPES`) for end-user and DB security parameters
+- Use Azure values (`AZURE_USER_CLIENT_ID`, `AZURE_USER_AUTHORITY`,
+  `AZURE_USER_SCOPES`, `AZURE_USERNAME`, `AZURE_DB_CLIENT_ID`,
+  `AZURE_DB_CLIENT_CREDENTIAL`, `AZURE_DB_AUTHORITY`, `AZURE_DB_SCOPES`) for
+  end-user and DB security parameters
 - Print context and data-query results **before** setting end-user identity
 - Call `provider.set_end_user_identity(END_USER_IDENTITY)`
-- Reconnect/acquire a new connection and print context + `hr.employees` results **after** identity is set
+- Reconnect/acquire a new connection and print context + `hr.employees` results
+  **after** identity is set
 
 
 ---
@@ -175,3 +238,11 @@ hr.employees = 4`). At the same time, sensitive SSN data is still
 policy-protected: SSN is shown for the manager's own record and masked (set as
 `None`) for reportees. This demonstrates broader manager-level row visibility
 with column-level protection still enforced.
+
+## Note
+
+**Note:** For official python-oracledb Deep Data Security details, see:
+> https://python-oracledb.readthedocs.io/en/latest/user_guide/connection_handling.html#deep-data-security
+
+For a Django demo for Deep Data Security, refer to:
+`python-oracledb/samples/deep_data_security/azure/django/hr_demo`

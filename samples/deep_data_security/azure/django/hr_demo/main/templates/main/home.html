@@ -1,0 +1,56 @@
+{% extends "main/base.html" %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<div class="home-container">
+
+    <h1>Welcome 👋</h1>
+    <p class="subtitle">
+        Secure access to HR data using Microsoft Entra ID and Oracle Deep Data Security.
+    </p>
+
+    <div style="background:#eef8ee; border-left:4px solid #2e7d32; padding:10px 12px; margin-bottom:16px; border-radius:4px;">
+        <strong>Demo checklist:</strong>
+        Login as employee and manager users, then compare <em>View HR App</em> and <em>Chat App</em> outputs.
+        You should observe row filtering and sensitive-column masking based on end-user identity.
+    </div>
+
+    <div class="card-grid">
+        {% if request.COOKIES.identity %}
+        <a href="{% url 'logout' %}" class="card-link">
+            <div class="card feature-card">
+                <h3>🔐 Logout</h3>
+                <p>Sign out securely using your Azure Active Directory account.</p>
+            </div>
+        </a>
+        {% else %}
+        <a href="{% url 'login' %}" class="card-link">
+            <div class="card feature-card">
+                <h3>🔐 Login</h3>
+                <p>Sign in securely using your Azure Active Directory account.</p>
+            </div>
+        </a>
+        {% endif %}
+
+        <a href="{% url 'hrapp' %}">
+            <div class="card feature-card">
+                <h3>👥 HR Employees</h3>
+                <p>
+                    View employee records based on your assigned roles (Employee/Manager).
+                </p>
+            </div>
+        </a>
+        <a href="{% url 'chat' %}">
+            <div class="card feature-card">
+                <h3>💬 Chat App</h3>
+                <p>
+                    Query the HR schema securely in real time.
+                </p>
+            </div>
+        </a>
+
+    </div>
+
+</div>
+{% endblock %}

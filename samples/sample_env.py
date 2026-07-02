@@ -210,8 +210,10 @@ def get_admin_connection():
         f"Password for {admin_user}",
         password=True,
     )
-    params = oracledb.ConnectParams()
+    params = get_connect_params()
     if admin_user and admin_user.upper() == "SYS":
+        if params is None:
+            params = oracledb.ConnectParams()
         params.set(mode=oracledb.AUTH_MODE_SYSDBA)
     return oracledb.connect(
         dsn=get_connect_string(),

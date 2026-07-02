@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}Oracle Deep Data Security Django Demo{% endblock %}</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f4f6f8;
+        }
+        .navbar {
+            background-color: #2c3e50;
+            padding: 12px 20px;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+        .navbar .brand {
+            color: #ffffff;
+            font-weight: 700;
+            margin-right: 10px;
+        }
+        .navbar a {
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .navbar a:hover {
+            text-decoration: underline;
+        }
+        .container {
+            padding: 30px;
+        }
+
+        .dds-banner {
+            background: #eaf2ff;
+            border-left: 4px solid #2c3e50;
+            color: #1f2d3d;
+            padding: 10px 14px;
+            margin: 16px 30px 0 30px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        table {
+        border-collapse: collapse;
+        width: 100%;
+        }
+        th, td {
+        padding: 12px 16px;     /* 👈 spacing */
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+        }
+        th {
+        background-color: #34495e;
+        color: white;
+        }
+        td:first-child {
+        width: 40%;             /* 👈 space between columns */
+        font-weight: bold;
+        }
+
+        .home-container {
+        max-width: 900px;
+        margin: auto;
+    }
+
+    .home-container h1 {
+        margin-bottom: 5px;
+        color: #2c3e50;
+    }
+
+    .subtitle {
+        color: #555;
+        margin-bottom: 30px;
+        font-size: 16px;
+    }
+
+    .card-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+    }
+
+    .feature-card h3 {
+        margin-top: 0;
+        color: #34495e;
+    }
+
+    .feature-card p {
+        color: #666;
+        font-size: 14px;
+        line-height: 1.5;
+    }
+    .table-container {
+    max-height: 500px;      /* adjust height if needed */
+    overflow-y: auto;
+    border: 1px solid #ddd;
+}
+
+th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+    </style>
+</head>
+<body>
+
+<div class="navbar">
+    <span class="brand">Oracle Deep Data Security Demo</span>
+    <a href="{% url 'home' %}">Home</a>
+    <a href="{% url 'hrapp' %}">View HR App</a>
+    <a href="{% url 'chat' %}">Chat App</a>
+    {% if request.COOKIES.identity %}
+        <a href="{% url 'logout' %}">Logout</a>
+    {% else %}
+        <a href="{% url 'login' %}">Login</a>
+    {% endif %}
+
+</div>
+
+<div class="dds-banner">
+    This demo uses Microsoft Entra ID identity context for Oracle Deep Data Security policy enforcement.
+    Data visibility in HR queries and chat results depends on the logged-in end-user identity.
+</div>
+
+<div class="container">
+    {% block content %}{% endblock %}
+</div>
+
+</body>
+</html>

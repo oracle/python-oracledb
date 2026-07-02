@@ -1,0 +1,51 @@
+{% extends "main/base.html" %}
+
+{% block title %}Chat SQL{% endblock %}
+
+{% block content %}
+<h2>Chat → SQL</h2>
+
+<div style="background:#fff4e5; border-left:4px solid #f39c12; padding:10px 12px; margin-bottom:14px; border-radius:4px;">
+    <strong>Deep Data Security Note:</strong> Generated query results are governed by Oracle Deep Data Security.
+    Based on logged-in end-user identity, rows may be filtered and sensitive columns may be masked.
+</div>
+
+<form method="post">
+    {% csrf_token %}
+    <textarea name="prompt" rows="4" style="width:100%;" placeholder="Ask in plain English..."></textarea>
+    <br><br>
+    <button type="submit">Run</button>
+</form>
+
+{% if sql %}
+<hr>
+<h4>Generated SQL</h4>
+<pre>{{ sql }}</pre>
+{% endif %}
+
+{% if error_message %}
+<hr>
+<div style="color: red; font-weight: bold;">
+    {{ error_message }}
+</div>
+{% endif %}
+
+{% if columns %}
+<hr>
+<table>
+    <tr>
+        {% for col in columns %}
+        <th>{{ col }}</th>
+        {% endfor %}
+    </tr>
+
+    {% for row in rows %}
+    <tr>
+        {% for cell in row %}
+        <td>{{ cell }}</td>
+        {% endfor %}
+    </tr>
+    {% endfor %}
+</table>
+{% endif %}
+{% endblock %}

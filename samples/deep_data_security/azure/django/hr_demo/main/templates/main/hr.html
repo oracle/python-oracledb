@@ -1,0 +1,36 @@
+{% extends "main/base.html" %}
+
+{% block title %}HR Employees{% endblock %}
+
+{% block content %}
+<h2>HR Employees Report</h2>
+
+<div style="background:#eef5ff; border-left:4px solid #1f4e79; padding:10px 12px; margin-bottom:12px; border-radius:4px;">
+    <strong>Deep Data Security Note:</strong> Results are returned in end-user context.
+    Depending on identity and policy, row count may differ and sensitive fields (like SSN) can be masked.
+</div>
+
+<div class="count">
+    <strong>Total Employees:</strong> {{ count }}
+</div>
+
+<div class="table-container">
+    <table>
+        <tr>
+            <th>Department ID</th>
+            <th>First Name</th>
+            <th>Salary</th>
+            <th>SSN</th>
+        </tr>
+
+        {% for dept, name, salary, ssn in employees %}
+        <tr>
+            <td>{{ dept }}</td>
+            <td>{{ name }}</td>
+            <td>{{ salary }}</td>
+            <td>{% if ssn is None %}<em>Masked</em>{% else %}{{ ssn }}{% endif %}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+{% endblock %}

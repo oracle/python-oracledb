@@ -23,18 +23,19 @@
 # -----------------------------------------------------------------------------
 
 # -----------------------------------------------------------------------------
-# deep_data_security_pool.py
+# deep_data_security_standalone.py
 #
-# Demonstrates Deep Data Security usage with python-oracledb connection pooling
-# and Microsoft Entra ID tokens. The sample shows session context before and
-# after setting end-user identity so row-level security behavior can be
-# observed.
+# Demonstrates Deep Data Security usage with standalone python-oracledb
+# connections and Microsoft Entra ID tokens. The sample prints session context
+# before and after setting end-user identity to show security context
+# propagation.
 #
 # For setup and run instructions, see README.md in this directory.
 # -----------------------------------------------------------------------------
 
 import getpass
 import os
+import pathlib
 import sys
 
 import msal
@@ -42,25 +43,23 @@ import oracledb
 import oracledb.plugins.end_user_sec_provider as provider
 
 # Add the parent "samples" directory to Python import path
-SAMPLES_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, SAMPLES_DIR)
+path = pathlib.Path(__file__)
+sys.path.insert(0, str(path.parent.parent.parent))
 
 import sample_env  # noqa
 
 # Azure App client ID used for user token acquisition
 AZURE_USER_CLIENT_ID = os.environ.get("AZURE_USER_CLIENT_ID")
-# Microsoft Entra authority URL (for example:
-# https://login.microsoftonline.com/<tenant-id>)
+# Microsoft Entra authority URL (for example: https://login.microsoftonline.com/<tenant-id>)
 AZURE_USER_AUTHORITY = os.environ.get("AZURE_USER_AUTHORITY")
-# Scope/audience requested for database token flow
+# Scope/audience requested for user token flow
 AZURE_USER_SCOPES = os.environ.get("AZURE_USER_SCOPES")
 
 # Azure App client ID used for db token acquisition
 AZURE_DB_CLIENT_ID = os.environ.get("AZURE_DB_CLIENT_ID")
 # Azure client secret associated with AZURE_CLIENT_ID
 AZURE_DB_CLIENT_CREDENTIAL = os.environ.get("AZURE_DB_CLIENT_CREDENTIAL")
-# Microsoft Entra authority URL (for example:
-# https://login.microsoftonline.com/<tenant-id>)
+# Microsoft Entra authority URL (for example: https://login.microsoftonline.com/<tenant-id>)
 AZURE_DB_AUTHORITY = os.environ.get("AZURE_DB_AUTHORITY")
 # Scope/audience requested for database token flow
 AZURE_DB_SCOPES = os.environ.get("AZURE_DB_SCOPES")
@@ -72,7 +71,6 @@ AZURE_PASSWORD = getpass.getpass("Azure User Password: ")
 
 
 def _get_end_user_identity():
-
     app = msal.PublicClientApplication(
         AZURE_USER_CLIENT_ID,
         authority=AZURE_USER_AUTHORITY,
@@ -119,9 +117,9 @@ def _validate_required_env_vars():
 
 def query(conn):
 
-    # --------------------------------------------------------
+    # ------------------------------------------------------
     # Query contexts
-    # --------------------------------------------------------
+    # ------------------------------------------------------
     query = """
         select sys_context('userenv', 'current_user'),
                xs_sys_context('xs$session', 'username')
@@ -198,11 +196,28 @@ def main():
     _validate_required_env_vars()
     end_user_identity = _get_end_user_identity()
 
-    pool = oracledb.create_pool(
+    print("x" * 20, "Before setting the context", "x" * 20, "\n")
+
+    with oracledb.connect(
         user=sample_env.get_main_user(),
         password=sample_env.get_main_password(),
         dsn=sample_env.get_connect_string(),
-        params=sample_env.get_pool_params(),
+        params=sample_env.get_connect_params(),
+    ) as connection:
+        print_xs_session_info(connection)
+        print_sec_ctx_tok(connection)
+        query(connection)
+
+    input("press enter to set the context")
+    provider.set_end_user_identity(end_user_identity)
+
+    print("x" * 20, "After setting the context", "x" * 20, "\n")
+
+    with oracledb.connect(
+        user=sample_env.get_main_user(),
+        password=sample_env.get_main_password(),
+        dsn=sample_env.get_connect_string(),
+        params=sample_env.get_connect_params(),
         extra_auth_params={
             "end_user_sec_params": {
                 "spi_type": "azure_tokens",
@@ -213,22 +228,7 @@ def main():
                 "scopes": AZURE_DB_SCOPES,
             }
         },
-    )
-
-    print("x" * 20, "Before setting the context", "x" * 20, "\n")
-
-    with pool.acquire() as connection:
-        print_xs_session_info(connection)
-        print_sec_ctx_tok(connection)
-        query(connection)
-
-    input("press enter to set the context")
-
-    provider.set_end_user_identity(end_user_identity)
-
-    print("x" * 20, "After setting the context", "x" * 20, "\n")
-
-    with pool.acquire() as connection:
+    ) as connection:
         print_xs_session_info(connection)
         print_sec_ctx_tok(connection)
         query(connection)
