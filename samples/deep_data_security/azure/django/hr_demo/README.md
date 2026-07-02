@@ -261,3 +261,119 @@ This confirms Deep Data Security can provide broader manager-level row
 visibility while still enforcing column-level protection.
 
 ---
+
+## Demo Screenshots
+
+The following screenshots illustrate the end-to-end Deep Data Security workflow.
+
+### 1. Home Page
+
+Landing page after starting the application.
+
+![Home Page](docs/images/home.png)
+
+---
+
+### 2. Microsoft Entra ID Login
+
+User authenticates through Microsoft Entra ID.
+
+![Entra Login](docs/images/login.png)
+
+---
+
+### 3. Employee View
+
+Example showing an employee who can view only their own authorized records.
+
+![Employee View](docs/images/employee-view.png)
+
+---
+
+### 4. Manager View
+
+Example showing a manager who can view their direct reports while sensitive
+columns remain masked according to Deep Data Security policies.
+
+![Manager View](docs/images/manager-view.png)
+
+---
+
+### 5. Chat-to-SQL Interface
+
+Natural language questions are translated into SQL and executed against the
+database using the authenticated end-user identity.
+
+![Chat Application](docs/images/chat.png)
+
+---
+
+## Chat-to-SQL Security Demonstration
+
+The Chat application uses OCI Generative AI to translate natural-language
+questions into SQL. The generated SQL is executed using the authenticated
+user's end-user identity, allowing Oracle Deep Data Security policies to
+transparently enforce row-level and column-level security.
+
+### Scenario 1: Employee Query
+
+**Prompt**
+
+> What is the average salary?
+
+The LLM generates a SQL query (for example):
+
+```sql
+SELECT AVG(salary) FROM hr.employees;
+```
+
+Although the SQL is identical for every user, Deep Data Security automatically
+restricts the rows visible to the employee.
+
+As a result:
+
+- The calculation is performed only on the employee's authorized data.
+- The employee receives an average salary based on the rows they are permitted to access.
+
+![Employee Average Salary](docs/images/chat-employee-avg-salary.png)
+
+---
+
+### Scenario 2: Manager Query
+
+A manager asks the same question:
+
+> What is the average salary?
+
+The LLM generates the same SQL statement:
+
+```sql
+SELECT AVG(salary) FROM hr.employees;
+```
+
+However, because the authenticated user is a manager, Deep Data Security allows
+access to a broader set of employee records according to the configured security policies.
+
+As a result:
+
+- The average is calculated across all rows visible to that manager.
+- The SQL does not change.
+- Only the user's security context changes.
+
+![Manager Average Salary](docs/images/chat-manager-avg-salary.png)
+
+---
+
+### Key Takeaway
+
+This demonstration shows that:
+
+- The LLM generates the same SQL for identical natural-language prompts.
+- The application does not modify the SQL based on user roles.
+- Oracle Deep Data Security enforces authorization entirely within the database.
+- Different users receive different results because the database evaluates the query
+using the authenticated end-user identity.
+
+This approach enables developers to build AI-powered applications without embedding
+authorization logic in prompts or application code, while ensuring data access policies
+remain centrally managed and consistently enforced.

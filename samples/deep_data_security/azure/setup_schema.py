@@ -33,7 +33,7 @@ import pathlib
 import sys
 
 path = pathlib.Path(__file__)
-sys.path.insert(0, str(path.parent.parent.parent.parent.parent))
+sys.path.insert(0, str(path.parent.parent.parent))
 
 import sample_env  # noqa
 
