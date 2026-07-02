@@ -29,6 +29,8 @@ Thin Mode Changes
     different from the one associated with the pool when the pool is full.
 #)  Fixed bug when attempting to load boolean values using Direct Path Load
     (`issue 593 <https://github.com/oracle/python-oracledb/issues/593>`__).
+#)  Fixed bug where :attr:`ConnectionPool.wait_timeout` returned the value in
+    seconds instead of milliseconds.
 #)  Fixed segfault when calling :meth:`AsyncConnectionPool.release()` with a
     connection that has already been returned to the pool.
 #)  Fixed bug in :func:`oracledb.create_end_user_security_context()` which
