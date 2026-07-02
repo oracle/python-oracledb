@@ -723,3 +723,18 @@ async def test_5547(test_env):
     with test_env.assert_raises_full_code("DPY-1001"):
         await pool.release(conn)
     await pool.close()
+
+
+async def test_5548(test_env):
+    "5548 - test waiting for a connection unblocks when it is released"
+    pool = test_env.get_pool_async(min=1, max=1)
+
+    async def waiter():
+        async with pool.acquire(cclass="X") as conn:
+            new_sid_serial = test_env.get_sid_serial(conn)
+            assert new_sid_serial != sid_serial
+
+    conn = await pool.acquire()
+    sid_serial = test_env.get_sid_serial(conn)
+    await asyncio.gather(waiter(), conn.close())
+    await pool.close()

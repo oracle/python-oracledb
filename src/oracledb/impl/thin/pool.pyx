@@ -94,6 +94,43 @@ cdef class BaseThinPoolImpl(BasePoolImpl):
         self._requests.append(request)
         self._notify_bg_task()
 
+    cdef int _check_satisfy_request(self, BaseThinConnImpl conn_impl,
+                                    bint is_new) except -1:
+        """
+        Checks to see if a request can be satisfied with the given connection.
+        If the connection class of the connection matches the request, the
+        request can be immediately satisfied. If the connection class of the
+        connection doesn't match the request and the pool is full, the
+        connection is replaced and the background task is notified to complete
+        this work.
+        """
+        cdef PooledConnRequest request
+        for request in self._requests:
+            if request.in_progress \
+                    or (not is_new and request.wants_new) \
+                    or request.conn_impl is not None \
+                    or not request.waiting:
+                continue
+            if request.cclass is None \
+                    or request.cclass == conn_impl._cclass:
+                request.conn_impl = conn_impl
+                request.completed = True
+                self._requests.remove(request)
+                self._condition.notify_all()
+                break
+            elif not request.cclass_matches \
+                    and self._open_count >= self.max:
+                request.conn_impl = conn_impl
+                request.is_replacing = True
+                if not is_new:
+                    self._notify_bg_task()
+                break
+        else:
+            if is_new:
+                self._free_new_conn_impls.append(conn_impl)
+            else:
+                self._free_used_conn_impls.append(conn_impl)
+
     cdef int _check_timeout(self) except -1:
         """
         Checks whether a timeout is in effect and that the number of
@@ -222,24 +259,7 @@ cdef class BaseThinPoolImpl(BasePoolImpl):
             self._open_count += 1
             if self._num_to_create > 0:
                 self._num_to_create -= 1
-            for request in self._requests:
-                if request.in_progress or request.conn_impl is not None \
-                        or not request.waiting:
-                    continue
-                if request.cclass is None \
-                        or request.cclass == conn_impl._cclass:
-                    request.conn_impl = conn_impl
-                    request.completed = True
-                    self._requests.remove(request)
-                    self._condition.notify_all()
-                    break
-                elif not request.cclass_matches \
-                        and self._open_count >= self.max:
-                    request.conn_impl = conn_impl
-                    request.is_replacing = True
-                    break
-            else:
-                self._free_new_conn_impls.append(conn_impl)
+            self._check_satisfy_request(conn_impl, is_new=True)
             self._check_timeout()
 
     cdef int _post_process_request(self, PooledConnRequest request) except -1:
@@ -330,19 +350,7 @@ cdef class BaseThinPoolImpl(BasePoolImpl):
                     is_open = False
         if is_open:
             conn_impl.security_context = None
-            for request in self._requests:
-                if request.in_progress or request.wants_new \
-                        or request.conn_impl is not None \
-                        or not request.waiting:
-                    continue
-                if request.cclass is None \
-                        or request.conn_impl._cclass == self.cclass:
-                    request.conn_impl = conn_impl
-                    request.completed = True
-                    self._requests.remove(request)
-                    self._condition.notify_all()
-                    return 0
-            self._free_used_conn_impls.append(conn_impl)
+            self._check_satisfy_request(conn_impl, is_new=False)
         self._check_timeout()
 
     cdef int _shutdown(self) except -1:

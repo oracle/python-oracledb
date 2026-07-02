@@ -25,6 +25,8 @@ Thin Mode Changes
     :attr:`Connection.port`, and :attr:`Connection.protocol` (and async
     variants) to expose the database host, port, and protocol for Thin mode
     connections.
+#)  Fixed bug when acquiring a connection from a pool with a connection class
+    different from the one associated with the pool when the pool is full.
 #)  Fixed bug when attempting to load boolean values using Direct Path Load
     (`issue 593 <https://github.com/oracle/python-oracledb/issues/593>`__).
 #)  Fixed segfault when calling :meth:`AsyncConnectionPool.release()` with a
