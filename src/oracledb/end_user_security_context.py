@@ -39,7 +39,7 @@ class EndUserSecurityContext(metaclass=BaseMetaClass):
 
 
 def create_end_user_security_context(
-    end_user_identity: str | tuple[str, str] | list[str],
+    end_user_identity: str | tuple[str, str | None],
     database_access_token: str,
     data_roles: list[str] | None = None,
     attributes: dict | None = None,
@@ -48,12 +48,12 @@ def create_end_user_security_context(
     Creates a new end user security context that contains the identity and
     authorization details.
 
-    The ``end_user_identity`` parameter can be a string, a two-tuple or a
-    two-item list, and specifies the unique identifier of an end user. For OCI
-    IAM or Microsoft Entra ID users, this parameter must be a string containing
-    the token issued by these IAMs after user authentication. For database
-    managed users, this parameter must be a two-tuple or two-item list
-    containing the database user name and key.
+    The ``end_user_identity`` parameter can be a string or a two-item tuple and
+    specifies the unique identifier of an end user. For OCI IAM or Microsoft
+    Entra ID users, this parameter must be a string containing the token issued
+    by these IAMs after user authentication. For database managed users, set
+    this parameter to a two-item tuple containing the local database user name
+    and a key, where the key may be None if not required.
 
     The ``database_access_token`` parameter is a string containing the security
     token issued by OCI IAM or Entra ID that authorizes an application to
@@ -70,18 +70,23 @@ def create_end_user_security_context(
 
     if isinstance(end_user_identity, str) and end_user_identity:
         end_user_token = end_user_identity
-    elif (
-        isinstance(end_user_identity, (tuple, list))
-        and len(end_user_identity) == 2
-        and all(
-            isinstance(value, str) and value for value in end_user_identity
-        )
-    ):
+    elif isinstance(end_user_identity, tuple) and len(end_user_identity) == 2:
         end_user_name, key = end_user_identity
+        if not isinstance(end_user_name, str) or not end_user_name:
+            raise ValueError(
+                "For a two-item tuple end_user_identity, the first item "
+                "(end_user_name) must be a non-empty string."
+            )
+
+        if key is not None and (not isinstance(key, str) or not key):
+            raise ValueError(
+                "For a two-item tuple end_user_identity, the second item "
+                "(key) must be a non-empty string or None."
+            )
     else:
         raise ValueError(
-            "end_user_identity must be a token string or a tuple/list of "
-            "(end_user_name, key)."
+            "end_user_identity must be a token string or a two-item tuple "
+            "containing (end_user_name, key)."
         )
 
     if not isinstance(database_access_token, str) or not database_access_token:

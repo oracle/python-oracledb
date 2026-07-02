@@ -1,5 +1,5 @@
 # ------------------------------------------------------------------------------
-# Copyright (c) 2026 Oracle and/or its affiliates.
+# Copyright (c) 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -37,22 +37,11 @@ END_USER_IDENTITY_KEY = "EUC_END_USER_IDENTITY"
 
 
 def set_end_user_identity(value):
-    if not (
-        value is None
-        or isinstance(value, str)
-        or (
-            isinstance(value, (list, tuple))
-            and len(value) == 2
-            and all(isinstance(v, str) for v in value)
-        )
-    ):
-        raise ValueError(
-            "End user identity must be None, a string or a 2-tuple "
-            "(end_user_name, key) and each entry in the tuple must be a string"
-        )
+    if value is not None:
+        value = json.dumps(value)
     oracledb.save_secret(
         END_USER_IDENTITY_KEY,
-        json.dumps(value),
+        value,
         thread_local=True,
     )
 
@@ -80,22 +69,12 @@ class EndUserSecMiddleware:
         return self.get_response(request)
 
 
-def validate_context_value(identity, auth_flow):
-    """
-    Returns (end_user_name, key) or end_user_token.
-
-    - If value is a string => (OBO can be used)
-    - If value is a tuple/list => (OBO should not be used)
-      expected format: (end_user_name, key)
-    """
-    if auth_flow == "on_behalf_of" and isinstance(identity, (tuple, list)):
-        raise ValueError(
-            "auth_flow='on_behalf_of': cannot be used with "
-            "(end_user_name, key)."
-        )
-
-
 def get_end_user_sec_context(end_user_sec_params, identity):
+    auth_flow = end_user_sec_params["auth_flow"]
+    if auth_flow == "on_behalf_of" and not isinstance(identity, str):
+        raise ValueError(
+            "auth_flow='on_behalf_of' requires a token for its user identity"
+        )
     spi_type = end_user_sec_params["spi_type"]
     supporting_plugin = importlib.import_module(f"oracledb.plugins.{spi_type}")
     database_access_token = supporting_plugin.get_database_access_token(
@@ -120,10 +99,8 @@ def end_user_sec_context_hook(params: oracledb.ConnectParams):
         end_user_sec_params = params.extra_auth_params["end_user_sec_params"]
 
         def on_connect_callback(connection: oracledb.Connection):
-            auth_flow = end_user_sec_params["auth_flow"]
             identity = get_end_user_identity()
             if identity is not None:
-                validate_context_value(identity, auth_flow)
                 context = get_end_user_sec_context(
                     end_user_sec_params, identity
                 )

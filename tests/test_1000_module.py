@@ -26,6 +26,7 @@
 1000 - Module for testing top-level module methods
 """
 
+import contextlib
 import datetime
 import threading
 
@@ -573,4 +574,31 @@ def test_1025(skip_unless_thin_mode, test_env):
     with test_env.assert_raises_full_code("DPY-2072"):
         oracledb.create_end_user_security_context(
             end_user_identity="x" * 70000, database_access_token="y" * 70000
+        )
+
+
+@pytest.mark.parametrize(
+    "end_user_identity,acceptable",
+    [
+        (("end_user_1026", "key_1026"), True),
+        (("end_user_1026", None), True),
+        (("end_user_1026", ""), False),
+        (("end_user_1026", 123), False),
+        (("", None), False),
+        (("", "key_1026"), False),
+        (("end_user_1026",), False),
+        (("end_user_1026", "key_1026", "extra"), False),
+        (("end_user_1026", None, "extra"), False),
+        (["end_user_1026", "key_1026"], False),
+    ],
+)
+def test_1026(end_user_identity, acceptable):
+    "1026 - create_end_user_security_context() validation"
+    expectation = (
+        contextlib.nullcontext() if acceptable else pytest.raises(ValueError)
+    )
+    with expectation:
+        oracledb.create_end_user_security_context(
+            end_user_identity=end_user_identity,
+            database_access_token="database_access_token_1026",
         )

@@ -27,6 +27,9 @@ Thin Mode Changes
     connections.
 #)  Fixed bug when attempting to load boolean values using Direct Path Load
     (`issue 593 <https://github.com/oracle/python-oracledb/issues/593>`__).
+#)  Fixed bug in :func:`oracledb.create_end_user_security_context()` which
+    prevented the second item (key) in a two-item tuple identity from being set
+    to *None*.
 #)  Fixed bug when attempting to use a proxy user with token authentication.
 
 Thick Mode Changes

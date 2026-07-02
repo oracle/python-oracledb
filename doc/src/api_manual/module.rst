@@ -110,6 +110,11 @@ Oracledb Methods
 
     See :ref:`endusersecuritycontextcreation`.
 
+    .. versionchanged:: 4.1.0
+
+        The key value in the two-item tuple ``end_user_identity`` parameter can
+        now be *None*.
+
     .. versionadded:: 4.0.0
 
 .. autofunction:: create_pipeline

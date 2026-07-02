@@ -2946,7 +2946,7 @@ The parameters of :meth:`~oracledb.create_end_user_security_context()` are:
 
         For users managed by an external IAM system, set this parameter to a string value that contains the end-user token issued by these IAM systems after user authentication.
 
-        For users managed by Oracle Database, set this parameter to a two-tuple value that contains the local database user name and a key. The local database user name is the name of a local database user created in Oracle Database that has the ``CREATE END USER SECURITY CONTEXT`` database privilege set. The key specifies a unique string provided by the application user which is associated with an end-user name.
+        For users managed by Oracle Database, set this parameter to a two-item tuple containing the local database user name and a key, where the key may be *None* if not required. The local database user name is the name of a local database user created in Oracle Database that has the ``CREATE END USER SECURITY CONTEXT`` database privilege set. The key (also referred to as a cookie), if specified, is a unique string provided by the application user. It enables different sessions for the same local database user with the same data roles, and does not need to be tied to a single end user.
       - Required
     * - ``database_access_token``
       - String
@@ -3112,10 +3112,11 @@ This plugin can automatically retrieve the identity of end users managed by
 external IAMs or Oracle Database. For users managed by external IAMs such as
 OCI IAM or Microsoft Entra ID, the value of a user's identity is a string
 consisting of an end-user token issued by these IAMs. For users managed by
-Oracle Database, the value of an end-user's identity is a two-tuple consisting
-of a local database user name and a key. The retrieved end-user identity is
-stored in python-oracledb's internal cache for the duration of the current
-execution context and is only available within the current thread, see
+Oracle Database, the value of an end-user's identity is a two-item tuple
+containing the local database user name and a key, where the key may be
+*None* if not required. The retrieved end-user identity is stored in
+python-oracledb's internal cache for the duration of the current execution
+context and is only available within the current thread, see
 :ref:`storesecretvalues`.
 
 For connection and pool creation using Deep Data Security, you must define the
@@ -3145,7 +3146,7 @@ parameters listed in the following table.
 
         If the user's identity is a string containing the end user token, the value can be the string "client_credentials" or "on_behalf_of". For "client_credentials", the token is obtained using the application's client ID and secret. For "on_behalf_of", the token is obtained using the application's client ID and secret along with the user token as an assertion.
 
-        If the user's identity is a two-tuple containing a local database user name and a key, the value can be the string "client_credentials".
+        If the user's identity is a two-item tuple containing a local database user name and a key, the value can be the string "client_credentials".
       - Required
     * - ``authority``
       - The URL that indicates a directory from which the IAM can request authentication tokens.
