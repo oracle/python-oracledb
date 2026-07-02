@@ -27,6 +27,8 @@ Thin Mode Changes
     connections.
 #)  Fixed bug when attempting to load boolean values using Direct Path Load
     (`issue 593 <https://github.com/oracle/python-oracledb/issues/593>`__).
+#)  Fixed segfault when calling :meth:`AsyncConnectionPool.release()` with a
+    connection that has already been returned to the pool.
 #)  Fixed bug in :func:`oracledb.create_end_user_security_context()` which
     prevented the second item (key) in a two-item tuple identity from being set
     to *None*.

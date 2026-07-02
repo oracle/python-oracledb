@@ -712,3 +712,14 @@ async def test_5546(test_env):
         async with pool.acquire():
             assert counter == i + 1
     await pool.close()
+
+
+async def test_5547(test_env):
+    "5547 - release a connection twice"
+    pool = test_env.get_pool_async(min=0, max=1, increment=1)
+    conn = await pool.acquire()
+    assert pool.opened == 1
+    await pool.release(conn)
+    with test_env.assert_raises_full_code("DPY-1001"):
+        await pool.release(conn)
+    await pool.close()

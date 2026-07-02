@@ -1126,3 +1126,14 @@ def test_2460(test_env):
         with pool.acquire():
             assert counter == i + 1
     pool.close()
+
+
+def test_2461(test_env):
+    "2461 - release a connection twice"
+    pool = test_env.get_pool(min=0, max=1, increment=1)
+    conn = pool.acquire()
+    assert pool.opened == 1
+    pool.release(conn)
+    with test_env.assert_raises_full_code("DPY-1001"):
+        pool.release(conn)
+    pool.close()
