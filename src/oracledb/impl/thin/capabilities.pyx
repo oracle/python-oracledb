@@ -91,9 +91,9 @@ cdef class Capabilities:
         uint16_t protocol_version
         uint8_t ttc_field_version
         uint16_t charset_id
-        const char* encoding
+        bytes encoding
         uint16_t ncharset_id
-        const char* nencoding
+        bytes nencoding
         bytearray compile_caps
         bytearray runtime_caps
         uint32_t max_string_size
@@ -158,13 +158,13 @@ cdef class Capabilities:
         strings found within Oracle database objects.
         """
         cdef str encoding
-        if self.encoding != NULL:
-            return self.encoding
-        encoding = ORACLE_CHARSET_TO_PYTHON_ENCODING.get(self.charset_id)
-        if encoding is None:
-            errors._raise_err(errors.ERR_DB_CS_NOT_SUPPORTED,
-                              charset_id=self.charset_id)
-        return encoding.encode()
+        if self.encoding is None:
+            encoding = ORACLE_CHARSET_TO_PYTHON_ENCODING.get(self.charset_id)
+            if encoding is None:
+                errors._raise_err(errors.ERR_DB_CS_NOT_SUPPORTED,
+                                  charset_id=self.charset_id)
+            self.encoding = encoding.encode()
+        return self.encoding
 
     cdef const char* _get_nencoding(self) except NULL:
         """
@@ -173,13 +173,13 @@ cdef class Capabilities:
         an exception is raised. This is required for handling NCHAR data.
         """
         cdef str encoding
-        if self.nencoding != NULL:
-            return self.nencoding
-        encoding = ORACLE_CHARSET_TO_PYTHON_ENCODING.get(self.ncharset_id)
-        if encoding is None:
-            errors._raise_err(errors.ERR_NCHAR_CS_NOT_SUPPORTED,
-                              charset_id=self.ncharset_id)
-        return encoding.encode()
+        if self.nencoding is None:
+            encoding = ORACLE_CHARSET_TO_PYTHON_ENCODING.get(self.ncharset_id)
+            if encoding is None:
+                errors._raise_err(errors.ERR_NCHAR_CS_NOT_SUPPORTED,
+                                  charset_id=self.ncharset_id)
+            self.nencoding = encoding.encode()
+        return self.nencoding
 
     @cython.boundscheck(False)
     cdef void _init_compile_caps(self):
