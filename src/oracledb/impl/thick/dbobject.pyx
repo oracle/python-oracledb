@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -280,7 +280,7 @@ cdef class ThickDbObjectAttrImpl(BaseDbObjectAttrImpl):
         impl.name = info.name[:info.nameLength].decode()
         impl.dbtype = DbType._from_num(info.typeInfo.oracleTypeNum)
         impl.precision = <int8_t> info.typeInfo.precision
-        impl.scale = <int8_t> info.typeInfo.scale
+        impl.scale = <int8_t> info.typeInfo.scale + info.typeInfo.fsPrecision
         impl.max_size = info.typeInfo.dbSizeInBytes
         if info.typeInfo.objectType:
             typ_handle = info.typeInfo.objectType

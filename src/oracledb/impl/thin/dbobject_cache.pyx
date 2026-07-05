@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2022, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -81,8 +81,10 @@ cdef str DBO_CACHE_SQL_GET_COLUMNS = """
             case
                 when data_precision is null and data_scale is null
                     then 0
-                when data_precision is null
+                when data_precision is null and data_type = 'NUMBER'
                     then 38
+                when data_precision is null and data_type != 'NUMBER'
+                    then 0
                 else data_precision
             end,
             case
@@ -347,13 +349,13 @@ cdef class BaseThinDbObjectTypeCache:
         elif attr_type == TNS_OBJ_TDS_TYPE_DATE:
             ora_type_num = ORA_TYPE_NUM_DATE
         elif attr_type == TNS_OBJ_TDS_TYPE_TIMESTAMP:
-            buf.skip_raw_bytes(1)           # precision
+            buf.read_sb1(&metadata.scale)
             ora_type_num = ORA_TYPE_NUM_TIMESTAMP
         elif attr_type == TNS_OBJ_TDS_TYPE_TIMESTAMP_LTZ:
-            buf.skip_raw_bytes(1)           # precision
+            buf.read_sb1(&metadata.scale)
             ora_type_num = ORA_TYPE_NUM_TIMESTAMP_LTZ
         elif attr_type == TNS_OBJ_TDS_TYPE_TIMESTAMP_TZ:
-            buf.skip_raw_bytes(1)           # precision
+            buf.read_sb1(&metadata.scale)
             ora_type_num = ORA_TYPE_NUM_TIMESTAMP_TZ
         elif attr_type == TNS_OBJ_TDS_TYPE_BOOLEAN:
             ora_type_num = ORA_TYPE_NUM_BOOLEAN
@@ -420,12 +422,13 @@ cdef class BaseThinDbObjectTypeCache:
                 attr_impl.scale = -127
             elif type_name.startswith("INTERVAL DAY TO SECOND"):
                 attr_impl.dbtype = DB_TYPE_INTERVAL_DS
+                attr_impl.precision = precision
+                attr_impl.scale = scale
             else:
                 attr_impl.dbtype = DbType._from_ora_name(type_name)
                 attr_impl.max_size = max_size
-                if attr_impl.dbtype._ora_type_num == ORA_TYPE_NUM_NUMBER:
-                    attr_impl.precision = precision
-                    attr_impl.scale = scale
+                attr_impl.precision = precision
+                attr_impl.scale = scale
         attr_impl._finalize_init()
         typ_impl.attrs.append(attr_impl)
         typ_impl.attrs_by_name[name] = attr_impl
