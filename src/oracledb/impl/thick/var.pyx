@@ -471,10 +471,8 @@ cdef class ThickVarImpl(BaseVarImpl):
                 ora_data.buffer.as_date.second = data.value.asTimestamp.second;
                 ora_data.buffer.as_date.fsecond = \
                         data.value.asTimestamp.fsecond // 1000;
-                ora_data.buffer.as_date.tz_hour_offset = \
-                        data.value.asTimestamp.tzHourOffset;
-                ora_data.buffer.as_date.tz_minute_offset = \
-                        data.value.asTimestamp.tzMinuteOffset;
+                ora_data.buffer.as_date.tz_hour_offset = 0
+                ora_data.buffer.as_date.tz_minute_offset = 0
             elif native_type_num == DPI_NATIVE_TYPE_INTERVAL_DS:
                 ora_data.buffer.as_interval_ds.days = \
                         data.value.asIntervalDS.days;
