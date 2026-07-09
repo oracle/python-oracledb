@@ -576,6 +576,7 @@ cdef enum:
 
 # verifier types
 cdef enum:
+    TNS_VERIFIER_TYPE_10G = 0x939
     TNS_VERIFIER_TYPE_11G_1 = 0xb152
     TNS_VERIFIER_TYPE_11G_2 = 0x1b25
     TNS_VERIFIER_TYPE_12C = 0x4815

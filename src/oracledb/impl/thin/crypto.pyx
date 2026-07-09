@@ -154,6 +154,39 @@ def get_derived_key(key, salt, length, iterations):
     return kdf.derive(key)
 
 
+try:                                                # DES moved in cryptography 43+
+    from cryptography.hazmat.decrepit.ciphers.algorithms import \
+        TripleDES as _TripleDES
+except ImportError:
+    from cryptography.hazmat.primitives.ciphers.algorithms import \
+        TripleDES as _TripleDES
+
+
+def _des_cbc(key8, data):
+    """Single DES-CBC (TripleDES with an 8-byte key), zero IV."""
+    cipher = Cipher(_TripleDES(key8), modes.CBC(bytes(8)))
+    encryptor = cipher.encryptor()
+    return encryptor.update(data) + encryptor.finalize()
+
+
+def get_verifier_10g(username, password):
+    """
+    Compute the legacy 10G password verifier (DES) and return it as 8 raw
+    bytes. O5LOGON uses this (zero-padded to the AES key length) as the key
+    material for accounts that only carry the 10G verifier (type 0x939).
+
+    The 10G hash: DES-CBC (fixed key) of UTF-16BE(UPPER(username+password))
+    padded to a multiple of 8; the last block becomes an intermediate DES key;
+    a second DES-CBC pass yields the 8-byte verifier.
+    """
+    key0 = bytes.fromhex("0123456789ABCDEF")
+    buf = (username + password).decode("utf-8").upper().encode("utf-16-be")
+    if len(buf) % 8:
+        buf += bytes(8 - len(buf) % 8)
+    intermediate = _des_cbc(key0, buf)[-8:]
+    return _des_cbc(intermediate, buf)[-8:]
+
+
 def get_signature(private_key_str, text):
     """
     Returns a signed version of the given text (used for IAM token

@@ -100,6 +100,13 @@ cdef class AuthMessage(Message):
             h.update(password_key)
             h.update(verifier_data)
             password_hash = h.digest()[:32]
+        elif self.verifier_type == TNS_VERIFIER_TYPE_10G:
+            # for accounts that only carry the legacy 10G (DES) verifier the
+            # AES-128 key is the 8-byte binary verifier padded to 16 bytes with
+            # zeros (the server derives the same key from its stored verifier)
+            keylen = 16
+            verifier = get_verifier_10g(self.user_bytes, self.password)
+            password_hash = verifier + bytes(16 - len(verifier))
         else:
             keylen = 24
             h = hashlib.sha1(self.password)
@@ -114,7 +121,9 @@ cdef class AuthMessage(Message):
         session_key_part_b = secrets.token_bytes(len(session_key_part_a))
         encoded_client_key = encrypt_cbc(password_hash, session_key_part_b)
 
-        # create session key and combo key
+        # create session key and combo key; the 11G verifier uses a 48-byte
+        # session key mixed with MD5, while the 10G and 12C verifiers share the
+        # same 32-byte PBKDF2 path (only the key length differs)
         if len(session_key_part_a) == 48:
             self.session_key = encoded_client_key.hex().upper()[:96]
             b = bytearray(24)
@@ -336,7 +345,8 @@ cdef class AuthMessage(Message):
                 if self.verifier_type == TNS_VERIFIER_TYPE_12C:
                     num_pairs += 1
                 elif self.verifier_type not in (TNS_VERIFIER_TYPE_11G_1,
-                                                TNS_VERIFIER_TYPE_11G_2):
+                                                TNS_VERIFIER_TYPE_11G_2,
+                                                TNS_VERIFIER_TYPE_10G):
                     errors._raise_err(errors.ERR_UNSUPPORTED_VERIFIER_TYPE,
                                       verifier_type=self.verifier_type)
                 self._generate_verifier()
