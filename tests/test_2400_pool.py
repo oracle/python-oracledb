@@ -1137,3 +1137,21 @@ def test_2461(test_env):
     with test_env.assert_raises_full_code("DPY-1001"):
         pool.release(conn)
     pool.close()
+
+
+def test_2462(test_env):
+    "2462 - test thread waiting for a connection unblocks when it is released"
+    pool = test_env.get_pool(min=1, max=1)
+
+    def waiter():
+        with pool.acquire(cclass="X") as conn:
+            new_sid_serial = test_env.get_sid_serial(conn)
+            assert new_sid_serial != sid_serial
+
+    conn = pool.acquire()
+    sid_serial = test_env.get_sid_serial(conn)
+    t = threading.Thread(target=waiter)
+    t.start()
+    conn.close()
+    t.join()
+    pool.close()
