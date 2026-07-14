@@ -450,7 +450,9 @@ cdef class ConnectParamsImpl:
         the repr() methods for Connection and ConnectionPool.
         """
         if self.proxy_user is not None:
-            return f"{self.user}[{self.proxy_user}]"
+            if self.user is not None:
+                return f"{self.user}[{self.proxy_user}]"
+            return f"[{self.proxy_user}]"
         return self.user
 
     def get_network_service_names(self):
@@ -512,9 +514,9 @@ cdef class ConnectParamsImpl:
         user string.
         """
         start_pos = user.find("[")
-        if start_pos > 0 and user.endswith("]"):
+        if start_pos >= 0 and user.endswith("]"):
             self.proxy_user = user[start_pos + 1:-1]
-            self.user = user[:start_pos]
+            self.user = user[:start_pos] or None
         else:
             self.user = user
 
