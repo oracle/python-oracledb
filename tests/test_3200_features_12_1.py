@@ -679,7 +679,7 @@ def test_3234(conn):
         ("NUMBERVALUE", oracledb.DB_TYPE_NUMBER, 0, -127, None),
         ("STRINGVALUE", oracledb.DB_TYPE_VARCHAR, None, None, 30),
         ("DATEVALUE", oracledb.DB_TYPE_DATE, None, None, None),
-        ("TIMESTAMPVALUE", oracledb.DB_TYPE_TIMESTAMP, None, None, None),
+        ("TIMESTAMPVALUE", oracledb.DB_TYPE_TIMESTAMP, 0, 6, None),
         ("BOOLEANVALUE", oracledb.DB_TYPE_BOOLEAN, None, None, None),
         (
             "PLSINTEGERVALUE",

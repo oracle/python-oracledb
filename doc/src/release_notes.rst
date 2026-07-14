@@ -42,6 +42,9 @@ Thick Mode Changes
 Common Changes
 ++++++++++++++
 
+#)  Fixed bug causing precision and scale to be incorrect for timestamps and
+    intervals found within a :ref:`DbObject <dbobject>`.
+
 
 oracledb `4.0.1 <https://github.com/oracle/python-oracledb/compare/v4.0.0...v4.0.1>`__ (May 2026)
 -------------------------------------------------------------------------------------------------
