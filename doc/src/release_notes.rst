@@ -34,7 +34,8 @@ Thin Mode Changes
     seconds instead of milliseconds.
 #)  Fixed segfault when calling :meth:`AsyncConnectionPool.release()` with a
     connection that has already been returned to the pool.
-#)  Fixed bug when attempting to use a proxy user with token authentication.
+#)  Fixed bug when attempting to use a proxy user with
+    :ref:`token authentication <tokenauth>`.
 
 Thick Mode Changes
 ++++++++++++++++++
