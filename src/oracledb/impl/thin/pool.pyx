@@ -434,7 +434,7 @@ cdef class BaseThinPoolImpl(BasePoolImpl):
         Internal method for getting the wait timeout for acquiring sessions.
         """
         if self._getmode == POOL_GETMODE_TIMEDWAIT:
-            return self._wait_timeout
+            return self._wait_timeout * 1000
         return 0
 
     def return_connection(self, BaseThinConnImpl conn_impl, bint in_del=False):

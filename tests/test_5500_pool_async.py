@@ -738,3 +738,18 @@ async def test_5548(test_env):
     sid_serial = test_env.get_sid_serial(conn)
     await asyncio.gather(waiter(), conn.close())
     await pool.close()
+
+
+async def test_5549(test_env):
+    "5549 - Test that pool `wait_timeout` getter uses milliseconds."
+    wait_ms = 4500
+    pool = test_env.get_pool_async(
+        getmode=oracledb.POOL_GETMODE_TIMEDWAIT, min=0, wait_timeout=wait_ms
+    )
+    # getter should return the same millisecond value provided
+    assert pool.wait_timeout == wait_ms
+
+    # verify setting via property also preserves milliseconds
+    pool.wait_timeout = 3000
+    assert pool.wait_timeout == 3000
+    await pool.close()

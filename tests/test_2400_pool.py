@@ -1155,3 +1155,18 @@ def test_2462(test_env):
     conn.close()
     t.join()
     pool.close()
+
+
+def test_2463(test_env):
+    "2463 - Test that pool `wait_timeout` getter uses milliseconds."
+    wait_ms = 4500
+    pool = test_env.get_pool(
+        getmode=oracledb.POOL_GETMODE_TIMEDWAIT, min=0, wait_timeout=wait_ms
+    )
+    # getter should return the same millisecond value provided
+    assert pool.wait_timeout == wait_ms
+
+    # verify setting via property also preserves milliseconds
+    pool.wait_timeout = 3000
+    assert pool.wait_timeout == 3000
+    pool.close()

@@ -23,6 +23,8 @@ Thin Mode Changes
     (`issue 593 <https://github.com/oracle/python-oracledb/issues/593>`__).
 #)  Fixed bug when acquiring a connection from a pool with a connection class
     different from the one associated with the pool when the pool is full.
+#)  Fixed bug where :attr:`ConnectionPool.wait_timeout` returned the value in
+    seconds instead of milliseconds.
 #)  Fixed segfault when calling :meth:`AsyncConnectionPool.release()` with a
     connection that has already been returned to the pool.
 #)  Fixed bug when attempting to use a proxy user with token authentication.
