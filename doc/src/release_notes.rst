@@ -25,26 +25,9 @@ Thin Mode Changes
     :attr:`Connection.port`, and :attr:`Connection.protocol` (and async
     variants) to expose the database host, port, and protocol for Thin mode
     connections.
-#)  Fixed bug when acquiring a connection from a pool with a connection class
-    different from the one associated with the pool when the pool is full.
-#)  Fixed bug when attempting to load boolean values using Direct Path Load
-    (`issue 593 <https://github.com/oracle/python-oracledb/issues/593>`__).
-#)  Fixed bug when fetching NCHAR or NVARCHAR2 columns
-    (`issue 595 <https://github.com/oracle/python-oracledb/issues/595>`__).
-#)  Fixed segfault when calling :meth:`Connection.fetch_df_all()` and
-    :meth:`Connection.fetch_df_batches()` with data that is null by describe
-    (`issue 597 <https://github.com/oracle/python-oracledb/issues/597>`__).
-#)  Fixed bug where :attr:`ConnectionPool.wait_timeout` returned the value in
-    seconds instead of milliseconds.
-#)  Fixed segfault when calling :meth:`AsyncConnectionPool.release()` with a
-    connection that has already been returned to the pool.
 #)  Fixed bug in :func:`oracledb.create_end_user_security_context()` which
     prevented the second item (key) in a two-item tuple identity from being set
     to *None*.
-#)  Fixed bug where callers waiting on :meth:`ConnectionPool.acquire()` would
-    wait indefinitely after the pool was forcibly closed.
-#)  Fixed bug when attempting to use a proxy user with
-    :ref:`token authentication <tokenauth>`.
 
 Thick Mode Changes
 ++++++++++++++++++
@@ -52,9 +35,6 @@ Thick Mode Changes
 #)  Added support for a proxy user to be used with
     :ref:`token authentication <tokenauth>` when creating standalone
     connections.
-#)  Fixed bug where TIMESTAMP WITH TIME ZONE column data was converted
-    incorrectly to :ref:`Arrow data frames <dataframeformat>`
-    (`issue 596 <https://github.com/oracle/python-oracledb/issues/596>`__).
 
 Common Changes
 ++++++++++++++
@@ -76,15 +56,51 @@ Common Changes
 #)  Added support for comparing instances of classes
     :class:`oracledb.ConnectParams`, :class:`oracledb.PoolParams` and
     :class:`oracledb.SecretValue`.
+#)  The class :class:`oracledb.EndUserSecurityContext` was added for
+    completeness in typing hints. Objects of this class should be created
+    using :func:`oracledb.create_end_user_security_context()`.
+#)  Modernized typing hints.
+
+
+oracledb `4.0.2 <https://github.com/oracle/python-oracledb/compare/v4.0.1...v4.0.2>`__ (July 2026)
+--------------------------------------------------------------------------------------------------
+
+Thin Mode Changes
++++++++++++++++++
+
+#)  Fixed bug when attempting to load boolean values using Direct Path Load
+    (`issue 593 <https://github.com/oracle/python-oracledb/issues/593>`__).
+#)  Fixed bug when fetching NCHAR or NVARCHAR2 columns
+    (`issue 595 <https://github.com/oracle/python-oracledb/issues/595>`__).
+#)  Fixed segfault when calling :meth:`Connection.fetch_df_all()` and
+    :meth:`Connection.fetch_df_batches()` with data that is null by describe
+    (`issue 597 <https://github.com/oracle/python-oracledb/issues/597>`__).
+#)  Fixed bug when acquiring a connection from a pool with a connection class
+    different from the one associated with the pool when the pool is full.
+#)  Fixed bug where callers waiting on :meth:`ConnectionPool.acquire()` would
+    wait indefinitely after the pool was forcibly closed.
+#)  Fixed bug where :attr:`ConnectionPool.wait_timeout` returned the value in
+    seconds instead of milliseconds.
+#)  Fixed segfault when calling :meth:`AsyncConnectionPool.release()` with a
+    connection that has already been returned to the pool.
+#)  Fixed bug when attempting to use a proxy user with
+    :ref:`token authentication <tokenauth>`.
+
+Thick Mode Changes
+++++++++++++++++++
+
+#)  Fixed bug where TIMESTAMP WITH TIME ZONE column data was converted
+    incorrectly to :ref:`Arrow data frames <dataframeformat>`
+    (`issue 596 <https://github.com/oracle/python-oracledb/issues/596>`__).
+
+Common Changes
+++++++++++++++
+
 #)  Fixed bug causing an exception to be raised when calling
     :func:`oracledb.is_simple_sql_name()` or
     :func:`oracledb.is_qualified_sql_name()` with an incorrectly quoted string.
 #)  Fixed bug causing precision and scale to be incorrect for timestamps and
     intervals found within a :ref:`DbObject <dbobject>`.
-#)  The class :class:`oracledb.EndUserSecurityContext` was added for
-    completeness in typing hints. Objects of this class should be created
-    using :func:`oracledb.create_end_user_security_context()`.
-#)  Modernized typing hints.
 
 
 oracledb `4.0.1 <https://github.com/oracle/python-oracledb/compare/v4.0.0...v4.0.1>`__ (May 2026)
