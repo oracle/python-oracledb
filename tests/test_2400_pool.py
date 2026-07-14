@@ -1170,3 +1170,19 @@ def test_2463(test_env):
     pool.wait_timeout = 3000
     assert pool.wait_timeout == 3000
     pool.close()
+
+
+def test_2464(test_env, skip_unless_thin_mode):
+    "2464 - test force closing a pool wakes waiting acquire() calls"
+    pool = test_env.get_pool(min=1, max=1)
+
+    def waiter():
+        with test_env.assert_raises_full_code("DPY-1002"):
+            pool.acquire()
+
+    conn = pool.acquire()
+    t = threading.Thread(target=waiter)
+    t.start()
+    pool.close(force=True)
+    t.join()
+    conn.close()
