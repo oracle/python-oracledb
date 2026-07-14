@@ -21,6 +21,8 @@ Thin Mode Changes
 
 #)  Fixed bug when attempting to load boolean values using Direct Path Load
     (`issue 593 <https://github.com/oracle/python-oracledb/issues/593>`__).
+#)  Fixed segfault when calling :meth:`AsyncConnectionPool.release()` with a
+    connection that has already been returned to the pool.
 #)  Fixed bug when attempting to use a proxy user with token authentication.
 
 Thick Mode Changes

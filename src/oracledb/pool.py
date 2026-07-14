@@ -1185,6 +1185,7 @@ class AsyncConnectionPool(BaseConnectionPool):
                 "connection must be an instance of oracledb.AsyncConnection"
             )
             raise TypeError(message)
+        connection._verify_connected()
         if tag is not None:
             connection.tag = tag
         await self._impl.return_connection(connection._impl)
