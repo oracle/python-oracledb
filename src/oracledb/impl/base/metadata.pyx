@@ -161,7 +161,7 @@ cdef class OracleMetadata:
             if db_type_num in (DB_TYPE_NUM_RAW, DB_TYPE_NUM_LONG_RAW):
                 ok = True
         elif arrow_type == NANOARROW_TYPE_BOOL:
-            if db_type_num in (DB_TYPE_NUM_BOOLEAN):
+            if db_type_num == DB_TYPE_NUM_BOOLEAN:
                 ok = True
         elif arrow_type in (NANOARROW_TYPE_DECIMAL128,
                             NANOARROW_TYPE_INT8,

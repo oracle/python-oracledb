@@ -19,6 +19,9 @@ oracledb `4.0.2 <https://github.com/oracle/python-oracledb/compare/v4.0.1...v4.0
 Thin Mode Changes
 +++++++++++++++++
 
+#)  Fixed bug when attempting to load boolean values using Direct Path Load
+    (`issue 593 <https://github.com/oracle/python-oracledb/issues/593>`__).
+
 Thick Mode Changes
 ++++++++++++++++++
 

@@ -168,7 +168,7 @@ cdef class PieceBuffer(Buffer):
         Adds column data to the piece (or pieces, if the column value cannot
         fit inside the current piece).
         """
-        cdef uint8_t ora_type_num
+        cdef uint8_t ora_type_num, bool_value
 
         # check that the number of segments hasn't already reached the maximum
         # allowable; if it has finalize the current piece and create a new one
@@ -224,7 +224,10 @@ cdef class PieceBuffer(Buffer):
         elif ora_type_num == ORA_TYPE_NUM_INTERVAL_YM:
             self.write_interval_ym(value)
         elif ora_type_num == ORA_TYPE_NUM_BOOLEAN:
-            self.write_bool(data.buffer.as_bool)
+            # boolean values are written differently to the buffer when using
+            # Direct Path
+            bool_value = <uint8_t> data.buffer.as_bool
+            self._write_raw_bytes_and_length(&bool_value, 1)
         elif ora_type_num == ORA_TYPE_NUM_JSON:
             self.write_oson(value, conn_impl.supports_oson_long_field_names)
         elif ora_type_num == ORA_TYPE_NUM_VECTOR:
