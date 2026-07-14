@@ -867,9 +867,9 @@ def test_8034(conn, cursor, test_env):
     assert data == test_env.get_data_from_df(fetched_df)
 
 
-def test_8035(conn, cursor):
+def test_8035(test_env, conn, cursor):
     "8035 - test metadata of all data types"
-    now = datetime.datetime.now()
+    ts_value = datetime.datetime(2026, 7, 4, 18, 42, 8)
     data = [
         ("NUMBERVALUE", 5, pyarrow.float64()),
         ("STRINGVALUE", "String Val", pyarrow.large_string()),
@@ -885,10 +885,10 @@ def test_8035(conn, cursor):
         ("FLOATVALUE", 125.375, pyarrow.float64()),
         ("BINARYFLOATVALUE", -25, pyarrow.float32()),
         ("BINARYDOUBLEVALUE", -175.5, pyarrow.float64()),
-        ("DATEVALUE", now, pyarrow.timestamp("s")),
-        ("TIMESTAMPVALUE", now, pyarrow.timestamp("us")),
-        ("TIMESTAMPTZVALUE", now, pyarrow.timestamp("us")),
-        ("TIMESTAMPLTZVALUE", now, pyarrow.timestamp("us")),
+        ("DATEVALUE", ts_value, pyarrow.timestamp("s")),
+        ("TIMESTAMPVALUE", ts_value, pyarrow.timestamp("us")),
+        ("TIMESTAMPTZVALUE", ts_value, pyarrow.timestamp("us")),
+        ("TIMESTAMPLTZVALUE", ts_value, pyarrow.timestamp("us")),
         ("CLOBVALUE", "CLOB Value", pyarrow.large_string()),
         ("NCLOBVALUE", "NCLOB Value", pyarrow.large_string()),
         ("BLOBVALUE", b"BLOB Value", pyarrow.large_binary()),
@@ -910,11 +910,13 @@ def test_8035(conn, cursor):
     expected_types = [t for n, v, t in data]
     actual_types = [pyarrow.array(a).type for a in ora_df.column_arrays()]
     assert actual_types == expected_types
+    fetched_df = pyarrow.table(ora_df).to_pandas()
+    assert test_env.get_data_from_df(fetched_df) == [data_to_insert]
 
 
 def test_8036(conn, cursor, test_env):
     "8036 - test metadata of all data types with fetch_decimals = True"
-    now = datetime.datetime.now()
+    ts_value = datetime.datetime(2026, 7, 4, 11, 23, 56)
     data = [
         ("NUMBERVALUE", 5, pyarrow.float64()),
         ("STRINGVALUE", "String Val", pyarrow.large_string()),
@@ -922,18 +924,22 @@ def test_8036(conn, cursor, test_env):
         ("NSTRINGVALUE", "NString Val", pyarrow.large_string()),
         ("NFIXEDCHARVALUE", "NFixedChar", pyarrow.large_string()),
         ("RAWVALUE", b"Raw Data", pyarrow.large_binary()),
-        ("INTVALUE", 25_387_923, pyarrow.decimal128(38, 0)),
+        ("INTVALUE", decimal.Decimal("25_387_923"), pyarrow.decimal128(38, 0)),
         ("SMALLINTVALUE", 127, pyarrow.decimal128(38, 0)),
         ("REALVALUE", 125.25, pyarrow.float64()),
-        ("DECIMALVALUE", 91.1025, pyarrow.decimal128(20, 6)),
+        (
+            "DECIMALVALUE",
+            decimal.Decimal("91.1025"),
+            pyarrow.decimal128(20, 6),
+        ),
         ("DOUBLEPRECISIONVALUE", 87.625, pyarrow.float64()),
         ("FLOATVALUE", 125.375, pyarrow.float64()),
         ("BINARYFLOATVALUE", -25, pyarrow.float32()),
         ("BINARYDOUBLEVALUE", -175.5, pyarrow.float64()),
-        ("DATEVALUE", now, pyarrow.timestamp("s")),
-        ("TIMESTAMPVALUE", now, pyarrow.timestamp("us")),
-        ("TIMESTAMPTZVALUE", now, pyarrow.timestamp("us")),
-        ("TIMESTAMPLTZVALUE", now, pyarrow.timestamp("us")),
+        ("DATEVALUE", ts_value, pyarrow.timestamp("s")),
+        ("TIMESTAMPVALUE", ts_value, pyarrow.timestamp("us")),
+        ("TIMESTAMPTZVALUE", ts_value, pyarrow.timestamp("us")),
+        ("TIMESTAMPLTZVALUE", ts_value, pyarrow.timestamp("us")),
         ("CLOBVALUE", "CLOB Value", pyarrow.large_string()),
         ("NCLOBVALUE", "NCLOB Value", pyarrow.large_string()),
         ("BLOBVALUE", b"BLOB Value", pyarrow.large_binary()),
@@ -956,6 +962,8 @@ def test_8036(conn, cursor, test_env):
         expected_types = [t for n, v, t in data]
         actual_types = [pyarrow.array(a).type for a in ora_df.column_arrays()]
         assert actual_types == expected_types
+        fetched_df = pyarrow.table(ora_df).to_pandas()
+        assert test_env.get_data_from_df(fetched_df) == [data_to_insert]
 
 
 def test_8037(skip_unless_native_boolean_supported, conn, cursor):

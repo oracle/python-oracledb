@@ -39,6 +39,10 @@ Thin Mode Changes
 Thick Mode Changes
 ++++++++++++++++++
 
+#)  Fixed bug where TIMESTAMP WITH TIME ZONE column data was converted
+    incorrectly to :ref:`Arrow data frames <dataframeformat>`
+    (`issue 596 <https://github.com/oracle/python-oracledb/issues/596>`__).
+
 Common Changes
 ++++++++++++++
 
