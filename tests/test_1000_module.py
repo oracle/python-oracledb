@@ -355,35 +355,89 @@ def test_1019():
     assert oracledb.get_secret(key).value_bytes == secret
 
 
-def test_1020():
-    "1020 - test enquote_literal()"
-    options = [
+@pytest.mark.parametrize(
+    "in_value, out_value",
+    [
         ("test_1020", "'test_1020'"),
         ("a'b'c'd", "'a''b''c''d'"),
         ("'abc'", "'''abc'''"),
         ("", "''"),
-    ]
-    for in_value, out_value in options:
-        assert oracledb.enquote_literal(in_value) == out_value
+        ("   ", "'   '"),
+        ("String with\0null", "'String with\0null'"),
+        ("A\x01B", "'A\x01B'"),
+        ("\r", "'\r'"),
+        ("\t \n\r", "'\t \n\r'"),
+        ("𝒜𝒷𝒸", "'𝒜𝒷𝒸'"),
+        ("\tnewline\n", "'\tnewline\n'"),
+        ("''''", "''''''''''"),
+        ("\\'\\''", "'\\''\\'''''"),
+        ("x' OR '1'='1", "'x'' OR ''1''=''1'"),
+        ("abc'); DROP TABLE t; --", "'abc''); DROP TABLE t; --'"),
+        (
+            "abc' UNION SELECT dummy FROM dual --",
+            "'abc'' UNION SELECT dummy FROM dual --'",
+        ),
+        ("abc'/*comment*/", "'abc''/*comment*/'"),
+        ("-- line comment", "'-- line comment'"),
+        (";\nBEGIN NULL; END;", "';\nBEGIN NULL; END;'"),
+        ("a" * 10_000, "'" + "a" * 10_000 + "'"),
+    ],
+)
+def test_1020(in_value, out_value):
+    "1020 - test enquote_literal()"
+    assert oracledb.enquote_literal(in_value) == out_value
 
 
-def test_1021(test_env):
-    "1021 - test enquote_name()"
-    options = [
+@pytest.mark.parametrize(
+    "in_value,capitalize,out_value",
+    [
         ("test_1021a", True, '"TEST_1021A"'),
         ("test_1021b", False, '"test_1021b"'),
         ("", False, '""'),
         ("", True, '""'),
-    ]
-    for in_value, capitalize, out_value in options:
-        assert oracledb.enquote_name(in_value, capitalize) == out_value
-    with test_env.assert_raises_full_code("DPY-2074"):
-        oracledb.enquote_name('test_"1021c')
+        ("   ", False, '"   "'),
+        ("   ", True, '"   "'),
+        ("   abc ", False, '"   abc "'),
+        ("   abc ", True, '"   ABC "'),
+        ("My User", False, '"My User"'),
+        ("My User", True, '"MY USER"'),
+        ("O'Brian", False, '"O\'Brian"'),
+        ("O'Brian", True, '"O\'BRIAN"'),
+        ("Lik--Wong", False, '"Lik--Wong"'),
+        ("Lik--Wong", True, '"LIK--WONG"'),
+        ("Scott's View", False, '"Scott\'s View"'),
+        ("Scott's View", True, '"SCOTT\'S VIEW"'),
+        ("SCOTT.EMP", False, '"SCOTT.EMP"'),
+        ("E.Wang", False, '"E.Wang"'),
+        ("E.Wang", True, '"E.WANG"'),
+        ("A@B", False, '"A@B"'),
+        ("éclair", False, '"éclair"'),
+        ("éclair", True, f'"{"éclair".upper()}"'),
+        ("Δelta name", False, '"Δelta name"'),
+        ("Δelta name", True, f'"{"Δelta name".upper()}"'),
+        ("ab\0cd", False, '"ab\0cd"'),
+        ("ab\0cd", True, '"AB\0CD"'),
+        ("\tabc\n", False, '"\tabc\n"'),
+        ("line1\nline2", False, '"line1\nline2"'),
+        ("line1\nline2", True, '"LINE1\nLINE2"'),
+        ("line1\rline2", False, '"line1\rline2"'),
+        ("line1\rline2", True, '"LINE1\rLINE2"'),
+        ("A\x01B", False, '"A\x01B"'),
+        ("A\x01B", True, '"A\x01B"'),
+        ("emp name", False, '"emp name"'),
+        ("emp;drop", False, '"emp;drop"'),
+        ("_$#", True, '"_$#"'),
+        ("Δ$#_é", True, f'"{"Δ$#_é".upper()}"'),
+    ],
+)
+def test_1021(in_value, capitalize, out_value):
+    "1021 - test enquote_name()"
+    assert oracledb.enquote_name(in_value, capitalize) == out_value
 
 
-def test_1022():
-    "1022 - test is_simple_sql_name()"
-    options = [
+@pytest.mark.parametrize(
+    "value,expected_result",
+    [
         ("test_1022a#$", True),
         ("    test_1022b    ", True),
         ('"test_1022c"', True),
@@ -397,14 +451,50 @@ def test_1022():
         ("test_1022f embedded spaces", False),
         ('"test_1022g" extraneous', False),
         ("12345", False),
-    ]
-    for value, expected_result in options:
-        assert oracledb.is_simple_sql_name(value) == expected_result
+        ("a", True),
+        ("Z", True),
+        ("a1", True),
+        ("a_b$c#1", True),
+        ('"My User"', True),
+        ('" "', True),
+        ('"a b c"', True),
+        ('"a\tb"', True),
+        ('"a\nb"', True),
+        ('"a\rb"', True),
+        ('"a\x01b"', True),
+        ('"ab\0cd"', True),
+        ("a\u0301", False),
+        ("NJS_A\u0301", False),
+        ("𐐀name", True),
+        ("𐐀\u0301name", False),
+        ("éclair", True),
+        ("Δelta", True),
+        ("\n\t   ", False),
+        ('"a\nb" extra', False),
+        ("_", False),
+        ("$", False),
+        ("#", False),
+        ("_abc", False),
+        ("$abc", False),
+        ("#abc", False),
+        ('"abc""de"', False),
+        ("a\u200b", False),
+        ("column\tname", False),
+        ("column\nname", False),
+        ("column\u200cname", False),
+        ("column\u200dname", False),
+        ("a²", True),
+        ('"test_1022h', False),
+    ],
+)
+def test_1022(value, expected_result):
+    "1022 - test is_simple_sql_name()"
+    assert oracledb.is_simple_sql_name(value) == expected_result
 
 
-def test_1023():
-    "1023 - test is_qualified_sql_name()"
-    options = [
+@pytest.mark.parametrize(
+    "value,expected_result",
+    [
         ("test_1023a", True),
         ("test_1023b.secondary", True),
         ("test_1023c.secondary.tertiary", True),
@@ -423,6 +513,56 @@ def test_1023():
         ('     "test_1023m"  -   "secondary"', False),
         ("test_1023n.1not_an_identifier", False),
         ("test_1023o@1not_a_dblink", False),
-    ]
-    for value, expected_result in options:
-        assert oracledb.is_qualified_sql_name(value) == expected_result
+        ("a.b.c.d.e.f", True),
+        ("a .b", True),
+        ("a. b", True),
+        ("a . b", True),
+        ("ABC_A\u0301.subvalue", False),
+        ("test_2302.a\u0301", False),
+        ("𐐀name.subvalue", True),
+        ("owner.𐐀name", True),
+        ("test2302@dblink", True),
+        ('test2302@"dblink"', True),
+        ("A@B.C", True),
+        ("a@b.c.d.e", True),
+        ("a.b@c.d.e.f", True),
+        ('"A@B".C', True),
+        ('"A.B".C', True),
+        ('"a\nb".c', True),
+        ('"a\x01b".c', True),
+        ("SCOTT.EMP@SALES.US.EXAMPLE.COM", True),
+        ("SCOTT.EMP   @   SALES.US.EXAMPLE.COM", True),
+        ("\nschema.table", True),
+        ("schema.table\n", True),
+        ("schema.table\t@dblink", True),
+        ("schema.table@db_link$", True),
+        ("schema.table@db_link#", True),
+        ('"My Table"@A.B', True),
+        ("éclair.Δelta", True),
+        ("éclair.Δelta.表", True),
+        ('"My Table".subvalue', True),
+        ("\n\t  ", False),
+        ("test2302   @   1notalink", False),
+        ("@MYLINK", False),
+        ("A@B.", True),
+        ("A@.B", False),
+        ("A@B..C", False),
+        ('"abc""de".value', False),
+        ("schema.table@db!link", False),
+        ("owner.ͅname", False),
+        ("owner.a²", True),
+        ('"not_quoted_correctly', False),
+    ],
+)
+def test_1023(value, expected_result):
+    "1023 - test is_qualified_sql_name()"
+    assert oracledb.is_qualified_sql_name(value) == expected_result
+
+
+def test_1024(test_env):
+    "1024 - additional tests of enquote_name()"
+    assert oracledb.enquote_name("test_1024a") == '"TEST_1024A"'
+    with test_env.assert_raises_full_code("DPY-2074"):
+        oracledb.enquote_name('test_"1024b')
+    with test_env.assert_raises_full_code("DPY-2074"):
+        oracledb.enquote_name('"test_"1024c"')

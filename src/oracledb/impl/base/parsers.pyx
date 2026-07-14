@@ -204,7 +204,8 @@ cdef class BaseParser:
                 break
             self.temp_pos += 1
 
-    cdef int parse_quoted_string(self, Py_UCS4 quote_type) except -1:
+    cdef int parse_quoted_string(self, Py_UCS4 quote_type,
+                                 bint raise_exception=True) except -1:
         """
         Parses a quoted string with the given quote type. All characters until
         the quote type is detected are discarded.
@@ -216,10 +217,11 @@ cdef class BaseParser:
             if ch == quote_type:
                 self.pos = self.temp_pos
                 return 0
-        if quote_type == "'":
-            errors._raise_err(errors.ERR_MISSING_ENDING_SINGLE_QUOTE)
-        else:
-            errors._raise_err(errors.ERR_MISSING_ENDING_DOUBLE_QUOTE)
+        if raise_exception:
+            if quote_type == "'":
+                errors._raise_err(errors.ERR_MISSING_ENDING_SINGLE_QUOTE)
+            else:
+                errors._raise_err(errors.ERR_MISSING_ENDING_DOUBLE_QUOTE)
 
     cdef int skip_spaces(self) except -1:
         """
@@ -982,8 +984,10 @@ cdef class NameParser(BaseParser):
             self.temp_pos += 1
             if ch == '"':
                 start_pos = self.temp_pos
-                self.parse_quoted_string(ch)
-                if self.temp_pos > start_pos + 1:
+                self.parse_quoted_string(ch, raise_exception=False)
+                if self.pos <= start_pos:
+                    return False
+                elif self.temp_pos > start_pos + 1:
                     return True
             if cpython.Py_UNICODE_ISALPHA(ch):
                 start_pos = self.temp_pos - 1
