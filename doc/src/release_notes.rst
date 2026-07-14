@@ -21,6 +21,8 @@ Thin Mode Changes
 
 #)  Fixed bug when attempting to load boolean values using Direct Path Load
     (`issue 593 <https://github.com/oracle/python-oracledb/issues/593>`__).
+#)  Fixed bug when fetching NCHAR or NVARCHAR2 columns
+    (`issue 595 <https://github.com/oracle/python-oracledb/issues/595>`__).
 #)  Fixed segfault when calling :meth:`Connection.fetch_df_all()` and
     :meth:`Connection.fetch_df_batches()` with data that is null by describe
     (`issue 597 <https://github.com/oracle/python-oracledb/issues/597>`__).
