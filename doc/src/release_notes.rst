@@ -25,6 +25,8 @@ Thin Mode Changes
     :attr:`Connection.port`, and :attr:`Connection.protocol` (and async
     variants) to expose the database host, port, and protocol for Thin mode
     connections.
+#)  Added connection property :attr:`Connection.db_unique_name` (and async
+    variant) to provide the database unique name.
 #)  Fixed bug in :func:`oracledb.create_end_user_security_context()` which
     prevented the second item (key) in a two-item tuple identity from being set
     to *None*.
@@ -47,8 +49,6 @@ Common Changes
     :ref:`AWS Simple Storage Service (S3) <awss3provider>` and
     :ref:`AWS Secrets Manager <awssecretsmanagerprovider>` with
     the :ref:`oracledb.plugins.aws_config_provider <configawsplugin>` plugin.
-#)  Added connection property :attr:`Connection.db_unique_name` (and async
-    variant) to provide the database unique name.
 #)  Added support for fetching INTERVAL DAY TO SECOND and INTERVAL YEAR TO
     MONTH in :ref:`Arrow data frames <dataframeformat>` and added support for
     ingestion of INTERVAL DAY TO SECOND values from
