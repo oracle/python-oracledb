@@ -1759,3 +1759,45 @@ async def test_8170(test_env, async_conn):
     )
     fetched_df = pyarrow.table(ora_df).to_pandas()
     assert test_env.get_data_from_df(fetched_df) == data
+
+
+async def test_8171(async_conn, async_cursor):
+    "8171 - test executemany() with decimal256 data frame"
+    expected_values = [
+        decimal.Decimal("9007199254740993"),
+        decimal.Decimal("22222222222222222222222222222222222222"),
+        decimal.Decimal("88888888888888888888.888888888888888888"),
+        decimal.Decimal("-0.0000000000000000000000000000000000001"),
+        decimal.Decimal("0.99999999999999999999999999999999999999"),
+        decimal.Decimal("1.9876543210987654321098765432109876543"),
+        decimal.Decimal("9876543210987654321098765432109876543.7"),
+    ]
+    dtype = pyarrow.decimal256(precision=76, scale=38)
+    df = pyarrow.table(
+        [
+            pyarrow.array(range(1, len(expected_values) + 1), pyarrow.int64()),
+            pyarrow.array(expected_values, dtype),
+        ],
+        names=["INTCOL", "NUMBERCOL"],
+    )
+    await async_cursor.execute("delete from TestDataFrame")
+    await async_cursor.executemany(
+        """
+        insert into TestDataFrame (Id, UnconstrainedNumberData)
+        values (:1, :2)
+        """,
+        df,
+    )
+    await async_conn.commit()
+    requested_schema = pyarrow.schema([("NUMBERCOL", dtype)])
+    ora_df = await async_conn.fetch_df_all(
+        """
+        select UnconstrainedNumberData
+        from TestDataFrame
+        order by Id
+        """,
+        requested_schema=requested_schema,
+    )
+    fetched_table = pyarrow.table(ora_df)
+    assert fetched_table.field("NUMBERCOL").type == dtype
+    assert [v.as_py() for v in fetched_table["NUMBERCOL"]] == expected_values

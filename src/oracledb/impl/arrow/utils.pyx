@@ -360,3 +360,14 @@ cdef int build_arrow_schema_for_sparse_vector(
         )
     )
     _check_nanoarrow(ArrowSchemaSetName(schema.children[2], "values"))
+
+
+cdef int init_arrow_decimal(ArrowSchemaImpl schema_impl,
+                            ArrowDecimal *decimal) except -1:
+    """
+    Initializes an Arrow decimal value to match the schema definition.
+    """
+    cdef int32_t bitwidth = 256 \
+            if schema_impl.arrow_type == NANOARROW_TYPE_DECIMAL256 else 128
+    ArrowDecimalInit(decimal, bitwidth, schema_impl.precision,
+                     schema_impl.scale)

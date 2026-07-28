@@ -164,7 +164,11 @@ to map data types.
     * - :attr:`DB_TYPE_NCLOB`
       - LARGE_STRING
     * - :attr:`DB_TYPE_NUMBER`
-      - DECIMAL128, INT64, or DOUBLE
+      - DECIMAL256, DECIMAL128, INT64, or DOUBLE
+
+        .. versionchanged:: 4.1.0
+
+          Support for DECIMAL256 was added.
     * - :attr:`DB_TYPE_NVARCHAR`
       - LARGE_STRING
     * - :attr:`DB_TYPE_RAW`
@@ -189,7 +193,9 @@ When converting Oracle Database NUMBERs:
   then the Apache Arrow data type will be DOUBLE.
 
 - If :attr:`oracledb.defaults.fetch_decimals <Defaults.fetch_decimals>` is set
-  to *True*, then the Apache Arrow data type is DECIMAL128.
+  to *True*, then the default Apache Arrow data type is DECIMAL128. DECIMAL256
+  is supported through the ``requested_schema`` parameter of the methods
+  :meth:`Connection.fetch_df_all()` and :meth:`Connection.fetch_df_batches()`.
 
 - If the column has been created with a scale of *0*, and a precision value
   that is less than or equal to *18*, then the Apache Arrow data type is INT64.
@@ -402,7 +408,8 @@ cannot be represented in the requested schema type.
       * - Oracle Database Types
         - Apache Arrow Data Types
       * - :attr:`DB_TYPE_NUMBER`
-        - DECIMAL128(p, s)
+        - DECIMAL256(p, s)
+          DECIMAL128(p, s)
           DOUBLE
           FLOAT
           INT8
@@ -413,6 +420,10 @@ cannot be represented in the requested schema type.
           UINT16
           UINT32
           UINT64
+
+          .. versionchanged:: 4.1.0
+
+            Support for DECIMAL256 was added.
       * - :attr:`DB_TYPE_BLOB`
           :attr:`DB_TYPE_LONG_RAW`
           :attr:`DB_TYPE_RAW`

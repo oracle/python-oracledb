@@ -166,6 +166,7 @@ cdef class OracleMetadata:
             if db_type_num == DB_TYPE_NUM_BOOLEAN:
                 ok = True
         elif arrow_type in (NANOARROW_TYPE_DECIMAL128,
+                            NANOARROW_TYPE_DECIMAL256,
                             NANOARROW_TYPE_INT8,
                             NANOARROW_TYPE_INT16,
                             NANOARROW_TYPE_INT32,
@@ -224,6 +225,7 @@ cdef class OracleMetadata:
         if db_type_num == DB_TYPE_NUM_NUMBER:
             if arrow_type in (
                 NANOARROW_TYPE_DECIMAL128,
+                NANOARROW_TYPE_DECIMAL256,
                 NANOARROW_TYPE_DOUBLE,
                 NANOARROW_TYPE_FLOAT,
                 NANOARROW_TYPE_INT8,
@@ -322,6 +324,7 @@ cdef class OracleMetadata:
             ArrowType arrow_type = schema_impl.arrow_type
         if arrow_type in (
             NANOARROW_TYPE_DECIMAL128,
+            NANOARROW_TYPE_DECIMAL256,
             NANOARROW_TYPE_INT8,
             NANOARROW_TYPE_INT16,
             NANOARROW_TYPE_INT32,

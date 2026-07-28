@@ -96,7 +96,7 @@ cdef class ArrowArrayImpl:
         Append a value of type ArrowDecimal to the array
 
         Arrow decimals are fixed-point decimal numbers encoded as a
-        scaled integer. decimal128(7, 3) can exactly represent the numbers
+        scaled integer. decimal(7, 3) can exactly represent the numbers
         1234.567 and -1234.567 encoded internally as the 128-bit integers
         1234567 and -1234567, respectively.
         """
@@ -105,8 +105,7 @@ cdef class ArrowArrayImpl:
             ArrowDecimal decimal
         decimal_view.data = <char*> ptr
         decimal_view.size_bytes = num_bytes
-        ArrowDecimalInit(&decimal, 128, self.schema_impl.precision,
-                         self.schema_impl.scale)
+        init_arrow_decimal(self.schema_impl, &decimal)
         _check_nanoarrow(ArrowDecimalSetDigits(&decimal, decimal_view))
         _check_nanoarrow(ArrowArrayAppendDecimal(self.arrow_array, &decimal))
 
@@ -214,9 +213,9 @@ cdef class ArrowArrayImpl:
             self.append_double(
                 ArrowArrayViewGetDoubleUnsafe(&array.arrow_array_view, index)
             )
-        elif array.schema_impl.arrow_type == NANOARROW_TYPE_DECIMAL128:
-            ArrowDecimalInit(&decimal, 128, self.schema_impl.precision,
-                             self.schema_impl.scale)
+        elif array.schema_impl.arrow_type in (NANOARROW_TYPE_DECIMAL128,
+                                              NANOARROW_TYPE_DECIMAL256):
+            init_arrow_decimal(self.schema_impl, &decimal)
             ArrowArrayViewGetDecimalUnsafe(&array.arrow_array_view, index,
                                            &decimal)
             _check_nanoarrow(ArrowArrayAppendDecimal(array.arrow_array,
@@ -355,8 +354,7 @@ cdef class ArrowArrayImpl:
             ArrowBuffer buf
         is_null[0] = ArrowArrayViewIsNull(&self.arrow_array_view, index)
         if not is_null[0]:
-            ArrowDecimalInit(&decimal, 128, self.schema_impl.precision,
-                    self.schema_impl.scale)
+            init_arrow_decimal(self.schema_impl, &decimal)
             ArrowArrayViewGetDecimalUnsafe(&self.arrow_array_view, index,
                                            &decimal)
             ArrowBufferInit(&buf)

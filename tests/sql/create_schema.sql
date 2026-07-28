@@ -414,6 +414,7 @@ create table &main_user..TestDataframe (
     DecimalData                         number(15, 4),
     IntegerData                         number(15),
     LongIntegerData                     number(38),
+    UnconstrainedNumberData             number,
     FloatData                           binary_float,
     DoubleData                          binary_double,
     RawData                             raw(100),

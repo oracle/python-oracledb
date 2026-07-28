@@ -26,6 +26,7 @@
 Module for testing user requested schema in fetch_df APIs
 """
 
+import decimal
 import datetime
 
 import oracledb
@@ -412,7 +413,7 @@ def test_9316(db_type_name, dtype, conn):
 @pytest.mark.parametrize(
     "dtype",
     [
-        pyarrow.decimal128(precision=3, scale=2),
+        pyarrow.decimal128(precision=4, scale=2),
         pyarrow.float32(),
         pyarrow.float64(),
     ],
@@ -787,3 +788,70 @@ def test_9329(num_elements, conn, test_env):
                 requested_schema=requested_schema,
             )
         )
+
+
+@pytest.mark.parametrize(
+    "value",
+    [
+        "9007199254740993",
+        "22222222222222222222222222222222222222",
+        "88888888888888888888.888888888888888888",
+        "-0.0000000000000000000000000000000000001",
+        "0.99999999999999999999999999999999999999",
+        "1.9876543210987654321098765432109876543",
+        "9876543210987654321098765432109876543.7",
+    ],
+)
+def test_9330(conn, value):
+    "9330 - unconstrained NUMBER with decimal256"
+    dtype = pyarrow.decimal256(precision=76, scale=38)
+    requested_schema = pyarrow.schema([("VALUE", dtype)])
+    ora_df = conn.fetch_df_all(
+        "select to_number(:1) from dual",
+        [value],
+        requested_schema=requested_schema,
+    )
+    tab = pyarrow.table(ora_df)
+    assert tab.field("VALUE").type == dtype
+    assert [v.as_py() for v in tab["VALUE"]] == [decimal.Decimal(value)]
+    for ora_df in conn.fetch_df_batches(
+        "select to_number(:1) from dual",
+        [value],
+        requested_schema=requested_schema,
+    ):
+        tab = pyarrow.table(ora_df)
+        assert tab.field("VALUE").type == dtype
+        assert [v.as_py() for v in tab["VALUE"]] == [decimal.Decimal(value)]
+
+
+def test_9331(test_env, conn):
+    "9331 - fetch_df_all() for decimal256 scale overflow"
+    dtype = pyarrow.decimal256(precision=76, scale=0)
+    requested_schema = pyarrow.schema([("VALUE", dtype)])
+    with test_env.assert_raises_full_code("DPY-4042"):
+        conn.fetch_df_all(
+            "select 1e100 from dual", requested_schema=requested_schema
+        )
+
+
+def test_9332(conn):
+    "9332 - decimal256 with large scale"
+    value = "1e-76"
+    expected_values = [
+        decimal.Decimal(value),
+        decimal.Decimal(f"-{value}"),
+    ]
+    dtype = pyarrow.decimal256(precision=76, scale=76)
+    requested_schema = pyarrow.schema([("VALUE", dtype)])
+    ora_df = conn.fetch_df_all(
+        """
+        select to_number(:1) from dual
+        union all
+        select to_number(:2) from dual
+        """,
+        [value, f"-{value}"],
+        requested_schema=requested_schema,
+    )
+    tab = pyarrow.table(ora_df)
+    assert tab.field("VALUE").type == dtype
+    assert [v.as_py() for v in tab["VALUE"]] == expected_values

@@ -53,6 +53,11 @@ Common Changes
     MONTH in :ref:`Arrow data frames <dataframeformat>` and added support for
     ingestion of INTERVAL DAY TO SECOND values from
     :ref:`Arrow data frames <dataframeformat>`.
+#)  Added support for the :ref:`Apache Arrow <dataframeformat>` "decimal256"
+    type when fetching Oracle Database NUMBER columns with
+    :meth:`Connection.fetch_df_all()` and
+    :meth:`Connection.fetch_df_batches()`, and when ingesting Arrow data frames
+    into those columns.
 #)  Added support for comparing instances of classes
     :class:`oracledb.ConnectParams`, :class:`oracledb.PoolParams` and
     :class:`oracledb.SecretValue`.

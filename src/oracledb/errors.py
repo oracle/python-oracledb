@@ -386,6 +386,7 @@ ERR_INVALID_INTEGER = 4038
 ERR_CANNOT_CONVERT_TO_ARROW_FLOAT = 4039
 ERR_ARROW_FIXED_SIZE_BINARY_VIOLATED = 4040
 ERR_DPL_TOO_MUCH_DATA = 4041
+ERR_CANNOT_CONVERT_TO_ARROW_DECIMAL = 4042
 
 # error numbers that result in InternalError
 ERR_MESSAGE_TYPE_UNKNOWN = 5000
@@ -629,6 +630,10 @@ ERR_MESSAGE_FORMATS = {
     ERR_CANNOT_CONVERT_FROM_ARROW_TYPE: (
         'Apache Arrow type "{arrow_type}" cannot be converted to database '
         'type "{db_type}"'
+    ),
+    ERR_CANNOT_CONVERT_TO_ARROW_DECIMAL: (
+        "{value} cannot be converted to an Apache Arrow "
+        "decimal({precision}, {scale})"
     ),
     ERR_CANNOT_CONVERT_TO_ARROW_DOUBLE: (
         "{value} cannot be converted to an Apache Arrow double"
