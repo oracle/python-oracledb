@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2020, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -303,6 +303,7 @@ cdef class Statement:
         uint32_t _num_columns
         bint _executed
         bint _binds_changed
+        bint _has_in_out_binds
         bint _no_prefetch
         bint _requires_define
         bint _return_to_cache
@@ -438,9 +439,15 @@ cdef class Statement:
     cdef bint requires_single_execute(self):
         """
         Returns a boolean indicating if the statement requires a single execute
-        in order to be processed correctly by the server. If a PL/SQL block has
-        not been executed before, the determination of input/output binds has
-        not been completed and so a single execution is required in order to
-        complete that determination.
+        in order to be processed correctly. If a PL/SQL block has not been
+        executed before, the determination of input/output binds has not been
+        completed and so a single execution is required in order to complete
+        that determination. If a PL/SQL block makes use of in/out binds, single
+        execution is also needed since the results of one iteration may be used
+        as input for the next iteration.
         """
-        return self._is_plsql and (self._cursor_id == 0 or self._binds_changed)
+        return self._is_plsql and (
+            self._cursor_id == 0 \
+            or self._binds_changed \
+            or self._has_in_out_binds
+        )

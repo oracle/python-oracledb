@@ -1331,6 +1331,12 @@ create or replace package &main_user..pkg_TestRecords as
         a_Value                         udt_RecordArray
     ) return varchar2;
 
+    procedure TestInOutArrays (
+        a_NumberValue                   number,
+        a_StringValue                   varchar2,
+        a_Array                         in out nocopy udt_RecordArray
+    );
+
 end;
 /
 
@@ -1385,6 +1391,23 @@ create or replace package body &main_user..pkg_TestRecords as
             t_Result := t_Result || GetStringRep(a_Value(i));
         end loop;
         return t_Result;
+    end;
+
+    procedure TestInOutArrays (
+        a_NumberValue                   number,
+        a_StringValue                   varchar2,
+        a_Array                         in out nocopy udt_RecordArray
+    ) is
+        t_Index                         binary_integer;
+    begin
+        t_Index := a_Array.last();
+        if t_Index is null then
+            t_Index := 0;
+        else
+            t_Index := t_Index + 1;
+        end if;
+        a_Array(t_Index).NumberValue := a_NumberValue;
+        a_Array(t_Index).StringValue := a_StringValue;
     end;
 
 end;

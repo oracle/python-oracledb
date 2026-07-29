@@ -307,15 +307,13 @@ cdef class ThinCursorImpl(BaseThinCursorImpl):
         # if a PL/SQL statement requires a full execute, perform only a single
         # iteration in order to allow the determination of input/output binds
         # to be completed; after that, an execution of the remaining iterations
-        # can be performed (but only if the cursor remains intact)
-        if stmt.requires_single_execute():
+        # can be performed (but only if the cursor remains intact and there are
+        # no in/out binds)
+        while num_execs > 0 and stmt.requires_single_execute():
             message.num_execs = 1
-            while num_execs > 0:
-                num_execs -= 1
-                protocol._process_single_message(message)
-                message.offset += 1
-                if stmt._cursor_id != 0:
-                    break
+            num_execs -= 1
+            protocol._process_single_message(message)
+            message.offset += 1
         if num_execs > 0:
             message.num_execs = num_execs
             protocol._process_single_message(message)
@@ -424,15 +422,13 @@ cdef class AsyncThinCursorImpl(BaseThinCursorImpl):
         # if a PL/SQL statement requires a full execute, perform only a single
         # iteration in order to allow the determination of input/output binds
         # to be completed; after that, an execution of the remaining iterations
-        # can be performed (but only if the cursor remains intact)
-        if stmt.requires_single_execute():
+        # can be performed (but only if the cursor remains intact and there are
+        # no in/out binds)
+        while num_execs > 0 and stmt.requires_single_execute():
             message.num_execs = 1
-            while num_execs > 0:
-                num_execs -= 1
-                await protocol._process_single_message(message)
-                message.offset += 1
-                if stmt._cursor_id != 0:
-                    break
+            num_execs -= 1
+            await protocol._process_single_message(message)
+            message.offset += 1
         if num_execs > 0:
             message.num_execs = num_execs
             await protocol._process_single_message(message)

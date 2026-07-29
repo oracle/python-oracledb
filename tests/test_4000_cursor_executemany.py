@@ -525,3 +525,16 @@ def test_4033(conn, cursor, empty_tab):
         "select IntCol, NumberCol from TestTempTable order by IntCol"
     )
     assert cursor.fetchall() == rows
+
+
+def test_4034(conn, cursor):
+    "4034 - test executemany() with PL/SQL in/out variables"
+    typ = conn.gettype("PKG_TESTRECORDS.UDT_RECORDARRAY")
+    obj = typ.newobject()
+    data = [((i + 1) * 10, f"String {(i + 1) * 10}") for i in range(4)]
+    input_data = [(n, s, obj) for n, s in data]
+    cursor.executemany(
+        "begin pkg_TestRecords.TestInOutArrays(:1, :2, :3); end;", input_data
+    )
+    output_data = [(e.NUMBERVALUE, e.STRINGVALUE) for e in obj.aslist()]
+    assert output_data == data

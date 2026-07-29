@@ -470,3 +470,16 @@ async def test_6129(async_conn, async_cursor, empty_tab):
         "select IntCol, NumberCol from TestTempTable order by IntCol"
     )
     assert await async_cursor.fetchall() == rows
+
+
+async def test_6130(async_conn, async_cursor):
+    "6130 - test executemany() with PL/SQL in/out variables"
+    typ = await async_conn.gettype("PKG_TESTRECORDS.UDT_RECORDARRAY")
+    obj = typ.newobject()
+    data = [((i + 1) * 10, f"String {(i + 1) * 10}") for i in range(4)]
+    input_data = [(n, s, obj) for n, s in data]
+    await async_cursor.executemany(
+        "begin pkg_TestRecords.TestInOutArrays(:1, :2, :3); end;", input_data
+    )
+    output_data = [(e.NUMBERVALUE, e.STRINGVALUE) for e in obj.aslist()]
+    assert output_data == data

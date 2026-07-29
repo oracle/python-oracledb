@@ -27,6 +27,8 @@ Thin Mode Changes
     connections.
 #)  Added connection property :attr:`Connection.db_unique_name` (and async
     variant) to provide the database unique name.
+#)  Fixed bug in :func:`Cursor.executemany()` when in/out variables are present
+    (`issue 599 <https://github.com/oracle/python-oracledb/issues/599>`__).
 #)  Fixed bug in :func:`oracledb.create_end_user_security_context()` which
     prevented the second item (key) in a two-item tuple identity from being set
     to *None*.

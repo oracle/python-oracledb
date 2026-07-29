@@ -1292,6 +1292,8 @@ cdef class MessageWithData(Message):
             buf.read_ub1(&bind_info.bind_dir)
             if bind_info.bind_dir == TNS_BIND_DIR_INPUT:
                 continue
+            elif bind_info.bind_dir == TNS_BIND_DIR_INPUT_OUTPUT:
+                self.cursor_impl._statement._has_in_out_binds = True
             self.out_var_impls.append(bind_info._bind_var_impl)
 
     cdef int _process_message(self, ReadBuffer buf,
