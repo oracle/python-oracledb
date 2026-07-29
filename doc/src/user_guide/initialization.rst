@@ -70,7 +70,9 @@ To change from the default python-oracledb Thin mode to Thick mode:
 
       import oracledb
 
-      d = None                               # On Linux, no directory should be passed
+      d = None                               # On Linux, use lib_dir only with
+                                             # Oracle Client libraries that are
+                                             # built with RPATH=$ORIGIN
       if platform.system() == "Darwin":      # macOS
         d = os.environ.get("HOME")+("/Downloads/instantclient_23_3")
       elif platform.system() == "Windows":   # Windows
@@ -80,7 +82,9 @@ To change from the default python-oracledb Thin mode to Thick mode:
   The use of a ‘raw’ string ``r"..."`` on Windows means that backslashes are
   treated as directory separators.  On Linux, the libraries must be in the
   system library search path *before* the Python process starts, preferably
-  configured with ``ldconfig``.
+  configured with ``ldconfig``.  Note that the ``lib_dir`` parameter can only
+  be used on Linux when the Oracle Instant Client libraries have been built
+  with ``RPATH=$ORIGIN``.
 
 More details and options are shown in the later sections:
 
@@ -101,10 +105,12 @@ More details and options are shown in the later sections:
   parameter, the Oracle Client libraries are loaded immediately from that
   directory. If you call :meth:`~oracledb.init_oracle_client()` but do *not*
   set the ``lib_dir`` parameter, the Oracle Client libraries are loaded
-  immediately using the search heuristics discussed in later sections. Note if
-  you set ``lib_dir`` on Linux and related platforms, you must still have
-  configured the system library search path to include that directory *before*
-  starting Python.
+  immediately using the search heuristics discussed in later sections. On Linux
+  and related platforms, ``lib_dir`` can only be used when the Oracle Client
+  libraries use ``RPATH=$ORIGIN``. For Oracle Client libraries that do not use
+  ``RPATH=$ORIGIN``, do not set ``lib_dir`` and instead configure the system
+  library search path with ``ldconfig`` or ``LD_LIBRARY_PATH`` before starting
+  Python.
 
 - Once the Thick mode is enabled, you cannot go back to the Thin mode except by
   removing calls to :meth:`~oracledb.init_oracle_client()` and restarting the
@@ -267,13 +273,26 @@ Enabling python-oracledb Thick Mode on Linux and Related Platforms
 
 On Linux and related platforms, enable Thick mode by calling
 :meth:`~oracledb.init_oracle_client()` without passing a ``lib_dir``
-parameter.
+parameter, unless the Oracle Client libraries use ``RPATH=$ORIGIN``.
 
 .. code-block:: python
 
     import oracledb
 
     oracledb.init_oracle_client()
+
+For Oracle Client libraries that are configured with ``RPATH=$ORIGIN``, the
+Instant Client directory can be passed with the ``lib_dir`` parameter, for
+example:
+
+.. code-block:: python
+
+    import oracledb
+
+    oracledb.init_oracle_client(lib_dir="/opt/oracle/instantclient_23_26")
+
+Earlier versions of Oracle Client libraries do not include this configuration
+unless the libraries were manually modified to use ``RPATH=$ORIGIN``.
 
 Oracle Client libraries are looked for in the operating system library search
 path, such as configured with ``ldconfig`` or set in the environment variable
@@ -297,7 +316,8 @@ raised.
 
 On Linux, python-oracledb Thick mode will not automatically load Oracle Client
 library files from the directory where the python-oracledb binary module is
-located.  One of the above methods should be used instead.
+located. Use the system library search path, or pass ``lib_dir`` only when
+using Oracle Client libraries that are built to use ``RPATH=$ORIGIN``.
 
 Ensure that the Python process has directory and file access permissions for
 the Oracle Client libraries.  OS restrictions may prevent the opening of Oracle

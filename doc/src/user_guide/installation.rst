@@ -329,9 +329,10 @@ To use python-oracledb in Thick mode you must call
     oracledb.init_oracle_client()
 
 On Linux, do not pass the ``lib_dir`` parameter to
-:meth:`~oracledb.init_oracle_client()`.  The Oracle Client libraries on Linux
-must be in the system library search path *before* the Python process starts.
-
+:meth:`~oracledb.init_oracle_client()` unless the Oracle Instant Client
+libraries are configured with ``RPATH=$ORIGIN``. Otherwise, the Oracle Client
+libraries must be in the system library search path *before* the Python process
+starts.
 
 Oracle Instant Client Zip Files
 +++++++++++++++++++++++++++++++
