@@ -78,6 +78,12 @@ def test_1102(test_env):
     "1102 - test invalid use of application context"
     with pytest.raises(TypeError):
         test_env.get_connection(appcontext=[("userenv", "action")])
+    with pytest.raises(ValueError):
+        test_env.get_connection(appcontext=[("", "action", "value")])
+    with pytest.raises(ValueError):
+        test_env.get_connection(appcontext=[("userenv", "x" * 129, "value")])
+    with pytest.raises(ValueError):
+        test_env.get_connection(appcontext=[("userenv", "action", "x" * 4001)])
 
 
 def test_1103(conn, test_env):
@@ -971,3 +977,41 @@ def test_1162(skip_unless_thin_mode, cursor, test_env):
     cursor.execute("select sys_context('userenv', 'db_unique_name') from dual")
     (expected_name,) = cursor.fetchone()
     assert cursor.connection.db_unique_name == expected_name
+
+
+def test_1163(conn, test_env):
+    "1163 - test application context management with invalid inputs"
+    with pytest.raises(ValueError):
+        conn.set_app_context("", attr="value")
+    with pytest.raises(ValueError):
+        conn.clear_app_context("")
+    with pytest.raises(ValueError):
+        conn.set_app_context("CLIENTCONTEXT")
+    with pytest.raises(ValueError):
+        attrs = {"X" * 129: "value"}
+        conn.set_app_context("CLIENTCONTEXT", **attrs)
+    with pytest.raises(ValueError):
+        conn.set_app_context("CLIENTCONTEXT", attr="X" * 4001)
+    with test_env.assert_raises_full_code("ORA-28267"):
+        conn.set_app_context("NOT_A_VALID_NAMESPACE", attr="value")
+        conn.ping()
+
+
+def test_1164(conn, cursor):
+    "1164 - test set_app_context() behaviour"
+    namespace = "CLIENTCONTEXT"
+    conn.set_app_context(namespace, ATTR1="VALUE1")
+    conn.set_app_context(namespace, ATTR2="VALUE2")
+    cursor.execute(
+        """
+        select
+            sys_context(:namespace, 'ATTR1'),
+            sys_context(:namespace, 'ATTR2')
+        from dual
+        """,
+        namespace=namespace,
+    )
+    assert cursor.fetchone() == ("VALUE1", "VALUE2")
+    conn.clear_app_context(namespace)
+    cursor.execute(None, namespace=namespace)
+    assert cursor.fetchone() == (None, None)

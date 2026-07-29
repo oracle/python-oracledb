@@ -2817,7 +2817,8 @@ troubleshooting.
 
 See :ref:`endtoendtracing` for more information.
 
-**Application Contexts**
+Application Contexts
+--------------------
 
 An application context stores user identification that can enable or prevent a
 user from accessing data in the database.  See the Oracle AI Database
@@ -2825,9 +2826,18 @@ documentation `About Application Contexts <https://www.oracle.com/pls/topic/
 lookup?ctx=dblatest&id=GUID-6745DB10-F540-45D7-9761-9E8F342F1435>`__.
 
 A context has a namespace and a key-value pair. The namespace CLIENTCONTEXT is
-reserved for use with client session-based application contexts. Contexts are
-set during connection as an array of 3-tuples containing string values for the
-namespace, key, and value.  For example:
+reserved for use with client session-based application contexts. In
+python-oracledb, you can set an application context during
+:ref:`connection creation <appcontextconncreate>` or after connection creation
+on a :ref:`connection <appcontextconnobjcreate>` object.
+
+.. _appcontextconncreate:
+
+Setting Application Contexts During Connection Creation
++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Application contexts are set during connection as an array of 3-tuples
+containing string values for the namespace, key, and value. For example:
 
 .. code-block:: python
 
@@ -2880,6 +2890,69 @@ You can use contexts to set up restrictive policies that are automatically
 applied to any query executed. See Oracle AI Database documentation `Oracle
 Virtual Private Database (VPD) <https://www.oracle.com/pls/topic/lookup?ctx=
 dblatest&id=GUID-06022729-9210-4895-BF04-6177713C65A7>`__.
+
+.. _appcontextconnobjcreate:
+
+Setting Application Contexts on a Connection Object
+---------------------------------------------------
+
+You can set an application context on a :ref:`Connection <connobj>` object
+after it has been created. This can be done with the
+:meth:`Connection.set_app_context()` method by specifying the
+namespace and key-value pairs for an application context as shown in the
+example below:
+
+.. code-block:: python
+
+    connection = oracledb.connect(user="hr", password=userpwd,
+                                  dsn="dbhost.example.com/orclpdb")
+
+    connection.set_app_context("clientcontext", loc_id="1900")
+    connection.set_app_context("clientcontext", my_world="earth")
+
+The namespace parameter of :meth:`Connection.set_app_context()` must be a
+non-empty string.
+
+Application context values set on a connection can be queried in your
+applications, for example:
+
+.. code-block:: python
+
+    with connection.cursor() as cursor:
+    cursor.execute("""
+        select sys_context('clientcontext', 'loc_id'),
+               sys_context('clientcontext', 'my_world')
+        from dual
+    """)
+    print(cursor.fetchone())
+
+This query prints ``('1900', 'earth')``.
+
+The application context can be seen in the Oracle Database table `V$CONTEXT
+<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-0DC7F6C7-B5F9-
+4467-9518-0B98876588B3>`__ by a DBA with the following query:
+
+.. code-block:: sql
+
+    SELECT attribute, value FROM v$context WHERE namespace = 'CLIENTCONTEXT';
+
+To clear the application context set on a connection, use
+:meth:`Connection.clear_app_context()`. This clears all key-value information
+in a namespace of the application context. For example:
+
+.. code-block:: python
+
+    connection.clear_app_context(namespace)
+
+Querying the application context values after calling
+:meth:`~Connection.clear_app_context()` on a connection returns *None*.
+
+**Behavior Difference in Thin and Thick Modes**
+
+A namespace other than CLIENTCONTEXT raises the ``ORA-28267`` error in both
+Thin and Thick modes. In python-oracledb Thin mode, this error is raised by
+:meth:`Cursor.execute()`, while in Thick mode, it is raised by
+:meth:`Connection.set_app_context()`.
 
 .. _deepdatasecurity:
 

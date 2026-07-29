@@ -83,14 +83,6 @@ cdef class ConnectionParams:
         if self.super_sharding_key_columns is not NULL:
             cpython.PyMem_Free(self.super_sharding_key_columns)
 
-    cdef int _process_context_str(self, str value, const char **ptr,
-                                  uint32_t *length) except -1:
-        cdef bytes temp
-        temp = value.encode()
-        self.bytes_references.append(temp)
-        ptr[0] = temp
-        length[0] = <uint32_t> len(temp)
-
     cdef int _process_sharding_value(self, object value,
                                      dpiShardingKeyColumn *column) except -1:
         """
@@ -101,19 +93,15 @@ cdef class ConnectionParams:
             dpiTimestamp* timestamp
             bytes temp
         if isinstance(value, str):
-            temp = value.encode()
-            self.bytes_references.append(temp)
+            _process_str(value, <const char**> &column.value.asBytes.ptr,
+                         &column.value.asBytes.length, self.bytes_references)
             column.oracleTypeNum = DPI_ORACLE_TYPE_VARCHAR
             column.nativeTypeNum = DPI_NATIVE_TYPE_BYTES
-            column.value.asBytes.ptr = temp
-            column.value.asBytes.length = <uint32_t> len(temp)
         elif isinstance(value, (int, float, PY_TYPE_DECIMAL)):
-            temp = str(value).encode()
-            self.bytes_references.append(temp)
+            _process_str(str(value), <const char**> &column.value.asBytes.ptr,
+                         &column.value.asBytes.length, self.bytes_references)
             column.oracleTypeNum = DPI_ORACLE_TYPE_NUMBER
             column.nativeTypeNum = DPI_NATIVE_TYPE_BYTES
-            column.value.asBytes.ptr = temp
-            column.value.asBytes.length = <uint32_t> len(temp)
         elif isinstance(value, bytes):
             self.bytes_references.append(value)
             column.oracleTypeNum = DPI_ORACLE_TYPE_RAW
@@ -145,24 +133,10 @@ cdef class ConnectionParams:
                               type_name=type(value).__name__)
 
     cdef process_appcontext(self, list entries):
-        cdef:
-            object namespace, name, value
-            dpiAppContext *entry
-            ssize_t num_bytes
-            bytes temp
-            uint32_t i
         if self.bytes_references is None:
             self.bytes_references = []
-        self.num_app_context = <uint32_t> len(entries)
-        num_bytes = self.num_app_context * sizeof(dpiAppContext)
-        self.app_context = <dpiAppContext*> cpython.PyMem_Malloc(num_bytes)
-        for i in range(self.num_app_context):
-            namespace, name, value = entries[i]
-            entry = &self.app_context[i]
-            self._process_context_str(namespace, &entry.namespaceName,
-                                      &entry.namespaceNameLength)
-            self._process_context_str(name, &entry.name, &entry.nameLength)
-            self._process_context_str(value, &entry.value, &entry.valueLength)
+        _process_app_context(entries, &self.num_app_context, &self.app_context,
+                             self.bytes_references)
 
     cdef int process_sharding_key(self, list entries, bint is_super) except -1:
         """
@@ -186,6 +160,43 @@ cdef class ConnectionParams:
             self.num_sharding_key_columns = num_columns
         for i, entry in enumerate(entries):
             self._process_sharding_value(entry, &columns[i])
+
+
+cdef int _process_app_context(list entries, uint32_t *num_app_context,
+                              dpiAppContext **app_context,
+                              list bytes_refs) except -1:
+    """
+    Processes the application context entries in the provided list and returns
+    the structure required by ODPI-C.
+    """
+    cdef:
+        str namespace, name, value
+        dpiAppContext *entry
+        ssize_t i, num_bytes
+    num_app_context[0] = <uint32_t> len(entries)
+    num_bytes = num_app_context[0] * sizeof(dpiAppContext)
+    app_context[0] = <dpiAppContext*> cpython.PyMem_Malloc(num_bytes)
+    for i, (namespace, name, value) in enumerate(entries):
+        entry = &app_context[0][i]
+        _process_str(namespace, &entry.namespaceName,
+                     &entry.namespaceNameLength, bytes_refs)
+        _process_str(name, &entry.name, &entry.nameLength, bytes_refs)
+
+        _process_str(value, &entry.value, &entry.valueLength, bytes_refs)
+
+
+cdef int _process_str(str value, const char **ptr, uint32_t *length,
+                      list bytes_refs) except -1:
+    """
+    Processes a string into the format required by ODPI-C. The string is
+    encoded into UTF-8 and a reference retained so that the memory is not
+    reclaimed.
+    """
+    cdef bytes temp
+    temp = value.encode()
+    bytes_refs.append(temp)
+    ptr[0] = temp
+    length[0] = <uint32_t> len(temp)
 
 
 @cython.freelist(8)
@@ -333,6 +344,21 @@ cdef class ThickConnImpl(BaseConnImpl):
         if dpiConn_getIsHealthy(self._handle, &is_healthy) < 0:
             _raise_from_odpi()
         return is_healthy
+
+    def clear_app_context(self, str namespace):
+        cdef:
+            const char* namespace_ptr
+            uint32_t namespace_len
+            bytes namespace_bytes
+            int status
+        namespace_bytes = namespace.encode()
+        namespace_ptr = namespace_bytes
+        namespace_len = <uint32_t> len(namespace_bytes)
+        with nogil:
+            status = dpiConn_clearAppContext(self._handle, namespace_ptr,
+                                             namespace_len)
+        if status < 0:
+            _raise_from_odpi()
 
     def close(self, bint in_del=False):
         cdef:
@@ -791,6 +817,27 @@ cdef class ThickConnImpl(BaseConnImpl):
             status = dpiConn_rollback(self._handle)
         if status < 0:
             _raise_from_odpi()
+
+    def set_app_context(self, str namespace, **values):
+        cdef:
+            dpiAppContext *dpi_app_context = NULL
+            uint32_t num_app_context
+            list app_context = [
+                (namespace, name, value) for name, value in values.items()
+            ]
+            list bytes_refs = []
+            int status
+        try:
+            _process_app_context(app_context, &num_app_context,
+                                 &dpi_app_context, bytes_refs)
+            with nogil:
+                status = dpiConn_setAppContext(self._handle, num_app_context,
+                                               dpi_app_context)
+            if status < 0:
+                _raise_from_odpi()
+        finally:
+            if dpi_app_context is not NULL:
+                cpython.PyMem_Free(dpi_app_context)
 
     def set_econtext_id(self, value):
         self._set_text_attr(dpiConn_setEcontextId, value)

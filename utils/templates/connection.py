@@ -77,6 +77,15 @@ class BaseConnection(metaclass=BaseMetaClass):
             return f"<{cls_name} to externally identified user>"
         return f"<{cls_name} to {self.username}@{self.dsn}>"
 
+    def _verify_app_context_namespace(self, namespace: str) -> None:
+        """
+        Verifies that app context namespace is a non-empty string.
+        """
+        if not isinstance(namespace, str) or not namespace:
+            raise ValueError(
+                "application context namespace must be a non-empty string"
+            )
+
     def _verify_connected(self) -> None:
         """
         Verifies that the connection is connected to the database. If it is
@@ -157,6 +166,18 @@ class BaseConnection(metaclass=BaseMetaClass):
         """
         self._verify_connected()
         self._impl.cancel()
+
+    def clear_app_context(self, namespace: str) -> None:
+        """
+        Clears application context on the connection for the given namespace.
+        The request to clear the application context will be sent to the
+        database with the next round trip and is equivalent to calling
+        dbms_session.clear_all_context() but without requiring the round trip
+        immediately.
+        """
+        self._verify_connected()
+        self._verify_app_context_namespace(namespace)
+        return self._impl.clear_app_context(namespace)
 
     def clear_end_user_security_context(self) -> None:
         """
@@ -649,6 +670,18 @@ class BaseConnection(metaclass=BaseMetaClass):
         """
         self._verify_connected()
         return self._impl.get_session_id()
+
+    def set_app_context(self, namespace: str, **values) -> None:
+        """
+        Sets application context on the connection for the given namespace.
+        This information will be sent to the database with the next round trip
+        and is equivalent to calling dbms_session.set_context() but without
+        requiring the round trip immediately.
+        """
+        self._verify_connected()
+        self._verify_app_context_namespace(namespace)
+        base_impl._verify_app_context_values(values)
+        return self._impl.set_app_context(namespace, **values)
 
     def set_end_user_security_context(
         self,

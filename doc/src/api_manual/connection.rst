@@ -53,6 +53,12 @@ Connection Methods
 
     .. dbapimethodextension::
 
+.. automethod:: Connection.clear_app_context
+
+    .. versionadded:: 4.1.0
+
+    See :ref:`appcontextconnobjcreate`.
+
 .. automethod:: Connection.clear_end_user_security_context
 
     In this release, this method is only relevant to python-oracledb's Thin
@@ -169,6 +175,12 @@ Connection Methods
     .. versionadded:: 3.3.0
 
 .. automethod:: Connection.rollback
+
+.. automethod:: Connection.set_app_context
+
+    .. versionadded:: 4.1.0
+
+    See :ref:`appcontextconnobjcreate`.
 
 .. automethod:: Connection.set_end_user_security_context
 

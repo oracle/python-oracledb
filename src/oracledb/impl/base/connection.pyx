@@ -208,6 +208,9 @@ cdef class BaseConnImpl:
     def get_is_healthy(self):
         errors._raise_not_supported("checking if the connection is healthy")
 
+    def clear_app_context(self, str namespace):
+        errors._raise_not_supported("clearing application context")
+
     def close(self, in_del=False):
         errors._raise_not_supported("closing a connection")
 
@@ -332,6 +335,9 @@ cdef class BaseConnImpl:
 
     def set_action(self, value):
         errors._raise_not_supported("setting the action")
+
+    def set_app_context(self, str namespace, **values):
+        errors._raise_not_supported("setting application context")
 
     def set_call_timeout(self, value):
         errors._raise_not_supported("setting the call timeout")

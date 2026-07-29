@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2022, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -28,12 +28,48 @@
 # Cython file defining utility methods (embedded in base_impl.pyx).
 #------------------------------------------------------------------------------
 
+cdef int _check_app_context_value_lengths(str key, str value) except -1:
+    """
+    Checks that application context keys and values do not exceed the
+    supported byte lengths.
+    """
+    cdef ssize_t key_length, value_length
+    key_length = len(key.encode())
+    value_length = len(value.encode())
+    if key_length > TNS_APP_CONTEXT_KEY_MAX_LEN:
+        raise ValueError(
+            "application context key length "
+            f"({key_length} bytes) exceeds the maximum allowed "
+            f"({TNS_APP_CONTEXT_KEY_MAX_LEN} bytes)"
+        )
+    if value_length > TNS_APP_CONTEXT_VALUE_MAX_LEN:
+        raise ValueError(
+            "application context value length "
+            f"({value_length} bytes) exceeds the maximum allowed "
+            f"({TNS_APP_CONTEXT_VALUE_MAX_LEN} bytes)"
+        )
+
+
+def _verify_app_context_values(dict values):
+    """
+    Verifies that application context key/value pairs satisfy requirements.
+    """
+    cdef str key, value
+    if not values:
+        raise ValueError(
+            "application context must contain at least one key/value pair"
+        )
+    for key, value in values.items():
+        _check_app_context_value_lengths(key, value)
+
+
 cdef int _set_app_context_param(dict args, str name, object target) except -1:
     """
     Sets an application context parameter to the value provided in the
     dictionary, if a value is provided. This value is then set directly on the
     target.
     """
+    cdef str namespace, key, value
     in_val = args.get(name)
     if in_val is not None:
         message = (
@@ -45,9 +81,12 @@ cdef int _set_app_context_param(dict args, str name, object target) except -1:
         for entry in in_val:
             if not isinstance(entry, tuple) or len(entry) != 3:
                 raise TypeError(message)
-            for value in entry:
-                if not isinstance(value, str):
-                    raise TypeError(message)
+            namespace, key, value = entry
+            if not namespace:
+                raise ValueError(
+                    "application context namespace cannot be empty"
+                )
+            _check_app_context_value_lengths(key, value)
         setattr(target, name, in_val)
 
 

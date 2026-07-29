@@ -56,6 +56,12 @@ AsyncConnection Methods
 
 .. automethod:: AsyncConnection.changepassword
 
+.. automethod:: AsyncConnection.clear_app_context
+
+    .. versionadded:: 4.1.0
+
+    See :ref:`appcontextconnobjcreate`.
+
 .. automethod:: AsyncConnection.clear_end_user_security_context
 
     See :ref:`endusersecuritycontextcreation`.
@@ -174,6 +180,12 @@ AsyncConnection Methods
         portability such as when preparing for a database upgrade.
 
     .. versionadded:: 2.4.0
+
+.. automethod:: AsyncConnection.set_app_context
+
+    .. versionadded:: 4.1.0
+
+    See :ref:`appcontextconnobjcreate`.
 
 .. automethod:: AsyncConnection.set_end_user_security_context
 

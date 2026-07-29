@@ -725,3 +725,41 @@ async def test_5359(async_cursor, test_env):
     )
     (expected_name,) = await async_cursor.fetchone()
     assert async_cursor.connection.db_unique_name == expected_name
+
+
+async def test_5360(async_conn, test_env):
+    "5360 - test application context raises ValueError with invalid inputs"
+    with pytest.raises(ValueError):
+        async_conn.set_app_context("", attr="value")
+    with pytest.raises(ValueError):
+        async_conn.clear_app_context("")
+    with pytest.raises(ValueError):
+        async_conn.set_app_context("CLIENTCONTEXT")
+    with pytest.raises(ValueError):
+        attrs = {"X" * 129: "value"}
+        async_conn.set_app_context("CLIENTCONTEXT", **attrs)
+    with pytest.raises(ValueError):
+        async_conn.set_app_context("CLIENTCONTEXT", attr="X" * 4001)
+    with test_env.assert_raises_full_code("ORA-28267"):
+        async_conn.set_app_context("NOT_A_VALID_NAMESPACE", attr="value")
+        await async_conn.ping()
+
+
+async def test_5361(async_conn, async_cursor):
+    "5361 - test set_app_context() behaviour"
+    namespace = "CLIENTCONTEXT"
+    async_conn.set_app_context(namespace, ATTR1="VALUE1")
+    async_conn.set_app_context(namespace, ATTR2="VALUE2")
+    await async_cursor.execute(
+        """
+        select
+            sys_context(:namespace, 'ATTR1'),
+            sys_context(:namespace, 'ATTR2')
+        from dual
+        """,
+        namespace=namespace,
+    )
+    assert await async_cursor.fetchone() == ("VALUE1", "VALUE2")
+    async_conn.clear_app_context(namespace)
+    await async_cursor.execute(None, namespace=namespace)
+    assert await async_cursor.fetchone() == (None, None)

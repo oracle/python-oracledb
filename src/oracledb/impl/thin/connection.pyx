@@ -100,6 +100,7 @@ cdef class BaseThinConnImpl(BaseConnImpl):
         bint _is_pooled
         bint _is_pool_extra
         bytes _transaction_context
+        dict _app_context
         uint8_t pipeline_mode
         uint8_t _session_state_desired
         _SessionlessData _sessionless_data
@@ -111,6 +112,7 @@ cdef class BaseThinConnImpl(BaseConnImpl):
         BaseConnImpl.__init__(self, dsn, params)
         self._connect_params = params
         self.thin = True
+        self._app_context = None
 
     cdef int _check_tpc_commit_state(self, uint32_t state,
                                      bint one_phase) except -1:
@@ -379,6 +381,18 @@ cdef class BaseThinConnImpl(BaseConnImpl):
     def set_action(self, str value):
         self._action = value
         self._action_modified = True
+
+    def clear_app_context(self, str namespace):
+        if self._app_context is None:
+            self._app_context = {}
+        self._app_context[namespace] = {}
+
+    def set_app_context(self, str namespace, **values):
+        cdef dict entries
+        if self._app_context is None:
+            self._app_context = {}
+        entries = self._app_context.setdefault(namespace, {})
+        entries.update(values)
 
     def set_client_identifier(self, str value):
         self._client_identifier = value

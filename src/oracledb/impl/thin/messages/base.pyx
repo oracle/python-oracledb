@@ -565,6 +565,38 @@ cdef class Message:
             self.conn_impl.security_context.oson_bytes.get_value_as_bytes()
         )
 
+    cdef int _write_app_context_piggyback(self, WriteBuffer buf) except -1:
+        """
+        Writes the piggyback that informs the server of application context
+        changes.
+        """
+        cdef:
+            dict app_context = self.conn_impl._app_context
+            str namespace, key, value
+            bytes namespace_bytes
+            uint16_t flags
+            dict entries
+        for namespace, entries in app_context.items():
+            self._write_piggyback_code(buf, TNS_FUNC_APP_CONTEXT)
+            namespace_bytes = namespace.encode()
+            buf.write_uint8(1)              # pointer
+            buf.write_ub4(len(namespace_bytes))
+            if len(entries) > 0:
+                flags = TNS_APP_CONTEXT_FLAG_SET
+                buf.write_uint8(1)          # pointer
+            else:
+                flags = TNS_APP_CONTEXT_FLAG_CLEAR
+                buf.write_uint8(0)          # null pointer
+            buf.write_ub4(len(entries))
+            buf.write_ub2(flags)
+            buf.write_uint8(0)
+            buf.write_bytes_with_length(namespace_bytes)
+            for key, value in entries.items():
+                buf.write_bytes_with_two_lengths(key.encode())
+                buf.write_bytes_with_two_lengths(value.encode())
+                buf.write_ub4(0)
+        self.conn_impl._app_context = None
+
     cdef int _write_end_to_end_piggyback(self, WriteBuffer buf) except -1:
         """
         Writes the piggyback that informs the server of end-to-end attributes
@@ -737,6 +769,8 @@ cdef class Message:
             self._write_end_to_end_piggyback(buf)
         if self.conn_impl._temp_lobs_total_size > 0:
             self._write_close_temp_lobs_piggyback(buf)
+        if self.conn_impl._app_context is not None:
+            self._write_app_context_piggyback(buf)
         if self.conn_impl._session_state_desired != 0:
             self._write_session_state_piggyback(buf)
         if self.conn_impl._sessionless_data is not None \

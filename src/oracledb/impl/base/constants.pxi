@@ -73,6 +73,11 @@ cdef enum:
     TNS_JSON_TYPE_EXTENDED = 0x7b
     TNS_JSON_TYPE_VECTOR = 0x01
 
+# application context constants
+cdef enum:
+    TNS_APP_CONTEXT_KEY_MAX_LEN = 128
+    TNS_APP_CONTEXT_VALUE_MAX_LEN = 4000
+
 # VECTOR constants
 cdef enum:
     TNS_VECTOR_MAGIC_BYTE = 0xDB
