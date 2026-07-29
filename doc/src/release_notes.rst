@@ -77,6 +77,7 @@ Common Changes
 #)  The class :class:`oracledb.EndUserSecurityContext` was added for
     completeness in typing hints. Objects of this class should be created
     using :func:`oracledb.create_end_user_security_context()`.
+#)  Fixed bug where the OSON encoder did not set the correct flags.
 #)  Modernized typing hints.
 
 

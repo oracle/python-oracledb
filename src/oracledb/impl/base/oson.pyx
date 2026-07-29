@@ -714,7 +714,7 @@ cdef class OsonEncoder(GrowableBuffer):
         """
 
         # if value is a simple scalar, nothing more needs to be done
-        flags[0] = TNS_JSON_FLAG_INLINE_LEAF
+        flags[0] = TNS_JSON_FLAG_INLINE_LEAF | TNS_JSON_FLAG_LEN_IN_PCODE
         if not isinstance(value, (list, tuple, dict)):
             flags[0] |= TNS_JSON_FLAG_IS_SCALAR
             return 0
