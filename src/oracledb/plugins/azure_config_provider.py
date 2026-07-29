@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2024, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2024, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -104,11 +104,7 @@ def _get_password(pwd_string, parameters):
     try:
         pwd = json.loads(pwd_string)
     except json.JSONDecodeError:
-        message = (
-            "Password is expected to be JSON"
-            " containing Azure Vault details."
-        )
-        raise Exception(message)
+        return pwd_string
 
     pwd["value"] = pwd.pop("uri")
     pwd["type"] = "azurevault"

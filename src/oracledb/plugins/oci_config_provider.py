@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2024, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2024, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -91,7 +91,7 @@ def _get_config(parameters, connect_params):
         config["user"] = settings.get("user")
         if "password" in settings:
             config["password"] = pwd = settings["password"]
-            if pwd["type"] == "ocivault":
+            if isinstance(pwd, dict) and pwd["type"] == "ocivault":
                 authentication = pwd.setdefault("authentication", {})
                 authentication.setdefault("method", auth_method)
                 authentication["credential"] = credential
@@ -126,9 +126,12 @@ def _get_credential(parameters):
 
     try:
         if auth_method is None or auth_method == "OCI_DEFAULT":
-            # Default Authentication
-            # default path ~/.oci/config
-            return oci_from_file(), None
+            args = {}
+            if profile_path := parameters.get("oci_profile_path"):
+                args["file_location"] = profile_path
+            if profile_name := parameters.get("oci_profile"):
+                args["profile_name"] = profile_name
+            return oci_from_file(**args), None
     except oci.exceptions.ClientError:
         # try to create config with connection string parameters.
         if "oci_tenancy" in parameters and "oci_user" in parameters:
