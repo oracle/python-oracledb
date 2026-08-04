@@ -22,14 +22,13 @@ Thin Mode Changes
 #)  Added support for :ref:`Oracle Deep Data Security <deepdatasecurity>` using
     :ref:`asyncio <concurrentprogramming>`.
 #)  Added read-only connection attributes :attr:`Connection.host`,
-    :attr:`Connection.port`, and :attr:`Connection.protocol` (and async
-    variants) to expose the database host, port, and protocol for Thin mode
+    :attr:`Connection.port`, :attr:`Connection.protocol`, and
+    :attr:`Connection.db_unique_name` (and async variants) to expose the
+    database host, port, protocol, and database unique name for Thin mode
     connections.
 #)  Added support for dynamically setting end-user data roles and context
     attributes in the :ref:`end_user_sec_provider
     <endusersecurityproviderplugin>` plugin for the current thread.
-#)  Added read only connection attribute :attr:`Connection.db_unique_name` (and
-    async variant) to provide the database unique name.
 #)  Added support for the HA readiness requirements of Oracle Database 23.26.3.
 #)  Fixed bug in :func:`Cursor.executemany()` when in/out variables are present
     (`issue 599 <https://github.com/oracle/python-oracledb/issues/599>`__).
