@@ -59,6 +59,8 @@ class SparseVector(metaclass=BaseMetaClass):
 
         The ``values`` parameter is the non-zero values stored in the vector.
         """
+        if num_dimensions <= 0:
+            raise ValueError("vector dimensions must be greater than zero")
         if (
             not isinstance(indices, array.array)
             or indices.typecode != ARRAY_TYPE_CODE_UINT32

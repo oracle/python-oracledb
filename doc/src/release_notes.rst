@@ -84,6 +84,8 @@ Common Changes
     completeness in typing hints. Objects of this class should be created
     using :func:`oracledb.create_end_user_security_context()`.
 #)  Fixed bug where the OSON encoder did not set the correct flags.
+#)  ``ValueError`` is now raised when the number of dimensions of a sparse
+    vector is not a positive number.
 #)  Modernized typing hints.
 
 

@@ -632,11 +632,14 @@ def test_7732():
     with pytest.raises(OverflowError):
         oracledb.SparseVector(10, [-1], [1.5])
     # negative num_dimensions
-    with pytest.raises(OverflowError):
+    with pytest.raises(ValueError):
         oracledb.SparseVector(-10, [1], [3.5])
     # use float index
     with pytest.raises(TypeError):
         oracledb.SparseVector(10, [2.4], [3.5])
+    # zero dimensions
+    with pytest.raises(ValueError):
+        oracledb.SparseVector(0, [], [])
 
 
 def test_7733():
@@ -645,24 +648,6 @@ def test_7733():
         oracledb.SparseVector(10, [1], [1.5, 3.5])
     with pytest.raises(TypeError):
         oracledb.SparseVector(10, [1, 2, 3, 4], [6.75])
-
-
-def test_7734(cursor, test_env):
-    "7734 - declare and insert an empty SparseVector"
-    value = oracledb.SparseVector(0, [], [])
-    assert value.values == array.array("d")
-    assert value.indices == array.array("I")
-    assert value.num_dimensions == 0
-    with test_env.assert_raises_full_code(
-        "ORA-51803", "ORA-21560", "ORA-51862"
-    ):
-        _test_insert_and_fetch(cursor, value, "VectorFlexAllCol", "d")
-    with test_env.assert_raises_full_code(
-        "ORA-51803", "ORA-21560", "ORA-51862"
-    ):
-        _test_insert_and_fetch_sparse(
-            cursor, value, "SparseVectorFlexAllCol", "d"
-        )
 
 
 def test_7735(cursor):
