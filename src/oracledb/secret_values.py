@@ -88,6 +88,18 @@ class SecretValueCache:
         self.thread_local_data = threading.local()
         self.global_data = dict()
 
+    def clear_all_values(self, thread_local: bool = False) -> None:
+        """
+        Clears all secrets from the cache. If thread_local is True, only the
+        current thread's local cache is cleared; otherwise, the global cache is
+        cleared.
+        """
+        with self.lock:
+            if thread_local:
+                self.thread_local_data.__dict__.clear()
+            else:
+                self.global_data.clear()
+
     def get_value(
         self, key: Any, thread_local: bool = False
     ) -> SecretValue | None:
@@ -135,6 +147,16 @@ class SecretValueCache:
 
 # create an instance of the cache for use by the functions below
 secret_value_cache = SecretValueCache()
+
+
+def clear_all_secrets(*, thread_local: bool = False) -> None:
+    """
+    Clears all secrets stored in the cache.
+
+    If ``thread_local`` is True, only the current thread's cache is cleared;
+    otherwise, the global cache is cleared.
+    """
+    secret_value_cache.clear_all_values(thread_local)
 
 
 def get_secret(key: Any, *, thread_local: bool = False) -> SecretValue | None:

@@ -13,6 +13,10 @@ Oracledb Methods
 
 .. autofunction:: Binary
 
+.. autofunction:: clear_all_secrets
+
+    .. versionadded:: 4.1.0
+
 .. autofunction:: clientversion
 
     See :ref:`enablingthick`.
@@ -1379,6 +1383,21 @@ then uses this end-user security context payload to connect to Oracle Database.
 See :ref:`endusersecuritycontextcreationplugin`.
 
 .. versionadded:: 4.0.0
+
+End-User Security Provider Plugin Methods
++++++++++++++++++++++++++++++++++++++++++
+
+.. autofunction:: oracledb.plugins.end_user_sec_provider.set_end_user_attributes
+
+    .. versionadded:: 4.1.0
+
+.. autofunction:: oracledb.plugins.end_user_sec_provider.set_end_user_data_roles
+
+    .. versionadded:: 4.1.0
+
+.. autofunction:: oracledb.plugins.end_user_sec_provider.set_end_user_identity
+
+    .. versionadded:: 4.0.0
 
 .. _interval_ym:
 

@@ -136,6 +136,7 @@ from .pipeline import (
 )
 
 from .secret_values import (
+    clear_all_secrets as clear_all_secrets,
     get_secret as get_secret,
     save_secret as save_secret,
     SecretValue as SecretValue,

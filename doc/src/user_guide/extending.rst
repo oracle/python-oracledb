@@ -153,15 +153,20 @@ such as tokens that are used to configure an end user security context. The
 in python-oracledb's internal cache, and :func:`get_secret()` is used to
 retrieve this secret from the cache. The secret value can be stored in global
 storage which is shared across all threads, or in thread local storage where
-each thread has its own secret value.
+each thread has its own secret value. The :func:`clear_all_secrets()` function
+is used to clear all secret values stored in the cache.
 
 The :ref:`end_user_sec_provider <endusersecuritycontextcreationplugin>` plugin
-stores an end user's identity value in python-oracledb's internal cache under a
-fixed key using thread local storage. Using this same key, the identity value
-can be retrieved from the cache. This identity can be provided by an external
+stores end-user security values in python-oracledb's internal cache using
+thread local storage. These values include the end-user identity, data roles,
+and context attributes. The end-user identity can be provided by an external
 Identity and Access Management (IAM) system such as OCI IAM and Microsoft Entra
-ID, or by Oracle Database. This pluginFor more information on using this
-plugin, see
+ID, or by Oracle Database. Applications can use the plugin to dynamically store
+data roles and context attributes for the current execution context. These
+dynamically stored values are used when creating the end-user security context
+payload. If data roles or context attributes are not stored dynamically, the
+plugin uses the values defined in ``end_user_sec_params``. For more information
+on using this plugin, see
 :ref:`end_user_sec_provider <endusersecuritycontextcreationplugin>`.
 
 The :ref:`oci_tokens <ocicloudnativeauthplugin>` and

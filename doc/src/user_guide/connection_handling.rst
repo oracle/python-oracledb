@@ -3198,16 +3198,40 @@ imported using:
 
     import oracledb.plugins.end_user_sec_provider
 
-This plugin can automatically retrieve the identity of end users managed by
-external IAMs or Oracle Database. For users managed by external IAMs such as
-OCI IAM or Microsoft Entra ID, the value of a user's identity is a string
-consisting of an end-user token issued by these IAMs. For users managed by
-Oracle Database, the value of an end-user's identity is a two-item tuple
-containing the local database user name and a key, where the key may be
-*None* if not required. The retrieved end-user identity is stored in
-python-oracledb's internal cache for the duration of the current execution
-context and is only available within the current thread, see
-:ref:`storesecretvalues`.
+Before creating a standalone connection or acquiring a connection from a pool,
+applications must call
+:func:`oracledb.plugins.end_user_sec_provider.set_end_user_identity()` to set
+the end-user identity. The function stores the identity in python-oracledb's
+internal cache for the current thread, see :ref:`storesecretvalues`. The
+``end_user_sec_provider`` plugin reads this identity and uses it with
+parameters defined in ``end_user_sec_params`` to fetch the database access
+token and create the end-user security context payload. For information on the
+parameters of the ``end_user_sec_params`` key, see
+:ref:`_end_user_security_provider_parameters`.
+
+For users managed by external IAMs such as OCI IAM or Microsoft Entra ID, the
+value of a user's identity is a string consisting of an end-user token issued
+by these IAMs. For users managed by Oracle Database, the value of an
+end-user's identity is a two-item tuple containing the local database user name
+and a key, where the key may be *None* if not required.
+
+.. code:: python
+
+    import oracledb.plugins.end_user_sec_provider
+
+    # For users managed by an external IAM
+    oracledb.plugins.end_user_sec_provider.set_end_user_identity(end_user_token)
+
+    # For users managed by Oracle Database
+    oracledb.plugins.end_user_sec_provider.set_end_user_identity((end_user_name, key))
+
+Also, you can use an alias, for example:
+
+.. code:: python
+
+    import oracledb.plugins.end_user_sec_provider as provider
+
+    provider.set_end_user_identity(end_user_token)
 
 For connection and pool creation using Deep Data Security, you must define the
 ``end_user_sec_params`` key for the ``extra_auth_params`` parameter. The
@@ -3252,9 +3276,13 @@ parameters listed in the following table.
       - Required
     * - ``data_roles``
       - The names of the data roles granted to the application.
+
+        This value can also be set dynamically for the current thread, see :ref:`setting data roles and attributes dynamically <endusersecproviderpluginsetmethods>`. A dynamically set value takes precedence over this value.
       - Optional
     * - ``attributes``
       - Attribute name-value pairs provided by the application for an END USER CONTEXT declared in the database. The name-value pairs for each context must conform to the JSON schema of that END USER CONTEXT. These pairs are associated with fully qualified END USER CONTEXT names, using the format ``{schema}.{name}``, where ``schema`` is the database schema in which the context is declared and ``name`` is the name of the END USER CONTEXT. The database does not recognize unqualified END USER CONTEXT names. The attribute values can be referenced at runtime by authorization policies, for example in data grant predicates, and application logic.
+
+        This value can also be set dynamically for the current thread, see :ref:`setting data roles and attributes dynamically <endusersecproviderpluginsetmethods>`. A dynamically set value takes precedence over this value.
       - Optional
 
 All parameters and values listed above are used by the plugin to create an
@@ -3283,6 +3311,33 @@ reuse. The oci_tokens and azure_tokens plugin implementations can be found in
 <https://github.com/oracle/python-oracledb/blob/main/src/oracledb/plugins/
 azure_tokens.py>`__ respectively.
 
+.. _endusersecproviderpluginsetmethods:
+
+Using this plugin, the ``data_roles`` and ``attributes`` values can also be set
+dynamically for the current thread by using the methods
+:func:`oracledb.plugins.end_user_sec_provider.set_end_user_data_roles()` and
+:func:`oracledb.plugins.end_user_sec_provider.set_end_user_attributes()`
+respectively. These functions set and store data roles and context attributes
+in python-oracledb's internal cache. For example:
+
+.. code:: python
+
+    import oracledb.plugins.end_user_sec_provider
+
+    # Set end-user data roles
+    oracledb.plugins.end_user_sec_provider.set_end_user_data_roles(["HCM_ROLE"])
+
+    # Set end-user context attributes
+    oracledb.plugins.end_user_sec_provider.set_end_user_attributes({
+        "HR.HCM": {
+            "emp_id": 3,
+            "org_id": 5,
+        }
+    })
+
+If no value is defined using this method, then the plugin uses the value set in
+this ``end_user_sec_params`` key.
+
 The ``end_user_sec_provider`` plugin defines and registers a
 :ref:`parameter hook <registerparamshook>` function which configures an
 end-user security context payload on a connection. This hook checks if the
@@ -3296,13 +3351,17 @@ performs the following:
 
 - Checks which authentication flow to use (On-Behalf-Of or Client Credentials).
 
-- Retrieves the end-user identity from python-oracledb's internal cache for the
-  current thread.
+- Retrieves the end-user identity, and any dynamically set data roles and
+  context attributes, from python-oracledb's internal cache for the current
+  thread.
 
 - Validates the format of the identity for the specified authentication flow.
 
-- Creates an end-user security context payload using the identity and the
-  values set in the ``end_user_sec_params`` key, if the identity exists.
+- Creates an end-user security context payload using the identity, any
+  dynamically set data roles and context attributes, and the values set in the
+  ``end_user_sec_params`` key, if the identity exists. The data roles and
+  context attributes come from dynamically set values when available, otherwise
+  from ``end_user_sec_params``.
 
 - Sets the end-user security context payload on the connection which applies to
   all subsequent database operations performed on this connection for this end
@@ -3326,6 +3385,8 @@ parameters, and also any other desired parameters of
 .. code:: python
 
     import oracledb.plugins.end_user_sec_provider
+
+    oracledb.plugins.end_user_sec_provider.set_end_user_identity(end_user_token)
 
     connection = oracledb.connect(
         dsn=mydb_low,
@@ -3357,7 +3418,7 @@ and ``wallet_password``. For example:
 
     import oracledb.plugins.end_user_sec_provider
 
-    connection = oracledb.create_pool(
+    pool = oracledb.create_pool(
         dsn=mydb_low,
         config_dir="path_to_unzipped_wallet",
         wallet_location="location_of_pem_file",
@@ -3373,6 +3434,10 @@ and ``wallet_password``. For example:
             "data_roles" : ["HCM_ROLE"],
           }
         })
+
+    oracledb.plugins.end_user_sec_provider.set_end_user_identity(end_user_token)
+
+    connection = pool.acquire()
 
 .. _connpooling:
 

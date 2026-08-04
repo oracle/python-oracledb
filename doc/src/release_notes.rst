@@ -25,6 +25,9 @@ Thin Mode Changes
     :attr:`Connection.port`, and :attr:`Connection.protocol` (and async
     variants) to expose the database host, port, and protocol for Thin mode
     connections.
+#)  Added support for dynamically setting end-user data roles and context
+    attributes in the :ref:`end_user_sec_provider
+    <endusersecurityproviderplugin>` plugin for the current thread.
 #)  Added connection property :attr:`Connection.db_unique_name` (and async
     variant) to provide the database unique name.
 #)  Fixed bug in :func:`Cursor.executemany()` when in/out variables are present
@@ -76,6 +79,7 @@ Common Changes
 #)  Added support for comparing instances of classes
     :class:`oracledb.ConnectParams`, :class:`oracledb.PoolParams` and
     :class:`oracledb.SecretValue`.
+#)  Added :func:`clear_all_secrets()` to clear all secrets stored in the cache.
 #)  The class :class:`oracledb.EndUserSecurityContext` was added for
     completeness in typing hints. Objects of this class should be created
     using :func:`oracledb.create_end_user_security_context()`.

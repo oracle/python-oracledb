@@ -92,6 +92,11 @@ def create_end_user_security_context(
     if not isinstance(database_access_token, str) or not database_access_token:
         raise ValueError("database_access_token must be a non-empty string.")
 
+    if data_roles is not None and (
+        not isinstance(data_roles, list)
+        or not all(isinstance(role, str) for role in data_roles)
+    ):
+        raise ValueError("data_roles must be a list of strings or None.")
     impl = thin_impl.EndUserSecurityContextImpl.create(
         end_user_token,
         end_user_name,

@@ -602,3 +602,63 @@ def test_1026(end_user_identity, acceptable):
             end_user_identity=end_user_identity,
             database_access_token="database_access_token_1026",
         )
+
+
+def test_1027():
+    "1027 - test end user security provider storage of dynamic values"
+    import oracledb.plugins.end_user_sec_provider as provider
+
+    data_roles = ["role_1027_a", "role_1027_b"]
+    attributes = {"namespace_1027": {"attr_1027": 1027}}
+    assert provider.get_end_user_data_roles() is None
+    assert provider.get_end_user_attributes() is None
+    provider.set_end_user_data_roles(data_roles)
+    provider.set_end_user_attributes(attributes)
+    assert provider.get_end_user_data_roles() == data_roles
+    assert provider.get_end_user_attributes() == attributes
+    provider.set_end_user_data_roles(None)
+    provider.set_end_user_attributes(None)
+    assert provider.get_end_user_data_roles() is None
+    assert provider.get_end_user_attributes() is None
+
+
+def test_1028():
+    "1028 - test clearing of secret values"
+    key = (1028, "key")
+    secret = "secret_1028"
+    oracledb.save_secret(key, secret)
+    assert oracledb.get_secret(key).value == secret
+    oracledb.clear_all_secrets()
+    assert oracledb.get_secret(key) is None
+    oracledb.save_secret(key, secret, thread_local=True)
+    assert oracledb.get_secret(key, thread_local=True).value == secret
+    oracledb.clear_all_secrets(thread_local=True)
+    assert oracledb.get_secret(key, thread_local=True) is None
+
+
+@pytest.mark.parametrize(
+    "data_roles,acceptable",
+    [
+        (None, True),
+        ([], True),
+        (["role_1029"], True),
+        (["role_1029_a", "role_1029_b"], True),
+        ("role_1029", False),
+        (("role_1029",), False),
+        ({"role_1029"}, False),
+        ([None], False),
+        ([1029], False),
+        (["role_1029", 1029], False),
+    ],
+)
+def test_1029(data_roles, acceptable):
+    "1029 - validate data roles for end user security contexts"
+    expectation = (
+        contextlib.nullcontext() if acceptable else pytest.raises(ValueError)
+    )
+    with expectation:
+        oracledb.create_end_user_security_context(
+            end_user_identity="end_user_1029",
+            database_access_token="database_access_token_1029",
+            data_roles=data_roles,
+        )

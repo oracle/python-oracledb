@@ -945,7 +945,7 @@ def test_1159(test_env):
 def test_1160(skip_unless_thin_mode, conn, test_env):
     "1160 - end user security context requires tcps protocol"
     params = test_env.get_connect_params()
-    if params.protocol == "tcps":
+    if params.protocol == "tcp":
         pytest.skip("test requires the TCP protocol")
     context = oracledb.create_end_user_security_context(
         end_user_identity="end-user-token",
