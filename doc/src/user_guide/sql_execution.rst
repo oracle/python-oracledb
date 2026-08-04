@@ -1176,6 +1176,102 @@ prevent SQL injection when processing user input.
     interpolate data values into SQL text. Instead, use bind variables for all
     data values. See :ref:`bind`.
 
+.. _pythontemplatestrings:
+
+Python Template Strings
+-----------------------
+
+When using Python 3.14 or higher, `template strings (t-strings)
+<https://docs.python.org/3/library/string.templatelib.html#template-strings>`__
+can be passed to :meth:`Cursor.execute()` and :meth:`AsyncCursor.execute()`.
+Interpolated values without a format specifier are automatically converted to
+bind variables, for example:
+
+.. code-block:: python
+
+    city = "Seattle"
+    province_state = "Washington"
+    country = "United States"
+
+    cursor.execute(
+        t"insert into location values ({city}, {province_state}, {country})"
+    )
+
+Do not pass the ``parameters`` argument or keyword parameters when using a
+template string. Template interpolations are the expressions enclosed in
+braces, such as ``{city}``, ``{province_state}``, and ``{country}`` in the
+above example. These template interpolations provide the bind values.
+
+The above example is equivalent to:
+
+.. code-block:: python
+
+    cursor.execute(
+        "insert into location values (:1, :2, :3)",
+        ["Seattle", "Washington", "United States"],
+    )
+
+Template interpolations can also include format specifiers. These are useful
+when a statement must contain dynamic SQL text that cannot be represented by a
+bind variable, such as a table name, column name, literal value in DDL, or
+validated query text. Python-oracledb supports ``i`` for SQL identifiers, ``l``
+for SQL literals, and ``q`` for SQL query text. Note that interpolated values
+without a format specifier are automatically converted to bind variables.
+
+- ``i`` as in ``{name:i}``: Inserts a SQL identifier. If the value is a valid
+  qualified SQL name, it is inserted directly into the statement. Otherwise,
+  it is quoted. For example:
+
+  .. code-block:: python
+
+      table_name = "users"
+      column_name = "city"
+
+      cursor.execute(
+          t"select {column_name:i} from {table_name:i}"
+      )
+
+- ``l`` as in ``{value:l}``: Converts a Python value to a SQL literal and
+  inserts it into the statement. This should only be used for statements that
+  do not allow bind variables, such as DDL statements. For example:
+
+  .. code-block:: python
+
+      default_city = "Austin"
+
+      cursor.execute(
+          t"create table users (city varchar2(50) default {default_city:l})"
+      )
+
+  The supported conversions are:
+
+  - ``None`` is converted to the string ``null``.
+  - ``int``, ``float``, and ``decimal.Decimal`` values are converted to their
+    string representation.
+  - ``str`` values are quoted using :func:`oracledb.enquote_literal()`.
+  - ``datetime.datetime`` values are converted to
+    ``to_date(<value>, 'YYYY-MM-DD HH24:MI:SS')``.
+  - ``datetime.date`` values are converted to
+    ``to_date(<value>, 'YYYY-MM-DD')``.
+
+- ``q`` as in ``{sql:q}``: Inserts SQL query text. A string value is inserted
+  literally without validation, so it should be avoided unless already
+  validated. If the value is another template string, its interpolations are
+  also processed. For example:
+
+  .. code-block:: python
+
+      city = "Austin"
+      where_clause = t"where city = {city}"
+
+      cursor.execute(
+          t"select username, city, country from users {where_clause:q}"
+      )
+
+Use bind variables for data values whenever possible. See :ref:`bind`.
+The ``l`` and ``q`` format specifiers embed text into the SQL statement and
+should only be used when needed.
+
 .. _quotenames:
 
 Quoting SQL Identifiers

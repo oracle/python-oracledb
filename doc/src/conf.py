@@ -42,6 +42,7 @@ nitpick_ignore = [
     ("py:class", "datetime.date"),
     ("py:class", "datetime.datetime"),
     ("py:class", "ssl.TLSVersion"),
+    ("py:class", "string.templatelib.Template"),
 ]
 keep_warnings = True
 

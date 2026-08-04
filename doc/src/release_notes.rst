@@ -55,6 +55,8 @@ Common Changes
 ++++++++++++++
 
 #)  Dropped support for Python 3.9 and added initial support for Python 3.15.
+#)  Added support for :ref:`Python 3.14 templates <pythontemplatestrings>`
+    (`issue 594 <https://github.com/oracle/python-oracledb/issues/594>`__).
 #)  Added :ref:`Centralized Configuration Provider <configurationproviders>`
     support for Google Cloud Storage and Google Cloud Secret Manager with the
     :ref:`oracledb.plugins.gcp_config_provider <configgcpplugin>` plugin.

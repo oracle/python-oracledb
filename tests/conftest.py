@@ -88,6 +88,16 @@ import pytest
 oracledb.defaults.thick_mode_dsn_passthrough = False
 
 
+def pytest_ignore_collect(collection_path, config):
+    """
+    Informs pytest to completely ignore files in directories that contain code
+    that is only capable of being run by particular Python versions.
+    """
+    if "py314" in collection_path.parts and sys.version_info < (3, 14):
+        return True
+    return False
+
+
 class DefaultsContextManager:
     def __init__(self, attribute, desired_value):
         self.attribute = attribute

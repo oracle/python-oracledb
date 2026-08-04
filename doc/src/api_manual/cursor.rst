@@ -69,6 +69,10 @@ Cursor Methods
 
 .. automethod:: Cursor.execute
 
+    .. versionchanged:: 4.1.0
+
+        The ``statement`` parameter can be a Python 3.14+ t-string.
+
     .. versionchanged:: 3.4.0
 
         The ``fetch_lobs`` and ``fetch_decimals`` parameters were added.

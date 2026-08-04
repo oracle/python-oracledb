@@ -29,6 +29,8 @@
 # fetching results from queries.
 # -----------------------------------------------------------------------------
 
+import datetime
+import decimal
 from typing import Any, Callable, Type
 
 from . import connection as connection_module
@@ -39,6 +41,13 @@ from .base_impl import DbType, DB_TYPE_OBJECT
 from .dbobject import DbObjectType
 from .fetch_info import FetchInfo
 from .var import Var
+
+# define Template for typing hints; for Python versions earlier than 3.14 the
+# type is simply defined as "str"
+try:
+    from string.templatelib import Template
+except ImportError:
+    Template = str
 
 
 class BaseCursor(metaclass=BaseMetaClass):
@@ -154,12 +163,78 @@ class BaseCursor(metaclass=BaseMetaClass):
         Internal method for preparing a statement for execution.
         """
         self._verify_open()
+        if isinstance(statement, str):
+            statement = self._normalize_statement(statement)
+        elif isinstance(statement, Template):
+            if parameters or keyword_parameters:
+                errors._raise_err(errors.ERR_TEMPLATE_WITH_DIRECT_PARAMETERS)
+            parameters = []
+            statement = self._process_template(statement, parameters)
         self._impl._prepare_for_execute(
             self,
-            self._normalize_statement(statement),
+            statement,
             parameters,
             keyword_parameters,
         )
+
+    def _process_template(self, template, parameters):
+        """
+        Internal method for processing a template. Interpolations are processed
+        and added to the list of parameters, unless a format specifier is
+        given.
+        """
+        parts = []
+        allowed_format_specs = ("", "i", "l", "q")
+        for part in template:
+            if isinstance(part, str):
+                parts.append(part)
+            elif (
+                part.conversion is not None
+                or part.format_spec not in allowed_format_specs
+            ):
+                errors._raise_err(errors.ERR_TEMPLATE_WITH_UNSUPPORTED_FORMAT)
+            elif part.format_spec == "i":  # identifier
+                if utils.is_qualified_sql_name(part.value):
+                    parts.append(part.value)
+                else:
+                    parts.append(
+                        utils.enquote_name(part.value, capitalize=False)
+                    )
+            elif part.format_spec == "l":  # literal
+                parts.append(self._process_template_literal(part.value))
+            elif part.format_spec == "q":  # query snippet
+                if isinstance(part.value, str):
+                    parts.append(part.value)
+                elif isinstance(part.value, Template):
+                    parts.append(
+                        self._process_template(part.value, parameters)
+                    )
+            else:
+                parameters.append(part.value)
+                ix = len(parameters)
+                parts.append(f":{ix}")
+        return "".join(parts)
+
+    def _process_template_literal(self, value):
+        """
+        Internal method that transforms Python values into SQL literals for
+        embedding into a SQL statement for execution.
+        """
+        if value is None:
+            return "null"
+        elif isinstance(value, str):
+            return utils.enquote_literal(value)
+        elif isinstance(value, (int, float, decimal.Decimal)):
+            return str(value)
+        elif isinstance(value, datetime.datetime):
+            return (
+                f"to_date('{value:%Y-%m-%d %H:%M:%S}', "
+                "'YYYY-MM-DD HH24:MI:SS')"
+            )
+        elif isinstance(value, datetime.date):
+            return f"to_date('{value:%Y-%m-%d}', 'YYYY-MM-DD')"
+        else:
+            raise TypeError(f"cannot process literal for type {type(value)!r}")
 
     def _verify_fetch(self) -> None:
         """
@@ -792,7 +867,7 @@ class Cursor(BaseCursor):
 
     def execute(
         self,
-        statement: str | None,
+        statement: str | Template | None,
         parameters: list | tuple | dict | None = None,
         *,
         suspend_on_success: bool = False,
@@ -815,6 +890,9 @@ class Cursor(BaseCursor):
         Parameters passed as a dictionary are name and value pairs. The name
         maps to the bind variable name used by the statement and the value maps
         to the Python value you wish bound to that bind variable.
+
+        When using Python 3.14, ``statement`` may be a template string.
+        See :ref:`pythontemplatestrings`.
 
         A reference to the statement will be retained by the cursor. If *None*
         or the same string object is passed in again, the cursor will execute
@@ -1148,7 +1226,7 @@ class AsyncCursor(BaseCursor):
 
     async def execute(
         self,
-        statement: str | None,
+        statement: str | Template | None,
         parameters: list | tuple | dict | None = None,
         *,
         suspend_on_success: bool = False,
@@ -1171,6 +1249,9 @@ class AsyncCursor(BaseCursor):
         Parameters passed as a dictionary are name and value pairs. The name
         maps to the bind variable name used by the statement and the value maps
         to the Python value you wish bound to that bind variable.
+
+        When using Python 3.14, ``statement`` may be a template string.
+        See :ref:`pythontemplatestrings`.
 
         A reference to the statement will be retained by the cursor. If *None*
         or the same string object is passed in again, the cursor will execute

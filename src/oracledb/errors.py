@@ -300,6 +300,8 @@ ERR_INVALID_END_USER_SECURITY_CONTEXT_LENGTH = 2072
 ERR_END_USER_SECURITY_CONTEXT_REQUIRES_TCPS = 2073
 ERR_NAME_HAS_EMBEDDED_QUOTES = 2074
 ERR_PARAM_SIZE_TOO_LARGE = 2075
+ERR_TEMPLATE_WITH_DIRECT_PARAMETERS = 2076
+ERR_TEMPLATE_WITH_UNSUPPORTED_FORMAT = 2077
 
 # error numbers that result in NotSupportedError
 ERR_TIME_NOT_SUPPORTED = 3000
@@ -963,6 +965,13 @@ ERR_MESSAGE_FORMATS = {
     ERR_SESSIONLESS_INACTIVE: ("no Sessionless Transaction is active"),
     ERR_SUBSCR_FAILED: "subscription could not be created",
     ERR_TDS_TYPE_NOT_SUPPORTED: "Oracle TDS data type {num} is not supported",
+    ERR_TEMPLATE_WITH_DIRECT_PARAMETERS: (
+        "directly specified parmaeters cannot be used with templates"
+    ),
+    ERR_TEMPLATE_WITH_UNSUPPORTED_FORMAT: (
+        "templates do not allow conversions or format specifiers other than "
+        "i, l or q"
+    ),
     ERR_THICK_MODE_ENABLED: (
         "python-oracledb thin mode cannot be used because thick mode has "
         "already been enabled"
