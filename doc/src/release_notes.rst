@@ -28,8 +28,8 @@ Thin Mode Changes
 #)  Added support for dynamically setting end-user data roles and context
     attributes in the :ref:`end_user_sec_provider
     <endusersecurityproviderplugin>` plugin for the current thread.
-#)  Added connection property :attr:`Connection.db_unique_name` (and async
-    variant) to provide the database unique name.
+#)  Added read only connection attribute :attr:`Connection.db_unique_name` (and
+    async variant) to provide the database unique name.
 #)  Fixed bug in :func:`Cursor.executemany()` when in/out variables are present
     (`issue 599 <https://github.com/oracle/python-oracledb/issues/599>`__).
 #)  Fixed bug in :func:`oracledb.create_end_user_security_context()` which
