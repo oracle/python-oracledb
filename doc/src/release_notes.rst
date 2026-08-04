@@ -30,6 +30,7 @@ Thin Mode Changes
     <endusersecurityproviderplugin>` plugin for the current thread.
 #)  Added read only connection attribute :attr:`Connection.db_unique_name` (and
     async variant) to provide the database unique name.
+#)  Added support for the HA readiness requirements of Oracle Database 23.26.3.
 #)  Fixed bug in :func:`Cursor.executemany()` when in/out variables are present
     (`issue 599 <https://github.com/oracle/python-oracledb/issues/599>`__).
 #)  Fixed bug in :func:`oracledb.create_end_user_security_context()` which

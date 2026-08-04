@@ -52,6 +52,7 @@ cdef class BaseThinPoolImpl(BasePoolImpl):
         object _condition
         object _timeout_task
         object _ssl_session
+        bytes _pool_id
         bint _force_get
         bint _open
 
@@ -79,10 +80,12 @@ cdef class BaseThinPoolImpl(BasePoolImpl):
         self._requests = []
         self._num_to_create = self.min
         self._auth_mode = AUTH_MODE_DEFAULT
+        uuid_val = uuid.uuid4()
+        self._pool_id = str(uuid_val).encode()
         if params._default_description.cclass is None \
                 and params._get_uses_drcp():
             params._default_description.cclass = \
-                    f"DPY:{base64.b64encode(uuid.uuid4().bytes).decode()}"
+                    f"DPY:{base64.b64encode(uuid_val.bytes).decode()}"
         self._open = True
 
     cdef int _add_request(self, PooledConnRequest request) except -1:
@@ -299,6 +302,7 @@ cdef class BaseThinPoolImpl(BasePoolImpl):
         else:
             conn_impl._cclass = self.connect_params._default_description.cclass
         conn_impl._is_pooled = True
+        conn_impl._pool_id = self._pool_id
         conn_impl._time_created = time.monotonic()
         conn_impl._time_returned = conn_impl._time_created
 

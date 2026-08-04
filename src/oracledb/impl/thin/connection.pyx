@@ -98,6 +98,7 @@ cdef class BaseThinConnImpl(BaseConnImpl):
         bytes _combo_key
         str _connection_id
         bint _is_pooled
+        bytes _pool_id
         bint _is_pool_extra
         bytes _transaction_context
         dict _app_context
@@ -106,6 +107,7 @@ cdef class BaseThinConnImpl(BaseConnImpl):
         _SessionlessData _sessionless_data
         ConnectParamsImpl _connect_params
         EndUserSecurityContextImpl security_context
+        bint _send_ha_readiness
 
     def __init__(self, str dsn, ConnectParamsImpl params):
         _check_cryptography()
@@ -254,6 +256,8 @@ cdef class BaseThinConnImpl(BaseConnImpl):
                                          self._max_open_cursors)
         self._dbobject_type_cache_num = create_new_dbobject_type_cache(self)
         self.invoke_session_callback = True
+        if self._protocol._caps.supports_ha_readiness:
+            self._send_ha_readiness = True
 
     cdef int _pre_connect(self, ConnectParamsImpl params) except -1:
         """

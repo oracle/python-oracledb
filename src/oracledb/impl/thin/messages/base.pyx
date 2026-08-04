@@ -732,6 +732,41 @@ cdef class Message:
         if buf._caps.ttc_field_version >= TNS_CCAP_FIELD_VERSION_23_1_EXT_1:
             buf.write_ub8(self.token_num)
 
+    cdef int _write_ha_readiness_piggyback(self, WriteBuffer buf) except -1:
+        """
+        Writes the piggyback that informs the server of its HA readiness.
+        """
+        cdef:
+            uint32_t num_pairs = 3 if self.conn_impl._is_pooled else 1
+            bytes namespace_bytes = b"ORA$HA"
+        self._write_piggyback_code(buf, TNS_FUNC_SET_KEY_VALUE)
+        buf.write_uint8(1)                  # pointer (namespace)
+        buf.write_ub4(<uint32_t> len(namespace_bytes))
+        buf.write_uint8(1)                  # pointer (num key/value pairs)
+        buf.write_ub4(num_pairs)
+        buf.write_ub2(0x21)                 # flag (set HA values)
+        buf.write_uint8(0)                  # pointer (unused)
+        buf.write_bytes_with_length(namespace_bytes)
+        if self.conn_impl._is_pooled:
+
+            # key/value pair 1
+            buf.write_bytes_with_two_lengths(b"CONNECTION_POOL")
+            buf.write_bytes_with_two_lengths(b"PYTHON")
+            buf.write_ub4(0)
+
+            # key/value pair 2
+            buf.write_bytes_with_two_lengths(b"CONNECTION_POOL_ID")
+            buf.write_bytes_with_two_lengths(self.conn_impl._pool_id)
+            buf.write_ub4(0)
+
+        # key/value pair 3
+        buf.write_bytes_with_two_lengths(b"INBAND_NOTIFICATION")
+        buf.write_bytes_with_two_lengths(b"1")
+        buf.write_ub4(0)
+
+        # mark that HA readiness piggyback has been sent
+        self.conn_impl._send_ha_readiness = False
+
     cdef int _write_message(self, WriteBuffer buf) except -1:
         self._write_function_code(buf)
 
@@ -776,6 +811,8 @@ cdef class Message:
         if self.conn_impl._sessionless_data is not None \
                 and self.conn_impl._sessionless_data.piggyback_pending:
             self._write_sessionless_piggyback(buf)
+        if self.conn_impl._send_ha_readiness:
+            self._write_ha_readiness_piggyback(buf)
 
     cdef int _write_sessionless_piggyback(self, WriteBuffer buf):
         """

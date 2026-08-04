@@ -104,6 +104,7 @@ cdef class Capabilities:
         bint supports_end_user_security_context
         bint supports_pipelining
         bint supports_request_boundaries
+        bint supports_ha_readiness
         uint32_t sdu
 
     def __init__(self):
@@ -136,6 +137,9 @@ cdef class Capabilities:
             self.compile_caps[TNS_CCAP_FIELD_VERSION] = self.ttc_field_version
         if server_caps[TNS_CCAP_TTC4] & TNS_CCAP_EXPLICIT_BOUNDARY:
             self.supports_request_boundaries = True
+        if len(server_caps) > TNS_CCAP_TTC6 \
+                and (server_caps[TNS_CCAP_TTC6] & TNS_CCAP_TTC6_HA_READINESS):
+            self.supports_ha_readiness = True
         if len(server_caps) > TNS_CCAP_FEATURE_BACKPORT2 \
                 and (server_caps[TNS_CCAP_FEATURE_BACKPORT2] \
                     & TNS_CCAP_END_USER_SEC_CTX_PIGGYBACK):
@@ -229,6 +233,7 @@ cdef class Capabilities:
                 TNS_CCAP_VECTOR_FEATURE_BINARY | \
                 TNS_CCAP_VECTOR_FEATURE_SPARSE
         self.compile_caps[TNS_CCAP_OCI3] = TNS_CCAP_OCI3_OCSSYNC
+        self.compile_caps[TNS_CCAP_TTC6] = TNS_CCAP_TTC6_HA_READINESS
         self.compile_caps[TNS_CCAP_FEATURE_BACKPORT2] = \
                 TNS_CCAP_END_USER_SEC_CTX_PIGGYBACK
 
