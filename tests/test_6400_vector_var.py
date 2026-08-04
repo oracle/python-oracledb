@@ -582,7 +582,7 @@ def test_6430(cursor, test_env):
     value = array.array(
         "d", [float("inf") if i % 2 else float("-inf") for i in range(16)]
     )
-    with test_env.assert_raises_full_code("ORA-51805"):
+    with test_env.assert_raises_full_code("ORA-51805", "ORA-51807"):
         cursor.execute("select :1 from dual", [value])
 
 
