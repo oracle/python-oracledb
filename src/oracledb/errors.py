@@ -1005,7 +1005,7 @@ ERR_MESSAGE_FORMATS = {
     ),
     ERR_UNSUPPORTED_ARROW_TYPE: 'unsupported Apache Arrow type "{arrow_type}"',
     ERR_UNSUPPORTED_DEEP_DATA_SECURITY_FEATURE: (
-        "database version does not support the Oracle Deep Data Security feature"
+        "database does not support Oracle Deep Data Security"
     ),
     ERR_UNSUPPORTED_INBAND_NOTIFICATION: (
         "unsupported in-band notification with error number {err_num}"
