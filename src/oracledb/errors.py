@@ -966,7 +966,7 @@ ERR_MESSAGE_FORMATS = {
     ERR_SUBSCR_FAILED: "subscription could not be created",
     ERR_TDS_TYPE_NOT_SUPPORTED: "Oracle TDS data type {num} is not supported",
     ERR_TEMPLATE_WITH_DIRECT_PARAMETERS: (
-        "directly specified parmaeters cannot be used with templates"
+        "directly specified parameters cannot be used with templates"
     ),
     ERR_TEMPLATE_WITH_UNSUPPORTED_FORMAT: (
         "templates do not allow conversions or format specifiers other than "
