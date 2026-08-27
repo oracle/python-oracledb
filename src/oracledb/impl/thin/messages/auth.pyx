@@ -211,9 +211,6 @@ cdef class AuthMessage(Message):
         """
         self.function_code = TNS_FUNC_AUTH_PHASE_ONE
         self.session_data = {}
-        if self.conn_impl.username is not None:
-            self.user_bytes = self.conn_impl.username.encode()
-            self.user_bytes_len = len(self.user_bytes)
         self.resend = True
 
     cdef int _process_return_parameters(self, ReadBuffer buf) except -1:
@@ -253,6 +250,9 @@ cdef class AuthMessage(Message):
         are retained in order to avoid duplicating this effort for both trips
         to the server.
         """
+        if params.user is not None:
+            self.user_bytes = params.user.encode()
+            self.user_bytes_len = len(self.user_bytes)
         self.password = params._get_password()
         self.newpassword = params._get_new_password()
         self.service_name = description.service_name
@@ -343,7 +343,7 @@ cdef class AuthMessage(Message):
                 num_pairs += 1
 
             # normal user/password authentication
-            elif not self.conn_impl._connect_params.externalauth:
+            elif not self.conn_impl.connect_params.externalauth:
                 num_pairs += 2
                 self.auth_mode |= TNS_AUTH_MODE_WITH_PASSWORD
                 if self.verifier_type == TNS_VERIFIER_TYPE_12C:
@@ -401,7 +401,7 @@ cdef class AuthMessage(Message):
             if self.token is not None:
                 self._write_key_value(buf, "AUTH_TOKEN", self.token)
             elif not self.change_password \
-                    and not self.conn_impl._connect_params.externalauth:
+                    and not self.conn_impl.connect_params.externalauth:
                 self._write_key_value(buf, "AUTH_SESSKEY", self.session_key, 1)
                 if self.verifier_type == TNS_VERIFIER_TYPE_12C:
                     self._write_key_value(buf, "AUTH_PBKDF2_SPEEDY_KEY",

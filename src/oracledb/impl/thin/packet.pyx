@@ -470,7 +470,7 @@ cdef class ReadBuffer(Buffer):
             decoder = OsonDecoder.__new__(OsonDecoder)
             return decoder.decode(data)
 
-    cdef object read_lob_with_length(self, BaseThinConnImpl conn_impl,
+    cdef object read_lob_with_length(self, ThinConnImpl conn_impl,
                                      DbType dbtype, object lob):
         """
         Read a LOB locator from the buffer and return a LOB object containing
@@ -615,7 +615,7 @@ cdef class ReadBuffer(Buffer):
                 decoder = VectorDecoder.__new__(VectorDecoder)
                 return decoder.decode(data)
 
-    cdef object read_xmltype(self, BaseThinConnImpl conn_impl):
+    cdef object read_xmltype(self, ThinConnImpl conn_impl):
         """
         Reads an XMLType value from the buffer and returns the string value.
         The XMLType object is a special DbObjectType and is handled separately

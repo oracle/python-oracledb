@@ -176,6 +176,23 @@ def _create_err(
     return _Error(message)
 
 
+def _create_exception(
+    error_num: int,
+    context_error_message: str = None,
+    cause: Exception = None,
+    **args,
+) -> Exception:
+    """
+    Returns an exception from the specified error number and supplied
+    arguments.
+    """
+    error = _create_err(error_num, context_error_message, cause, **args)
+    exc = error.exc_type(error)
+    if cause is not None:
+        exc.__cause__ = cause
+    return exc
+
+
 def _create_warning(error_num: int, **args) -> _Error:
     """
     Returns a warning error object for the specified error number and supplied
@@ -195,8 +212,7 @@ def _raise_err(
     Raises a driver specific exception from the specified error number and
     supplied arguments.
     """
-    error = _create_err(error_num, context_error_message, cause, **args)
-    raise error.exc_type(error) from cause
+    raise _create_exception(error_num, context_error_message, cause, **args)
 
 
 def _raise_not_supported(feature: str) -> None:

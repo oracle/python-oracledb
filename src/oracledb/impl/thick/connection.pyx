@@ -341,8 +341,8 @@ cdef class ThickConnImpl(BaseConnImpl):
             const char *username_ptr = NULL
             uint32_t new_password_len = 0
             int status
-        if self.username is not None:
-            username_bytes = self.username.encode()
+        if self.connect_params.user is not None:
+            username_bytes = self.connect_params.user.encode()
             username_ptr = username_bytes
             username_len = <uint32_t> len(username_bytes)
         old_password_bytes = old_password.encode()
@@ -409,7 +409,8 @@ cdef class ThickConnImpl(BaseConnImpl):
         if status < 0:
             _raise_from_odpi()
 
-    def connect(self, ConnectParamsImpl user_params, ThickPoolImpl pool_impl):
+    @sync_operation
+    def connect(self, str dsn, ConnectParamsImpl user_params, object pool):
         cdef:
             str full_user, cclass, token, private_key, connect_string
             bytes password_bytes, new_password_bytes
@@ -420,12 +421,16 @@ cdef class ThickConnImpl(BaseConnImpl):
             dpiVersionInfo version_info
             dpiErrorInfo error_info
             ConnectionParams params
+            ThickPoolImpl pool_impl
             int status
 
         # if the connection is part of the pool, get the pool creation params
-        if pool_impl is not None:
+        if pool is None:
+            self.dsn = dsn
+            pool_impl = None
+        else:
+            pool_impl = <ThickPoolImpl> pool._impl
             pool_params = pool_impl.connect_params
-            self.username = pool_impl.username
             self.dsn = pool_impl.dsn
 
         # set up connection parameters
@@ -610,6 +615,9 @@ cdef class ThickConnImpl(BaseConnImpl):
         # set tag property, if applicable
         if conn_params.outTagLength > 0:
             self.tag = conn_params.outTag[:conn_params.outTagLength].decode()
+
+        self.connect_params = user_params
+        return self
 
     def create_msg_props_impl(self):
         cdef ThickMsgPropsImpl impl
@@ -834,19 +842,6 @@ cdef class ThickConnImpl(BaseConnImpl):
             status = dpiConn_ping(self._handle)
         if status < 0:
             _raise_from_odpi()
-
-    def process_sync_operation(self, object generator):
-        """
-        Processes a database operation synchronously. The generator is a dummy
-        that only ever returns one value. Its existence is solely to ensure
-        that one code path is used for thick mode and both thin modes (sync and
-        async).
-        """
-        while True:
-            try:
-                next(generator)
-            except StopIteration as e:
-                return e.value
 
     @sync_operation
     def resume_sessionless_transaction(self, bytes transaction_id,

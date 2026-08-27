@@ -148,6 +148,10 @@ cdef const char* ENCODING_UTF16LE = "UTF_16_LE"
 # variables needed for dates when using pyarrow
 cdef cydatetime.datetime EPOCH_DATE = datetime.datetime(1970, 1, 1)
 
+@cython.freelist(20)
+cdef class SubOperation:
+    pass
+
 # protocols registered with the library
 REGISTERED_PROTOCOLS = {}
 

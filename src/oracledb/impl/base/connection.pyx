@@ -31,11 +31,6 @@
 
 cdef class BaseConnImpl:
 
-    def __init__(self, str dsn, ConnectParamsImpl params):
-        self.dsn = dsn
-        self.username = params.user
-        self.proxy_user = params.proxy_user
-
     cdef object _check_value(self, OracleMetadata metadata, object value,
                              bint* is_ok):
         """
@@ -167,6 +162,13 @@ cdef class BaseConnImpl:
     def _get_oci_attr(self, uint32_t handle_type, uint32_t attr_num,
                       uint32_t attr_type):
         errors._raise_not_supported("getting a connection OCI attribute")
+
+    cdef int _process_sync_operation_sub_op(self, object sub_op) except -1:
+        """
+        Processes a sub operation of a synchronous operation. These may either
+        be round trips to the database or driver operations.
+        """
+        sub_op.process()
 
     def _set_oci_attr(self, uint32_t handle_type, uint32_t attr_num,
                       uint32_t attr_type, object value):
@@ -318,8 +320,80 @@ cdef class BaseConnImpl:
     def get_type(self, object conn, str name):
         errors._raise_not_supported("getting an object type")
 
+    def invoke_on_connect_callbacks(self, object conn, object pool):
+        """
+        Returns sub operations for running the on connect callback and the
+        pool's session calblack, if applicable.
+        """
+        cdef:
+            SessionCallbackSubOp session_callback_sub_op
+            OnConnectCallbackSubOp on_connect_sub_op
+        if self.connect_params.on_connect_callback is not None:
+            on_connect_sub_op = \
+                    OnConnectCallbackSubOp.__new__(OnConnectCallbackSubOp)
+            on_connect_sub_op.f = self.connect_params.on_connect_callback
+            on_connect_sub_op.conn = conn
+            yield on_connect_sub_op
+        if (
+            self.invoke_session_callback
+            and pool is not None
+            and pool.session_callback is not None
+            and callable(pool.session_callback)
+        ):
+            session_callback_sub_op = \
+                    SessionCallbackSubOp.__new__(SessionCallbackSubOp)
+            session_callback_sub_op.f = pool.session_callback
+            session_callback_sub_op.conn = conn
+            session_callback_sub_op.tag = self.connect_params.tag
+            yield session_callback_sub_op
+            self.invoke_session_callback = False
+
     def ping(self):
         errors._raise_not_supported("pinging the database")
+
+    async def process_async_operation(self,
+                                      object method_owner, str name,
+                                      object args, object kwargs):
+        """
+        Processes a database operation asynchronously. The method that is
+        acquired from the method owner is expected to be a generator function
+        which returns sub operations. This allows the code for sync and async
+        to be identical except for this function.
+        """
+        cdef object method, generator, sub_op
+        method = getattr(method_owner, f"_{name}")
+        generator = method(*args, **kwargs)
+        while True:
+            try:
+                sub_op = next(generator)
+                if sub_op is not None:
+                    await self._process_async_operation_sub_op(sub_op)
+            except StopIteration as e:
+                return e.value
+            except Exception as e:
+                generator.throw(e)
+
+    def process_sync_operation(self,
+                               object method_owner, str name, object args,
+                               object kwargs):
+        """
+        Processes a database operation synchronously. The method that is
+        acquired from the method owner is expected to be a generator function
+        which returns sub operations. In thick mode, which doesn't support sub
+        operations, a single sub operation is returned and discarded.
+        """
+        cdef object method, generator, sub_op
+        method = getattr(method_owner, f"_{name}")
+        generator = method(*args, **kwargs)
+        while True:
+            try:
+                sub_op = next(generator)
+                if sub_op is not None:
+                    self._process_sync_operation_sub_op(sub_op)
+            except StopIteration as e:
+                return e.value
+            except Exception as e:
+                generator.throw(e)
 
     def rollback(self):
         errors._raise_not_supported("rolling back a transaction")
@@ -401,3 +475,42 @@ cdef class BaseConnImpl:
         errors._raise_not_supported(
             "rolling back a TPC (two-phase commit) transaction"
         )
+
+
+@cython.final
+cdef class OnConnectCallbackSubOp(SubOperation):
+    cdef:
+        object conn
+        object f
+
+    def process(self):
+        """
+        Runs the callback synchronously.
+        """
+        self.f(self.conn)
+
+    async def process_async(self):
+        """
+        Runs the callback asynchronously.
+        """
+        await self.f(self.conn)
+
+
+@cython.final
+cdef class SessionCallbackSubOp(SubOperation):
+    cdef:
+        object conn
+        object f
+        str tag
+
+    def process(self):
+        """
+        Runs the callback synchronously.
+        """
+        self.f(self.conn, self.tag)
+
+    async def process_async(self):
+        """
+        Runs the callback asynchronously.
+        """
+        await self.f(self.conn, self.tag)

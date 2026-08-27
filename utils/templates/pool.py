@@ -898,6 +898,25 @@ class NamedPools:
 named_pools = NamedPools()
 
 
+def check_pool_alias(
+    pool: ConnectionPool | AsyncConnectionPool | None, pool_alias: str
+) -> ConnectionPool | AsyncConnectionPool:
+    """
+    Validates the pool and pool_alias parameters used when creating a
+    connection and returns the pool to use.
+    """
+    if pool is not None:
+        errors._raise_err(
+            errors.ERR_DUPLICATED_PARAMETER,
+            deprecated_name="pool",
+            new_name="pool_alias",
+        )
+    pool = get_pool(pool_alias)
+    if pool is None:
+        errors._raise_err(errors.ERR_NAMED_POOL_MISSING, alias=pool_alias)
+    return pool
+
+
 def get_pool(
     pool_alias: str,
 ) -> ConnectionPool | AsyncConnectionPool | None:

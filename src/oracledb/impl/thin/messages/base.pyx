@@ -70,7 +70,7 @@ cdef class _PostProcessFn:
 
 cdef class Message:
     cdef:
-        BaseThinConnImpl conn_impl
+        ThinConnImpl conn_impl
         ThinDbObjectTypeCache type_cache
         PipelineOpResultImpl pipeline_result_impl
         _OracleErrorInfo error_info
@@ -102,7 +102,7 @@ cdef class Message:
                 self.conn_impl._protocol._disconnect()
             raise error.exc_type(error)
 
-    cdef int _initialize(self, BaseThinConnImpl conn_impl) except -1:
+    cdef int _initialize(self, ThinConnImpl conn_impl) except -1:
         """
         Initializes the message to contain the connection and a place to store
         error information. For DRCP, the status of the connection may change
@@ -111,7 +111,8 @@ cdef class Message:
         to avoid overhead using the constructor, a special hook method is used
         instead.
         """
-        conn_impl._protocol._read_buf._check_connected()
+        if not conn_impl._protocol._in_connect:
+            conn_impl._protocol._read_buf._check_connected()
         self.conn_impl = conn_impl
         self.message_type = TNS_MSG_TYPE_FUNCTION
         self.error_info = _OracleErrorInfo.__new__(_OracleErrorInfo)
@@ -625,7 +626,7 @@ cdef class Message:
         """
         cdef:
             bytes action_bytes, client_identifier_bytes, client_info_bytes
-            BaseThinConnImpl conn_impl = self.conn_impl
+            ThinConnImpl conn_impl = self.conn_impl
             bytes module_bytes, dbop_bytes
             uint32_t flags = 0
 
@@ -1284,7 +1285,7 @@ cdef class MessageWithData(Message):
     cdef int _process_error_info(self, ReadBuffer buf) except -1:
         cdef:
             ThinCursorImpl cursor_impl = self.cursor_impl
-            BaseThinConnImpl conn_impl = self.conn_impl
+            ThinConnImpl conn_impl = self.conn_impl
             object exc_type
         Message._process_error_info(self, buf)
         if self.error_info.cursor_id != 0:

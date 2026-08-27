@@ -37,7 +37,7 @@ cdef class ThinSubscrImpl(BaseSubscrImpl):
         object _bg_task
         object _bg_task_exc
 
-    cdef SubscrMessage _create_subscr_message(self, BaseThinConnImpl conn_impl,
+    cdef SubscrMessage _create_subscr_message(self, ThinConnImpl conn_impl,
                                               uint8_t opcode):
         """
         Create the message for creating the subscription.
@@ -60,16 +60,13 @@ cdef class ThinSubscrImpl(BaseSubscrImpl):
         exception which is ignored if unsubscription is in progress.
         """
         cdef:
-            ConnectParamsImpl params
-            Description description
             NotifyMessage message
             Protocol protocol
-        params = conn_impl._connect_params.copy()
-        for description in params.description_list.children:
-            description.server_type = "emon"
-        self._conn_impl = ThinConnImpl(conn_impl.dsn, params)
+        self._conn_impl = ThinConnImpl()
         try:
-            self._conn_impl.connect(params)
+            self._conn_impl.process_sync_operation(
+                self, "create_connection", (conn_impl,), {}
+            )
             protocol = <Protocol> self._conn_impl._protocol
             message = self._conn_impl._create_message(NotifyMessage)
             message.client_id = self._client_id
@@ -84,6 +81,19 @@ cdef class ThinSubscrImpl(BaseSubscrImpl):
             event.set()
         if self._conn_impl is not None:
             self._conn_impl._protocol._disconnect()
+
+    def _create_connection(self, ThinConnImpl conn_impl):
+        """
+        Creates a separate connection to the database (which uses the EMON
+        process).
+        """
+        cdef:
+            ConnectParamsImpl params
+            Description description
+        params = conn_impl.connect_params.copy()
+        for description in params.description_list.children:
+            description.server_type = "emon"
+        yield from self._conn_impl.connect(conn_impl.dsn, params, None)
 
     def register_query(self, str sql, object args):
         """
@@ -101,7 +111,7 @@ cdef class ThinSubscrImpl(BaseSubscrImpl):
         yield from cursor_impl.execute(cursor)
         return cursor_impl._query_id
 
-    def subscribe(self, object subscr, BaseThinConnImpl conn_impl):
+    def subscribe(self, object subscr, ThinConnImpl conn_impl):
         """
         Internal method for creating the subscription.
         """

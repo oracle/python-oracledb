@@ -32,7 +32,7 @@
 cdef class ThinCursorImpl(BaseCursorImpl):
 
     cdef:
-        BaseThinConnImpl _conn_impl
+        ThinConnImpl _conn_impl
         Statement _statement
         list _batcherrors
         list _dmlrowcounts

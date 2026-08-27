@@ -32,7 +32,7 @@
 cdef class ThinLobImpl(BaseLobImpl):
 
     cdef:
-        BaseThinConnImpl _conn_impl
+        ThinConnImpl _conn_impl
         bytes _locator
         bint _has_metadata
         uint64_t _size
@@ -191,17 +191,24 @@ cdef class ThinLobImpl(BaseLobImpl):
         message.send_amount = True
         yield message
 
-    async def process_async_operation(self, object generator):
+    async def process_async_operation(self, object method_owner, str name,
+                                      object args, object kwargs):
         """
         Processes a database operation asynchronously.
         """
-        return await self._conn_impl.process_async_operation(generator)
+        return await self._conn_impl.process_async_operation(
+            method_owner, name, args, kwargs
+        )
 
-    def process_sync_operation(self, object generator):
+    def process_sync_operation(self,
+                               object method_owner, str name, object args,
+                               object kwargs):
         """
         Processes a database operation synchronously.
         """
-        return self._conn_impl.process_sync_operation(generator)
+        return self._conn_impl.process_sync_operation(
+            method_owner, name, args, kwargs
+        )
 
     def read(self, uint64_t offset, uint64_t amount):
         """

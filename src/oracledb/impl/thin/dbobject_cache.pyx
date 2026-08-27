@@ -150,7 +150,7 @@ cdef class ThinDbObjectTypeCache:
         object meta_cursor, columns_cursor, attrs_ref_cursor_var, version_var
         object return_value_var, full_name_var, oid_var, tds_var
         object schema_var, package_name_var, name_var
-        BaseThinConnImpl conn_impl
+        ThinConnImpl conn_impl
         dict types_by_oid
         dict types_by_name
         list partial_types
@@ -194,7 +194,7 @@ cdef class ThinDbObjectTypeCache:
                f'"{typ_impl.package_name}".' + \
                f'"{name}"{suffix}'
 
-    cdef int _initialize(self, BaseThinConnImpl conn_impl) except -1:
+    cdef int _initialize(self, ThinConnImpl conn_impl) except -1:
         self.types_by_oid = {}
         self.types_by_name = {}
         self.partial_types = []
@@ -635,7 +635,7 @@ cdef ThinDbObjectTypeSuperCache DB_OBJECT_TYPE_SUPER_CACHE = \
         ThinDbObjectTypeSuperCache()
 
 
-cdef int create_new_dbobject_type_cache(BaseThinConnImpl conn_impl) except -1:
+cdef int create_new_dbobject_type_cache(ThinConnImpl conn_impl) except -1:
     """
     Creates a new database object type cache and returns its identifier.
     """

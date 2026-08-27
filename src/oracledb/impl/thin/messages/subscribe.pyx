@@ -103,8 +103,8 @@ cdef class SubscrMessage(Message):
         self._write_function_code(buf)
         buf.write_uint8(self.opcode)
         buf.write_ub4(TNS_SUBSCR_MODE_CLIENT_INITIATED)
-        if self.conn_impl.username is not None:
-            username_bytes = self.conn_impl.username.encode()
+        if self.conn_impl.connect_params.user is not None:
+            username_bytes = self.conn_impl.connect_params.user.encode()
             buf.write_uint8(1)              # pointer (username)
             buf.write_ub4(<uint32_t> len(username_bytes))
         else:

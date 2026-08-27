@@ -97,7 +97,7 @@ cdef class BaseThinPoolImpl(BasePoolImpl):
         self._requests.append(request)
         self._notify_bg_task()
 
-    cdef int _check_satisfy_request(self, BaseThinConnImpl conn_impl,
+    cdef int _check_satisfy_request(self, ThinConnImpl conn_impl,
                                     bint is_new) except -1:
         """
         Checks to see if a request can be satisfied with the given connection.
@@ -152,7 +152,7 @@ cdef class BaseThinPoolImpl(BasePoolImpl):
         background task is notified to perform the work of closing the
         connections, if applicable.
         """
-        cdef BaseThinConnImpl conn_impl
+        cdef ThinConnImpl conn_impl
         self._open = False
         for lst in (self._free_used_conn_impls,
                     self._free_new_conn_impls,
@@ -182,26 +182,25 @@ cdef class BaseThinPoolImpl(BasePoolImpl):
         # close all connections in the pool
         self._close_all_connections()
 
-    cdef PooledConnRequest _create_request(self, ConnectParamsImpl params):
+    def _create_connection(self, ThinConnImpl conn_impl,
+                           ConnectParamsImpl params):
         """
-        Returns a poooled connection request suitable for establishing a
-        connection to the pool with the given parameters.
+        Create a single connection using the pool's information. This
+        connection may be placed in the pool or may be returned directly (such
+        as when the pool is full and POOL_GETMODE_FORCEGET is being used).
         """
-        cdef:
-            ConnectParamsImpl creation_params = self.connect_params
-            str pool_cclass = creation_params._default_description.cclass
-            PooledConnRequest request
-        request = PooledConnRequest.__new__(PooledConnRequest)
-        request.pool_impl = self
-        request.params = params
-        request.cclass = params._default_description.cclass
-        request.wants_new = (params._default_description.purity == PURITY_NEW)
-        request.cclass_matches = \
-                (request.cclass is None or request.cclass == pool_cclass)
-        request.waiting = True
-        return request
+        if params is not None:
+            conn_impl._cclass = params._default_description.cclass
+        else:
+            conn_impl._cclass = self.connect_params._default_description.cclass
+        conn_impl._is_pooled = True
+        conn_impl._pool_id = self._pool_id
+        conn_impl._time_created = time.monotonic()
+        conn_impl._time_returned = conn_impl._time_created
+        yield from conn_impl.connect(self.dsn, self.connect_params, None)
+        conn_impl.invoke_session_callback = True
 
-    cdef int _drop_conn_impl(self, BaseThinConnImpl conn_impl) except -1:
+    cdef int _drop_conn_impl(self, ThinConnImpl conn_impl) except -1:
         """
         Helper method which adds a connection to the list of connections to be
         closed and notifies the background task.
@@ -237,7 +236,19 @@ cdef class BaseThinPoolImpl(BasePoolImpl):
                 return request
             break
 
-    cdef BaseThinConnImpl _post_acquire(self, BaseThinConnImpl conn_impl):
+    def _ping_connection(self, ThinConnImpl conn_impl):
+        """
+        Pings a connection to see if it is still alive. The call timeout is set
+        to the ping timeout configured by the pool for the duration of the ping
+        and then restored upon success. On failure the connection is simply
+        dropped.
+        """
+        cdef uint32_t orig_call_timeout = conn_impl._call_timeout
+        conn_impl.set_call_timeout(self._ping_timeout)
+        yield from conn_impl.ping()
+        conn_impl.set_call_timeout(orig_call_timeout)
+
+    cdef int _post_acquire(self, ThinConnImpl conn_impl) except -1:
         """
         Called after an acquire has succeeded. The connection is added to the
         list of busy connections and is marked as being in a request.
@@ -246,10 +257,8 @@ cdef class BaseThinPoolImpl(BasePoolImpl):
         if conn_impl._protocol._caps.supports_request_boundaries:
             conn_impl._session_state_desired = TNS_SESSION_STATE_REQUEST_BEGIN
             conn_impl._in_request = True
-        return conn_impl
 
-    cdef int _post_create_conn_impl(self,
-                                    BaseThinConnImpl conn_impl) except -1:
+    cdef int _post_create_conn_impl(self, ThinConnImpl conn_impl) except -1:
         """
         Called after a connection has been created without an associated
         request.
@@ -290,22 +299,6 @@ cdef class BaseThinPoolImpl(BasePoolImpl):
         self._requests.remove(request)
         self._condition.notify_all()
 
-    cdef int _pre_connect(self, BaseThinConnImpl conn_impl,
-                          ConnectParamsImpl params) except -1:
-        """
-        Called before the connection is connected. The connection class and
-        pool attributes are updated and the TLS session is stored on the
-        transport for reuse. The timestamps are also retained for later use.
-        """
-        if params is not None:
-            conn_impl._cclass = params._default_description.cclass
-        else:
-            conn_impl._cclass = self.connect_params._default_description.cclass
-        conn_impl._is_pooled = True
-        conn_impl._pool_id = self._pool_id
-        conn_impl._time_created = time.monotonic()
-        conn_impl._time_returned = conn_impl._time_created
-
     def _process_timeout(self):
         """
         Processes the timeout after the timer task completes. Drops any free
@@ -317,8 +310,7 @@ cdef class BaseThinPoolImpl(BasePoolImpl):
         self._timeout_helper(self._free_used_conn_impls)
         self._check_timeout()
 
-    cdef int _return_connection_helper(self,
-                                       BaseThinConnImpl conn_impl) except -1:
+    cdef int _return_connection_helper(self, ThinConnImpl conn_impl) except -1:
         """
         Returns the connection to the pool. If the connection was closed for
         some reason it will be dropped; otherwise, it will be returned to the
@@ -363,7 +355,7 @@ cdef class BaseThinPoolImpl(BasePoolImpl):
         Called when the main interpreter has completed and only shutdown code
         is being executed.
         """
-        cdef BaseThinConnImpl conn_impl
+        cdef ThinConnImpl conn_impl
         with self._condition:
             self._requests.clear()
             self._close_all_connections()
@@ -381,7 +373,7 @@ cdef class BaseThinPoolImpl(BasePoolImpl):
         connections have expired (while maintaining the minimum number of
         connections in the pool).
         """
-        cdef BaseThinConnImpl conn_impl
+        cdef ThinConnImpl conn_impl
         current_time = time.monotonic()
         while conn_impls_to_check and self._open_count > self.min:
             conn_impl = conn_impls_to_check[0]
@@ -390,6 +382,31 @@ cdef class BaseThinPoolImpl(BasePoolImpl):
             conn_impls_to_check.pop(0)
             self._drop_conn_impl(conn_impl)
             self._open_count -= 1
+
+    def acquire(self, ConnectParamsImpl params):
+        """
+        Internal method for acquiring a connection from the pool.
+        """
+        cdef:
+            ConnectParamsImpl creation_params = self.connect_params
+            str pool_cclass = creation_params._default_description.cclass
+            PooledConnRequest request
+
+        # session tagging has not been implemented yet
+        if params.tag is not None:
+            errors._raise_not_supported("session tagging")
+
+        # create request to acquire a connection and process it
+        request = PooledConnRequest.__new__(PooledConnRequest)
+        request.pool_impl = self
+        request.params = params
+        request.cclass = params._default_description.cclass
+        request.wants_new = (params._default_description.purity == PURITY_NEW)
+        request.cclass_matches = \
+                (request.cclass is None or request.cclass == pool_cclass)
+        request.waiting = True
+        yield request
+        return request.conn_impl
 
     def get_busy_count(self):
         """
@@ -442,7 +459,7 @@ cdef class BaseThinPoolImpl(BasePoolImpl):
             return self._wait_timeout * 1000
         return 0
 
-    def return_connection(self, BaseThinConnImpl conn_impl):
+    def return_connection(self, ThinConnImpl conn_impl):
         """
         Internal method for returning a connection to the pool.
         """
@@ -506,7 +523,7 @@ cdef class BaseThinPoolImpl(BasePoolImpl):
 cdef class ReturnToPoolSubOp(SubOperation):
     cdef:
         BaseThinPoolImpl pool_impl
-        BaseThinConnImpl conn_impl
+        ThinConnImpl conn_impl
 
     def process(self):
         """
@@ -604,10 +621,10 @@ cdef class ThinPoolImpl(BaseThinPoolImpl):
         connection may be placed in the pool or may be returned directly (such
         as when the pool is full and POOL_GETMODE_FORCEGET is being used).
         """
-        cdef ThinConnImpl conn_impl
-        conn_impl = ThinConnImpl(self.dsn, self.connect_params)
-        self._pre_connect(conn_impl, params)
-        conn_impl.connect(self.connect_params)
+        cdef ThinConnImpl conn_impl = ThinConnImpl()
+        conn_impl.process_sync_operation(
+            self, "create_connection", (conn_impl, params), {}
+        )
         return conn_impl
 
     def _notify_bg_task(self):
@@ -620,18 +637,13 @@ cdef class ThinPoolImpl(BaseThinPoolImpl):
         """
         Processes a request.
         """
-        cdef:
-            BaseThinConnImpl conn_impl
-            uint32_t orig_call_timeout
+        cdef ThinConnImpl conn_impl
         try:
             if request.requires_ping:
                 try:
-                    orig_call_timeout = request.conn_impl._call_timeout
-                    request.conn_impl.set_call_timeout(self._ping_timeout)
                     request.conn_impl.process_sync_operation(
-                        request.conn_impl.ping()
+                        self, "ping_connection", (request.conn_impl,), {}
                     )
-                    request.conn_impl.set_call_timeout(orig_call_timeout)
                 except exceptions.Error:
                     request.conn_impl._protocol._disconnect()
                     request.conn_impl = None
@@ -654,31 +666,6 @@ cdef class ThinPoolImpl(BaseThinPoolImpl):
                 self._process_timeout()
         self._timeout_task = threading.Timer(self._timeout + 1, handler)
         self._timeout_task.start()
-
-    def acquire(self, ConnectParamsImpl params):
-        """
-        Internal method for acquiring a connection from the pool.
-        """
-        cdef PooledConnRequest request
-
-        # session tagging has not been implemented yet
-        if params.tag is not None:
-            errors._raise_not_supported("session tagging")
-
-        # wait until an acceptable connection is found
-        request = self._create_request(params)
-        with self._condition:
-            try:
-                self._condition.wait_for(request.fulfill, self._wait_timeout)
-            except:
-                if not request.bg_processing:
-                    request.reject()
-                raise
-            finally:
-                request.waiting = False
-            if not request.completed:
-                errors._raise_err(errors.ERR_POOL_NO_CONNECTION_AVAILABLE)
-            return self._post_acquire(request.conn_impl)
 
     def close(self, bint force):
         """
@@ -713,20 +700,6 @@ cdef class AsyncThinPoolImpl(BaseThinPoolImpl):
         self._bg_task_event = asyncio.Event()
         self._bg_task = asyncio.create_task(self._bg_task_func())
 
-    async def _acquire_helper(self, PooledConnRequest request):
-        """
-        Helper function for acquiring a connection from the pool.
-        """
-        async with self._condition:
-            try:
-                await self._condition.wait_for(request.fulfill)
-            except:
-                if not request.bg_processing:
-                    request.reject()
-                raise
-            finally:
-                request.waiting = False
-
     async def _bg_task_func(self):
         """
         Method which runs in a dedicated task and is used to create connections
@@ -737,7 +710,7 @@ cdef class AsyncThinPoolImpl(BaseThinPoolImpl):
         """
         cdef:
             PooledConnRequest request = None
-            BaseThinConnImpl conn_impl
+            ThinConnImpl conn_impl
             list conn_impls_to_drop
             uint32_t num_to_create
 
@@ -795,10 +768,10 @@ cdef class AsyncThinPoolImpl(BaseThinPoolImpl):
         connection may be placed in the pool or may be returned directly (such
         as when the pool is full and POOL_GETMODE_FORCEGET is being used).
         """
-        cdef AsyncThinConnImpl conn_impl
-        conn_impl = AsyncThinConnImpl(self.dsn, self.connect_params)
-        self._pre_connect(conn_impl, params)
-        await conn_impl.connect(self.connect_params)
+        cdef ThinConnImpl conn_impl = ThinConnImpl(is_async=True)
+        await conn_impl.process_async_operation(
+            self, "create_connection", (conn_impl, params), {}
+        )
         return conn_impl
 
     def _notify_bg_task(self):
@@ -814,18 +787,13 @@ cdef class AsyncThinPoolImpl(BaseThinPoolImpl):
         """
         Processes a request.
         """
-        cdef:
-            BaseThinConnImpl conn_impl
-            uint32_t orig_call_timeout
+        cdef ThinConnImpl conn_impl
         try:
             if request.requires_ping:
                 try:
-                    orig_call_timeout = request.conn_impl._call_timeout
-                    request.conn_impl.set_call_timeout(self._ping_timeout)
                     await request.conn_impl.process_async_operation(
-                        request.conn_impl.ping()
+                        self, "ping_connection", (request.conn_impl,), {}
                     )
-                    request.conn_impl.set_call_timeout(orig_call_timeout)
                 except exceptions.Error:
                     request.conn_impl._protocol._disconnect()
                     request.conn_impl = None
@@ -849,27 +817,6 @@ cdef class AsyncThinPoolImpl(BaseThinPoolImpl):
                 self._process_timeout()
         self._timeout_task = asyncio.create_task(process_timeout())
 
-    async def acquire(self, ConnectParamsImpl params):
-        """
-        Internal method for acquiring a connection from the pool.
-        """
-        cdef PooledConnRequest request
-
-        # session tagging has not been implemented yet
-        if params.tag is not None:
-            errors._raise_not_supported("session tagging")
-
-        # use the helper function to allow for a timeout since asyncio
-        # condition variables do not have that capability directly
-        request = self._create_request(params)
-        try:
-            await asyncio.wait_for(
-                self._acquire_helper(request), self._wait_timeout
-            )
-        except asyncio.TimeoutError:
-            errors._raise_err(errors.ERR_POOL_NO_CONNECTION_AVAILABLE)
-        return self._post_acquire(request.conn_impl)
-
     async def close(self, bint force):
         """
         Internal method for closing the pool.
@@ -878,7 +825,7 @@ cdef class AsyncThinPoolImpl(BaseThinPoolImpl):
             self._close_helper(force)
         await self._bg_task
 
-    async def drop(self, AsyncThinConnImpl conn_impl):
+    async def drop(self, ThinConnImpl conn_impl):
         """
         Internal method for dropping a connection from the pool.
         """
@@ -889,11 +836,10 @@ cdef class AsyncThinPoolImpl(BaseThinPoolImpl):
             self._condition.notify()
 
 
-@cython.freelist(20)
-cdef class PooledConnRequest:
+cdef class PooledConnRequest(SubOperation):
     cdef:
         BaseThinPoolImpl pool_impl
-        BaseThinConnImpl conn_impl
+        ThinConnImpl conn_impl
         ConnectParamsImpl params
         str cclass
         object exception
@@ -907,7 +853,7 @@ cdef class PooledConnRequest:
         bint completed
         bint waiting
 
-    cdef int _check_connection(self, BaseThinConnImpl conn_impl) except -1:
+    cdef int _check_connection(self, ThinConnImpl conn_impl) except -1:
         """
         Checks the connection to see if it can be used. First, if any control
         packets are sent that indicate that the connection should be closed,
@@ -948,6 +894,22 @@ cdef class PooledConnRequest:
         else:
             self.completed = True
 
+    async def _process_helper(self):
+        """
+        Helper function for acquiring a connection from the pool.
+        """
+        condition = self.pool_impl._condition
+        async with condition:
+            try:
+                await condition.wait_for(self.fulfill)
+            except:
+                if not self.bg_processing:
+                    self.reject()
+                raise
+            finally:
+                self.waiting = False
+            self.pool_impl._post_acquire(self.conn_impl)
+
     def fulfill(self):
         """
         Fulfills the connection request. If a connection is available and does
@@ -957,7 +919,7 @@ cdef class PooledConnRequest:
         """
         cdef:
             BaseThinPoolImpl pool = self.pool_impl
-            BaseThinConnImpl conn_impl
+            ThinConnImpl conn_impl
             ssize_t ix
             object exc
 
@@ -1046,6 +1008,38 @@ cdef class PooledConnRequest:
         """
         return self.requires_ping or self.is_replacing or self.waiting
 
+    def process(self):
+        """
+        Performs the work needed to acquire a connection from the pool
+        synchronously.
+        """
+        condition = self.pool_impl._condition
+        with condition:
+            try:
+                condition.wait_for(self.fulfill, self.pool_impl._wait_timeout)
+            except:
+                if not self.bg_processing:
+                    self.reject()
+                raise
+            finally:
+                self.waiting = False
+            if not self.completed:
+                errors._raise_err(errors.ERR_POOL_NO_CONNECTION_AVAILABLE)
+            self.pool_impl._post_acquire(self.conn_impl)
+
+    async def process_async(self):
+        """
+        Performs the work needed to acquire a connection from the pool
+        asynchronously. A helper function is used to allow for a timeout, since
+        asyncio condition variables do not have that capability directly.
+        """
+        try:
+            await asyncio.wait_for(
+                self._process_helper(), self.pool_impl._wait_timeout
+            )
+        except asyncio.TimeoutError:
+            errors._raise_err(errors.ERR_POOL_NO_CONNECTION_AVAILABLE)
+
     cdef int reject(self) except -1:
         """
         Called when a request has been rejected for any reason (such as when a
@@ -1055,7 +1049,7 @@ cdef class PooledConnRequest:
         """
         cdef:
             BaseThinPoolImpl pool_impl = self.pool_impl
-            BaseThinConnImpl conn_impl = self.conn_impl
+            ThinConnImpl conn_impl = self.conn_impl
         if conn_impl is not None:
             self.conn_impl = None
             if conn_impl._is_pool_extra:

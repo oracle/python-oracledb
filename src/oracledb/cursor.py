@@ -894,9 +894,8 @@ def sync_operation(f):
     @functools.wraps(f)
     def wrapped_f(self, *args, **kwargs):
         self._verify_open()
-        method = getattr(self, f"_{f.__name__}")
         return self._connection._impl.process_sync_operation(
-            method(*args, **kwargs)
+            self, f.__name__, args, kwargs
         )
 
     return wrapped_f
@@ -1241,9 +1240,8 @@ def async_operation(f):
     @functools.wraps(f)
     async def wrapped_f(self, *args, **kwargs):
         self._verify_open()
-        method = getattr(self, f"_{f.__name__}")
         return await self._connection._impl.process_async_operation(
-            method(*args, **kwargs)
+            self, f.__name__, args, kwargs
         )
 
     return wrapped_f

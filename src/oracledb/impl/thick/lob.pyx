@@ -159,11 +159,15 @@ cdef class ThickLobImpl(BaseLobImpl):
         if status < 0:
             _raise_from_odpi()
 
-    def process_sync_operation(self, object generator):
+    def process_sync_operation(self,
+                               object method_owner, str name, object args,
+                               object kwargs):
         """
         Processes a database operation synchronously.
         """
-        return self._conn_impl.process_sync_operation(generator)
+        return self._conn_impl.process_sync_operation(
+            method_owner, name, args, kwargs
+        )
 
     @sync_operation
     def read(self, uint64_t offset, uint64_t amount):

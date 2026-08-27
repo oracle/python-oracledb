@@ -189,6 +189,7 @@ from .base_impl cimport (
     PY_TYPE_MESSAGE_TABLE,
     PY_TYPE_TIMEDELTA,
     SecretValueImpl,
+    SubOperation,
     SUBSCR_NAMESPACE_AQ,
     SUBSCR_QOS_DEREG_NFY,
     SUBSCR_QOS_QUERY,

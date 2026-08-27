@@ -39,8 +39,7 @@ cdef class _SessionlessData:
         bint piggyback_pending
         bint started_on_server
 
-    cdef TransactionSwitchMessage create_message(self,
-                                                 BaseThinConnImpl conn_impl):
+    cdef TransactionSwitchMessage create_message(self, ThinConnImpl conn_impl):
         """
         Returns the message used for sending the request to the database.
         """
@@ -56,7 +55,7 @@ cdef class _SessionlessData:
         return message
 
 
-cdef class BaseThinConnImpl(BaseConnImpl):
+cdef class ThinConnImpl(BaseConnImpl):
 
     cdef:
         StatementCache _statement_cache
@@ -108,16 +107,13 @@ cdef class BaseThinConnImpl(BaseConnImpl):
         uint8_t pipeline_mode
         uint8_t _session_state_desired
         _SessionlessData _sessionless_data
-        ConnectParamsImpl _connect_params
         EndUserSecurityContextImpl security_context
         bint _send_ha_readiness
 
-    def __init__(self, str dsn, ConnectParamsImpl params):
-        _check_cryptography()
-        BaseConnImpl.__init__(self, dsn, params)
-        self._connect_params = params
+    def __init__(self, bint is_async = False):
         self.thin = True
-        self._app_context = None
+        cls = AsyncProtocol if is_async else Protocol
+        self._protocol = cls()
 
     cdef int _clear_dbobject_type_cache(self) except -1:
         """
@@ -159,6 +155,222 @@ cdef class BaseThinConnImpl(BaseConnImpl):
             sock = self._protocol._transport._transport
             if sock is not None:
                 sock.shutdown(socket.SHUT_RDWR)
+
+    def _connect(self):
+        """
+        Internal method used for connecting with the given parameters.
+        """
+        cdef:
+            ConnectParamsImpl params = self.connect_params
+            AddressList address_list
+            Description description
+            Exception exc = None
+            str connect_string
+            Address address
+            ssize_t i
+        params.description_list.set_active_children()
+        for description in params.description_list.active_children:
+            connect_string = _get_connect_data(description,
+                                               self._connection_id,
+                                               self.connect_params)
+            if connect_string is None:
+                errors._raise_err(errors.ERR_FEATURE_NOT_SUPPORTED,
+                                  feature="bequeath", driver_type="thick")
+            for i in range(description.retry_count + 1):
+                if i > 0:
+                    sleep_sub_op = SleepSubOp.__new__(SleepSubOp)
+                    sleep_sub_op.delay = description.retry_delay
+                    yield sleep_sub_op
+                for address_list in description.active_children:
+                    for address in address_list.active_children:
+                        try:
+                            yield from self._connect_phase_one(
+                                description, address, connect_string
+                            )
+                        except (
+                            exceptions.DatabaseError,
+                            socket.gaierror,
+                            OSError
+                        ) as e:
+                            exc = errors._create_exception(
+                                errors.ERR_CONNECTION_FAILED,
+                                cause=e,
+                                connection_id=description.connection_id
+                            )
+                            yield
+                            continue
+                        except Exception as e:
+                            errors._raise_err(
+                                errors.ERR_CONNECTION_FAILED,
+                                cause=e,
+                                connection_id=description.connection_id
+                            )
+                        yield from self._connect_phase_two(
+                            description, address
+                        )
+                        return
+        raise exc
+
+    def _connect_phase_one(self, Description description, Address address,
+                           str connect_string):
+        """
+        Method for performing the required steps for establishing a connection
+        within the scope of a retry. If the listener refuses the connection, a
+        retry will be performed, if retry_count is set.
+        """
+        cdef:
+            ReadBuffer read_buf = self._protocol._read_buf
+            NegotiateTlsSubOp negotiate_tls_sub_op
+            ConnectMessage connect_message = None
+            uint8_t packet_type, packet_flags = 0
+            TcpConnectSubOp tcp_connect_sub_op
+            object ssl_context, connect_info
+            ConnectParamsImpl temp_params
+            Address db_address = address
+            Address temp_address
+            str redirect_data
+            int pos
+
+        # disable OOB processing, if requested
+        if self.connect_params.disable_oob:
+            self._protocol._caps.supports_oob = False
+
+        # establish initial TCP connection
+        tcp_connect_sub_op = TcpConnectSubOp.__new__(TcpConnectSubOp)
+        tcp_connect_sub_op.conn_impl = self
+        tcp_connect_sub_op.host = address.ip_address
+        tcp_connect_sub_op.port = address.port
+        tcp_connect_sub_op.connect_string = connect_string
+        tcp_connect_sub_op.description = description
+        tcp_connect_sub_op.address = db_address
+        yield tcp_connect_sub_op
+
+        # send connect message and process response; this may request the
+        # message to be resent multiple times; if a redirect packet is
+        # detected, a new TCP connection is established first
+        while True:
+
+            # create connect message, if needed
+            if connect_message is None:
+                connect_message = self._create_message(ConnectMessage)
+                connect_message.host = tcp_connect_sub_op.host
+                connect_message.port = tcp_connect_sub_op.port
+                connect_message.params = self.connect_params
+                connect_message.description = description
+                connect_message.address = address
+                connect_message.connect_string_bytes = connect_string.encode()
+                connect_message.connect_string_len = \
+                        <uint16_t> len(connect_message.connect_string_bytes)
+                connect_message.packet_flags = packet_flags
+
+            # process connection message
+            yield connect_message
+            packet_type = read_buf._current_packet.packet_type
+            if connect_message.redirect_data is not None:
+                redirect_data = connect_message.redirect_data
+                pos = redirect_data.find('\x00')
+                if pos < 0:
+                    errors._raise_err(errors.ERR_INVALID_REDIRECT_DATA,
+                                      data=redirect_data)
+                temp_params = ConnectParamsImpl()
+                temp_params._parse_connect_string(redirect_data[:pos])
+                temp_address = temp_params._get_addresses()[0]
+                db_address = db_address.copy()
+                db_address.host = temp_address.host
+                db_address.port = temp_address.port
+                tcp_connect_sub_op.host = temp_address.host
+                tcp_connect_sub_op.port = temp_address.port
+                tcp_connect_sub_op.address = db_address
+                tcp_connect_sub_op.connect_string = redirect_data[pos + 1:]
+                yield tcp_connect_sub_op
+                connect_message = None
+                packet_flags = TNS_PACKET_FLAG_REDIRECT
+            elif packet_type == TNS_PACKET_TYPE_ACCEPT:
+                self._protocol._transport._max_packet_size = read_buf._caps.sdu
+                self._protocol._write_buf._size_for_sdu()
+                break
+
+            # for TCPS connections, if the packet flags indicate that TLS
+            # renegotiation is required, this is performed now
+            if address.protocol == "tcps":
+                packet_flags = read_buf._current_packet.packet_flags
+                if packet_flags & TNS_PACKET_FLAG_TLS_RENEG:
+                    negotiate_tls_sub_op = \
+                            NegotiateTlsSubOp.__new__(NegotiateTlsSubOp)
+                    negotiate_tls_sub_op.description = description
+                    negotiate_tls_sub_op.address = address
+                    negotiate_tls_sub_op.conn_impl = self
+                    yield negotiate_tls_sub_op
+
+    def _connect_phase_two(self, Description description, Address address):
+        """"
+        Method for perfoming the required steps for establishing a connection
+        oustide the scope of a retry. If any of the steps in this method fail,
+        an exception will be raised.
+        """
+        cdef:
+            DataTypesMessage data_types_message
+            FastAuthMessage fast_auth_message
+            ProtocolMessage protocol_message
+            bint supports_end_of_response
+            AuthMessage auth_message
+            Capabilities caps
+
+        # setup DRCP attributes
+        self._drcp_enabled = description.server_type == "pooled"
+        if self._cclass is None:
+            self._cclass = description.cclass
+        if self._cclass is None:
+            self._cclass = self.connect_params._default_description.cclass
+
+        # force the end of response to be disabled for the first packets
+        caps = self._protocol._caps
+        supports_end_of_response = caps.supports_end_of_response
+        caps.supports_end_of_response = False
+
+        # if we can use OOB, send an urgent message now followed by a reset
+        # marker to see if the server understands it
+        if caps.supports_oob and caps.supports_oob_check:
+            self._protocol._transport.send_oob_break()
+            self._protocol._send_marker(
+                self._protocol._write_buf, TNS_MARKER_TYPE_RESET
+            )
+
+        # send the network services message, if applicable
+        if self.connect_params.externalauth and address.protocol == "tcps" \
+                and description.wallet_location is not None:
+            yield self._create_message(NetworkServicesMessage)
+
+        # create the messages that need to be sent to the server
+        protocol_message = self._create_message(ProtocolMessage)
+        data_types_message = self._create_message(DataTypesMessage)
+        auth_message = self._create_message(AuthMessage)
+        auth_message._set_params(self.connect_params, description)
+
+        # starting in Oracle Database version 23, fast authentication is
+        # possible; use it if the server supports it
+        if caps.supports_fast_auth:
+            caps.supports_end_of_response = supports_end_of_response
+            fast_auth_message = self._create_message(FastAuthMessage)
+            fast_auth_message.protocol_message = protocol_message
+            fast_auth_message.data_types_message = data_types_message
+            fast_auth_message.auth_message = auth_message
+            yield fast_auth_message
+            if auth_message.resend:
+                auth_message.resend = False
+                yield auth_message
+
+        # otherwise, do the normal authentication; disable end of response for
+        # the first two messages as the server does not send an end of response
+        # for these messages
+        else:
+            yield protocol_message
+            yield data_types_message
+            caps.supports_end_of_response = supports_end_of_response
+            yield auth_message
+
+        # perform post connect activities
+        self._post_connect(auth_message)
 
     cdef ThinLobImpl _create_lob_impl(self, DbType dbtype, bytes locator=None):
         """
@@ -370,39 +582,57 @@ cdef class BaseThinConnImpl(BaseConnImpl):
             sql, cache_statement, self._drcp_establish_session
         )
 
-    cdef int _post_connect_phase_one(self, Description description,
-                                     ConnectParamsImpl params) except -1:
+    cdef int _post_connect(self, AuthMessage auth_message) except -1:
+        """"
+        Performs activities after the connection has completed. The protocol
+        must be marked to indicate that the connect is no longer in progress,
+        which allows the normal break/reset mechanism to fire. The session must
+        also be marked as not needing to be closed since for listener redirects
+        the packet may indicate EOF for the initial connection that is
+        established.
         """
-        Called after the connection has been partially established to perform
-        common tasks.
-        """
-        self._drcp_enabled = description.server_type == "pooled"
-        if self._cclass is None:
-            self._cclass = description.cclass
-        if self._cclass is None:
-            self._cclass = params._default_description.cclass
+        cdef:
+            dict session_data = auth_message.session_data
+            ReadBuffer buf = self._protocol._read_buf
+        self._session_id = <uint32_t> int(session_data["AUTH_SESSION_ID"])
+        self._serial_num = <uint16_t> int(session_data["AUTH_SERIAL_NUM"])
+        self._db_domain = session_data.get("AUTH_SC_DB_DOMAIN")
+        self._db_name = session_data.get("AUTH_SC_DBUNIQUE_NAME")
+        self._db_unique_name = session_data.get("AUTH_SC_REAL_DBUNIQUE_NAME")
+        self._max_open_cursors = \
+                int(session_data.get("AUTH_MAX_OPEN_CURSORS", 0))
+        self._service_name = session_data.get("AUTH_SC_SERVICE_NAME")
+        self._instance_name = session_data.get("AUTH_INSTANCENAME")
+        self._max_identifier_length = \
+                int(session_data.get("AUTH_MAX_IDEN_LENGTH", 30))
+        self.server_version = auth_message._get_version_tuple(buf)
+        self.supports_bool = \
+                buf._caps.ttc_field_version >= TNS_CCAP_FIELD_VERSION_23_1
+        self._edition = auth_message.edition
+        self.warning = auth_message.warning
+        buf._pending_error_num = 0
+        self._protocol._in_connect = False
 
-    cdef int _post_connect_phase_two(self, ConnectParamsImpl params) except -1:
+    async def _process_async_operation_sub_op(self, object sub_op):
         """
-        Called after the connection has been fully established to perform
-        common tasks.
+        Processes a sub operation of a synchronous operation. These may either
+        be round trips to the database or driver operations.
         """
-        self._statement_cache = StatementCache.__new__(StatementCache)
-        self._statement_cache.initialize(params.stmtcachesize,
-                                         self._max_open_cursors)
-        self._dbobject_type_cache_num = create_new_dbobject_type_cache(self)
-        self.invoke_session_callback = True
-        if self._protocol._caps.supports_ha_readiness:
-            self._send_ha_readiness = True
+        cdef BaseAsyncProtocol protocol = <BaseAsyncProtocol> self._protocol
+        if isinstance(sub_op, Message):
+            await protocol._process_single_message(sub_op)
+        else:
+            await sub_op.process_async()
 
-    cdef int _pre_connect(self, ConnectParamsImpl params) except -1:
+    cdef int _process_sync_operation_sub_op(self, object sub_op) except -1:
         """
-        Called before the connection is established to perform common tasks.
+        Processes a sub operation of a synchronous operation. These may either
+        be round trips to the database or driver operations.
         """
-        params._check_credentials()
-        self._connection_id_bytes = secrets.token_bytes(16)
-        self._connection_id = \
-                base64.b64encode(self._connection_id_bytes).decode()
+        if isinstance(sub_op, Message):
+            (<Protocol> self._protocol)._process_single_message(sub_op)
+        else:
+            sub_op.process()
 
     cdef int _return_statement(self, Statement statement) except -1:
         """
@@ -505,7 +735,7 @@ cdef class BaseThinConnImpl(BaseConnImpl):
         message = self._create_message(AuthMessage)
         message.change_password = True
         message.function_code = TNS_FUNC_AUTH_PHASE_TWO
-        message.user_bytes = self.username.encode()
+        message.user_bytes = self.connect_params.user.encode()
         message.user_bytes_len = len(message.user_bytes)
         message.auth_mode = TNS_AUTH_MODE_WITH_PASSWORD | \
                 TNS_AUTH_MODE_CHANGE_PASSWORD
@@ -536,6 +766,51 @@ cdef class BaseThinConnImpl(BaseConnImpl):
         """
         yield self._create_message(CommitMessage)
 
+    def connect(self, str dsn, ConnectParamsImpl params, object pool):
+        """
+        Establishes a connection to the database.
+        """
+
+        # thin mode does not currently support sharding
+        if params.shardingkey is not None \
+                or params.supershardingkey is not None:
+            errors._raise_err(
+                errors.ERR_FEATURE_NOT_SUPPORTED,
+                feature="sharding",
+                driver_type="thick",
+            )
+
+        # if a pool is being used, acquire the connection from it and discard
+        # the temporary implementation object that was created
+        if pool is not None:
+            return (yield from pool._impl.acquire(params))
+
+        # initial setup before attempting to connect
+        _check_cryptography()
+        params._check_credentials()
+        self.dsn = dsn
+        self._connection_id_bytes = secrets.token_bytes(16)
+        self._connection_id = \
+                base64.b64encode(self._connection_id_bytes).decode()
+        self.connect_params = params
+
+        # if connection fails, discard the connection
+        try:
+            yield from self._connect()
+        except:
+            self._protocol._disconnect()
+            raise
+
+        # final setup before returning connection
+        self._statement_cache = StatementCache.__new__(StatementCache)
+        self._statement_cache.initialize(params.stmtcachesize,
+                                         self._max_open_cursors)
+        self._dbobject_type_cache_num = create_new_dbobject_type_cache(self)
+        if self._protocol._caps.supports_ha_readiness:
+            self._send_ha_readiness = True
+
+        return self
+
     def create_msg_props_impl(self):
         cdef ThinMsgPropsImpl impl
         impl = ThinMsgPropsImpl()
@@ -544,6 +819,31 @@ cdef class BaseThinConnImpl(BaseConnImpl):
 
     def create_queue_impl(self):
         return ThinQueueImpl.__new__(ThinQueueImpl)
+
+    def create_subscr_impl(self, object conn, object callback,
+                           uint32_t namespace, str name, uint32_t protocol,
+                           str ip_address, uint32_t port, uint32_t timeout,
+                           uint32_t operations, uint32_t qos,
+                           uint8_t grouping_class, uint32_t grouping_value,
+                           uint8_t grouping_type, bint client_initiated):
+        cdef ThinSubscrImpl impl = ThinSubscrImpl.__new__(ThinSubscrImpl)
+        impl.connection = conn
+        impl.callback = callback
+        impl.namespace = namespace
+        impl.name = name
+        impl.protocol = protocol
+        impl.ip_address = ip_address
+        impl.port = port
+        impl.timeout = timeout
+        impl.operations = operations
+        impl.qos = qos
+        impl.grouping_class = grouping_class
+        impl.grouping_value = grouping_value
+        impl.grouping_type = grouping_type
+        if not client_initiated:
+            errors._raise_not_supported("server initiated subscription")
+        impl.client_initiated = client_initiated
+        return impl
 
     def create_temp_lob_impl(self, DbType dbtype):
         cdef ThinLobImpl lob_impl = self._create_lob_impl(dbtype)
@@ -917,256 +1217,81 @@ cdef class BaseThinConnImpl(BaseConnImpl):
                               state=message.state)
 
 
-cdef class ThinConnImpl(BaseThinConnImpl):
+@cython.final
+cdef class SleepSubOp(SubOperation):
+    cdef:
+        uint32_t delay
 
-    def __init__(self, str dsn, ConnectParamsImpl params):
-        BaseThinConnImpl.__init__(self, dsn, params)
-        self._protocol = Protocol()
+    def process(self):
+        """
+        Runs the callback synchronously.
+        """
+        time.sleep(self.delay)
 
-    cdef int _connect_with_address(self, Address address,
-                                   Description description,
-                                   ConnectParamsImpl params,
-                                   str connect_string,
-                                   bint raise_exception) except -1:
+    async def process_async(self):
         """
-        Internal method used for connecting with the given description and
-        address.
+        Runs the callback asynchronously.
         """
-        cdef Protocol protocol = <Protocol> self._protocol
-        try:
-            protocol._connect_phase_one(self, params, description,
-                                        address, connect_string)
-        except (exceptions.DatabaseError, socket.gaierror, OSError) as e:
-            if raise_exception:
-                errors._raise_err(errors.ERR_CONNECTION_FAILED, cause=e,
-                                  connection_id=description.connection_id)
-            return 0
-        except Exception as e:
-            errors._raise_err(errors.ERR_CONNECTION_FAILED, cause=e,
-                              connection_id=description.connection_id)
-        self._post_connect_phase_one(description, params)
-        protocol._connect_phase_two(self, description, address, params)
-
-    cdef int _connect_with_description(self, Description description,
-                                       ConnectParamsImpl params,
-                                       bint final_desc) except -1:
-        """
-        Internal method used for connecting with the given description. Retry
-        connecting to the socket if an attempt fails and retry_count is
-        specified in the connect string.
-        """
-        cdef:
-            uint32_t i, j, k, num_attempts, num_lists, num_addresses
-            AddressList address_list
-            bint raise_exc = False
-            str connect_string
-            Address address
-        num_lists = len(description.active_children)
-        num_attempts = description.retry_count + 1
-        connect_string = _get_connect_data(description, self._connection_id,
-                                           params)
-        if connect_string is None:
-            errors._raise_err(errors.ERR_FEATURE_NOT_SUPPORTED,
-                              feature="bequeath", driver_type="thick")
-        for i in range(num_attempts):
-            for j, address_list in enumerate(description.active_children):
-                num_addresses = len(address_list.active_children)
-                for k, address in enumerate(address_list.active_children):
-                    if final_desc:
-                        raise_exc = i == num_attempts - 1 \
-                                and j == num_lists - 1 \
-                                and k == num_addresses - 1
-                    self._connect_with_address(address, description, params,
-                                               connect_string, raise_exc)
-                    if not self._protocol._in_connect:
-                        return 0
-            time.sleep(description.retry_delay)
-
-    cdef int _connect_with_params(self, ConnectParamsImpl params) except -1:
-        """
-        Internal method used for connecting with the given parameters.
-        """
-        cdef:
-            DescriptionList description_list = params.description_list
-            ssize_t i, num_descriptions
-            Description description
-            bint final_desc
-        description_list.set_active_children()
-        num_descriptions = len(description_list.active_children)
-        for i, description in enumerate(description_list.active_children):
-            final_desc = (i == num_descriptions - 1)
-            self._connect_with_description(description, params, final_desc)
-            if not self._protocol._in_connect:
-                break
-
-    def connect(self, ConnectParamsImpl params):
-        cdef Protocol protocol = <Protocol> self._protocol
-        try:
-            self._pre_connect(params)
-            self._connect_with_params(params)
-            self._post_connect_phase_two(params)
-        except:
-            protocol._disconnect()
-            raise
-
-    def create_subscr_impl(self, object conn, object callback,
-                           uint32_t namespace, str name, uint32_t protocol,
-                           str ip_address, uint32_t port, uint32_t timeout,
-                           uint32_t operations, uint32_t qos,
-                           uint8_t grouping_class, uint32_t grouping_value,
-                           uint8_t grouping_type, bint client_initiated):
-        cdef ThinSubscrImpl impl = ThinSubscrImpl.__new__(ThinSubscrImpl)
-        impl.connection = conn
-        impl.callback = callback
-        impl.namespace = namespace
-        impl.name = name
-        impl.protocol = protocol
-        impl.ip_address = ip_address
-        impl.port = port
-        impl.timeout = timeout
-        impl.operations = operations
-        impl.qos = qos
-        impl.grouping_class = grouping_class
-        impl.grouping_value = grouping_value
-        impl.grouping_type = grouping_type
-        if not client_initiated:
-            errors._raise_not_supported("server initiated subscription")
-        impl.client_initiated = client_initiated
-        return impl
-
-    def process_sync_operation(self, object generator):
-        """
-        Processes an operation synchronously. The generator returns sub
-        operations that need to be processed by the database or the driver.
-        Since Python doesn't allow mixing of sync and async for some things
-        (locks, establishing a TCP connection, etc.) this allows common code to
-        generate sub operations without having to duplicate code.
-        """
-        cdef:
-            Protocol protocol = <Protocol> self._protocol
-            object sub_op
-        while True:
-            try:
-                sub_op = next(generator)
-                if isinstance(sub_op, Message):
-                    protocol._process_single_message(sub_op)
-                else:
-                    sub_op.process()
-            except StopIteration as e:
-                return e.value
+        await asyncio.sleep(self.delay)
 
 
-cdef class AsyncThinConnImpl(BaseThinConnImpl):
+@cython.final
+cdef class TcpConnectSubOp(SubOperation):
+    cdef:
+        ThinConnImpl conn_impl
+        Description description
+        Address address
+        str connect_string
+        str host
+        uint32_t port
 
-    def __init__(self, str dsn, ConnectParamsImpl params):
-        BaseThinConnImpl.__init__(self, dsn, params)
-        self._protocol = AsyncProtocol()
+    def process(self):
+        """
+        Runs the callback synchronously.
+        """
+        cdef Protocol protocol = self.conn_impl._protocol
+        protocol._connect_tcp(
+            self.conn_impl.connect_params,
+            self.description,
+            self.address,
+            self.host,
+            self.port,
+            self.connect_string,
+        )
 
-    async def _connect_with_address(self, Address address,
-                                    Description description,
-                                    ConnectParamsImpl params,
-                                    str connect_string,
-                                    bint raise_exception):
+    async def process_async(self):
         """
-        Internal method used for connecting with the given description and
-        address.
+        Runs the callback asynchronously.
         """
-        cdef:
-            BaseAsyncProtocol protocol = <BaseAsyncProtocol> self._protocol
-        try:
-            await protocol._connect_phase_one(self, params, description,
-                                              address, connect_string)
-        except (exceptions.DatabaseError, socket.gaierror,
-                ConnectionRefusedError) as e:
-            if raise_exception:
-                errors._raise_err(errors.ERR_CONNECTION_FAILED, cause=e,
-                                  connection_id=description.connection_id)
-            return 0
-        except Exception as e:
-            errors._raise_err(errors.ERR_CONNECTION_FAILED, cause=e,
-                              connection_id=description.connection_id)
-        self._post_connect_phase_one(description, params)
-        await self._protocol._connect_phase_two(self, description, address,
-                                                params)
+        cdef BaseAsyncProtocol protocol = self.conn_impl._protocol
+        await protocol._connect_tcp(
+            self.conn_impl.connect_params,
+            self.description,
+            self.address,
+            self.host,
+            self.port,
+        )
 
-    async def _connect_with_description(self, Description description,
-                                        ConnectParamsImpl params,
-                                        bint final_desc):
-        """
-        Internal method used for connecting with the given description. Retry
-        connecting to the socket if an attempt fails and retry_count is
-        specified in the connect string.
-        """
-        cdef:
-            uint32_t i, j, k, num_attempts, num_lists, num_addresses
-            AddressList address_list
-            bint raise_exc = False
-            str connect_string
-            Address address
-        num_lists = len(description.active_children)
-        num_attempts = description.retry_count + 1
-        connect_string = _get_connect_data(description, self._connection_id, params)
-        for i in range(num_attempts):
-            for j, address_list in enumerate(description.active_children):
-                num_addresses = len(address_list.active_children)
-                for k, address in enumerate(address_list.active_children):
-                    if final_desc:
-                        raise_exc = i == num_attempts - 1 \
-                                and j == num_lists - 1 \
-                                and k == num_addresses - 1
-                    await self._connect_with_address(address, description,
-                                                     params, connect_string,
-                                                     raise_exc)
-                    if not self._protocol._in_connect:
-                        return 0
-            await asyncio.sleep(description.retry_delay)
 
-    async def _connect_with_params(self, ConnectParamsImpl params):
-        """
-        Internal method used for connecting with the given parameters.
-        """
-        cdef:
-            DescriptionList description_list = params.description_list
-            ssize_t i, num_descriptions
-            Description description
-            bint final_desc
-        description_list.set_active_children()
-        num_descriptions = len(description_list.active_children)
-        for i, description in enumerate(description_list.active_children):
-            final_desc = (i == num_descriptions - 1)
-            await self._connect_with_description(description, params,
-                                                 final_desc)
-            if not self._protocol._in_connect:
-                break
+@cython.final
+cdef class NegotiateTlsSubOp(SubOperation):
+    cdef:
+        ThinConnImpl conn_impl
+        Description description
+        Address address
 
-    async def connect(self, ConnectParamsImpl params):
+    def process(self):
         """
-        Sends the messages needed to connect to the database.
+        Runs the callback synchronously.
         """
-        cdef BaseAsyncProtocol protocol = <BaseAsyncProtocol> self._protocol
-        protocol._read_buf._loop = asyncio.get_running_loop()
-        try:
-            self._pre_connect(params)
-            await self._connect_with_params(params)
-            self._post_connect_phase_two(params)
-        except:
-            protocol._disconnect()
-            raise
+        self.conn_impl._protocol._transport.renegotiate_tls(
+            self.address, self.description
+        )
 
-    async def process_async_operation(self, object generator):
+    async def process_async(self):
         """
-        Processes a database operation asynchronously. The generator returns
-        messages that need to be processed by the database.
+        Runs the callback asynchronously.
         """
-        cdef:
-            BaseAsyncProtocol protocol = <BaseAsyncProtocol> self._protocol
-            object sub_op
-        while True:
-            try:
-                sub_op = next(generator)
-                if isinstance(sub_op, Message):
-                    await protocol._process_single_message(sub_op)
-                else:
-                    await sub_op.process_async()
-            except StopIteration as e:
-                return e.value
+        await self.conn_impl._protocol._transport.negotiate_tls_async(
+            self.conn_impl._protocol, self.address, self.description
+        )

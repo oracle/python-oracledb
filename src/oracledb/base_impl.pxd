@@ -700,9 +700,7 @@ cdef class PoolParamsImpl(ConnectParamsImpl):
 cdef class BaseConnImpl:
     cdef:
         readonly bint thin
-        readonly str username
         readonly str dsn
-        readonly str proxy_user
         public object inputtypehandler
         public object outputtypehandler
         public object warning
@@ -710,12 +708,14 @@ cdef class BaseConnImpl:
         public bint invoke_session_callback
         readonly tuple server_version
         readonly bint supports_bool
+        readonly ConnectParamsImpl connect_params
         bint supports_oson_long_field_names
         bint _in_request
 
     cdef object _check_value(self, OracleMetadata type_info, object value,
                              bint* is_ok)
     cdef BaseCursorImpl _create_cursor_impl(self)
+    cdef int _process_sync_operation_sub_op(self, object sub_op) except -1
 
 
 cdef class BasePoolImpl:
@@ -1017,6 +1017,10 @@ cdef class SparseVectorImpl:
         readonly uint32_t num_dimensions
         readonly array.array indices
         readonly array.array values
+
+
+cdef class SubOperation:
+    pass
 
 
 cdef struct OracleDate:

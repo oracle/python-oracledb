@@ -120,6 +120,28 @@ class BaseConnection(metaclass=BaseMetaClass):
         """
         yield from self._impl.commit()
 
+    def _connect(
+        self,
+        impl: base_impl.BaseConnImpl,
+        dsn: str | None,
+        pool: pool_module.BaseConnectionPool | None,
+        params: ConnectParams,
+        kwargs: dict,
+    ) -> None:
+        """
+        Common logic for connecting to the database.
+        """
+        if params is None:
+            params_impl = base_impl.ConnectParamsImpl()
+        elif not isinstance(params, ConnectParams):
+            errors._raise_err(errors.ERR_INVALID_CONNECT_PARAMS)
+        else:
+            params_impl = params._impl.copy()
+        dsn = params_impl.process_args(dsn, kwargs, impl.thin)
+        self._impl = yield from impl.connect(dsn, params_impl, pool)
+        yield from self._impl.invoke_on_connect_callbacks(self, pool)
+        return self
+
     def _createlob(
         self, lob_type: DbType, data: str | bytes | None = None
     ) -> LOB:
@@ -235,6 +257,12 @@ class BaseConnection(metaclass=BaseMetaClass):
         else:
             batch = yield from cursor._impl.fetch_df_first_batch(cursor)
         return (batch, cursor)
+
+    def _fetch_df_next_batch(self, cursor: Cursor) -> DataFrame | None:
+        """
+        Fetches the next batch for fetch_df_batches().
+        """
+        return (yield from cursor._impl.fetch_df_next_batch(cursor))
 
     def _gettype(self, name: str) -> DbObjectType:
         """
@@ -1008,7 +1036,7 @@ class BaseConnection(metaclass=BaseMetaClass):
         a proxy when creating the connection to the database.
         """
         self._verify_connected()
-        return self._impl.proxy_user
+        return self._impl.connect_params.proxy_user
 
     @property
     def sdu(self) -> int:
@@ -1197,7 +1225,7 @@ class BaseConnection(metaclass=BaseMetaClass):
         the connection to the database.
         """
         self._verify_connected()
-        return self._impl.username
+        return self._impl.connect_params.user
 
     @property
     def version(self) -> str:
@@ -1281,8 +1309,9 @@ def sync_operation(f):
     @functools.wraps(f)
     def wrapped_f(self, *args, **kwargs):
         self._verify_connected()
-        method = getattr(self, f"_{f.__name__}")
-        return self._impl.process_sync_operation(method(*args, **kwargs))
+        return self._impl.process_sync_operation(
+            self, f.__name__, args, kwargs
+        )
 
     return wrapped_f
 
@@ -1304,58 +1333,18 @@ class Connection(BaseConnection):
         super().__init__()
         self._pool = pool
 
-        # determine if thin mode is being used
+        # ensure connection takes place with mode context manager so that any
+        # failure allows thick mode to be used instead
         with driver_mode.get_manager() as mode_mgr:
-            thin = mode_mgr.thin
-
-            # determine which connection parameters to use
-            if params is None:
-                params_impl = base_impl.ConnectParamsImpl()
-            elif not isinstance(params, ConnectParams):
-                errors._raise_err(errors.ERR_INVALID_CONNECT_PARAMS)
-            else:
-                params_impl = params._impl.copy()
-            dsn = params_impl.process_args(dsn, kwargs, thin)
-
-            # see if connection is being acquired from a pool
-            if pool is None:
-                pool_impl = None
-            else:
-                pool._verify_open()
-                pool_impl = pool._impl
-
-            # create thin or thick implementation object
-            if thin:
-                if (
-                    params_impl.shardingkey is not None
-                    or params_impl.supershardingkey is not None
-                ):
-                    errors._raise_err(
-                        errors.ERR_FEATURE_NOT_SUPPORTED,
-                        feature="sharding",
-                        driver_type="thick",
-                    )
-                if pool is not None:
-                    impl = pool_impl.acquire(params_impl)
-                else:
-                    impl = thin_impl.ThinConnImpl(dsn, params_impl)
-                    impl.connect(params_impl)
-            else:
-                impl = thick_impl.ThickConnImpl(dsn, params_impl)
-                impl.connect(params_impl, pool_impl)
-            self._impl = impl
-
-            # invoke callbacks, as applicable
-            if params_impl.on_connect_callback is not None:
-                params_impl.on_connect_callback(self)
-            if (
-                impl.invoke_session_callback
-                and pool is not None
-                and pool.session_callback is not None
-                and callable(pool.session_callback)
-            ):
-                pool.session_callback(self, params_impl.tag)
-                impl.invoke_session_callback = False
+            cls = (
+                thin_impl.ThinConnImpl
+                if mode_mgr.thin
+                else thick_impl.ThickConnImpl
+            )
+            impl = cls()
+            impl.process_sync_operation(
+                self, "connect", (impl, dsn, pool, params, kwargs), {}
+            )
 
     def __del__(self):
         if self._impl is not None:
@@ -1657,19 +1646,22 @@ class Connection(BaseConnection):
         Any LOB fetched must be less than 1 GB.
         """
         batch, cursor = self._impl.process_sync_operation(
-            self._fetch_df_first_batch(
+            self,
+            "fetch_df_first_batch",
+            (
                 statement,
                 parameters,
                 size,
                 fetch_decimals,
                 requested_schema,
                 handle,
-            )
+            ),
+            {},
         )
         while batch is not None:
             yield batch
             batch = self._impl.process_sync_operation(
-                cursor._impl.fetch_df_next_batch(cursor)
+                self, "fetch_df_next_batch", (cursor,), {}
             )
 
     def getSodaDatabase(self) -> SodaDatabase:
@@ -2077,7 +2069,7 @@ class Connection(BaseConnection):
         pass
 
 
-def _connection_factory(
+def sync_create_connection(
     f: Callable[..., Connection],
 ) -> Callable[..., Connection]:
     """
@@ -2108,29 +2100,19 @@ def _connection_factory(
         )
         if not issubclass(conn_class, Connection):
             errors._raise_err(errors.ERR_INVALID_CONN_CLASS)
-        if pool is not None and pool_alias is not None:
-            errors._raise_err(
-                errors.ERR_DUPLICATED_PARAMETER,
-                deprecated_name="pool",
-                new_name="pool_alias",
-            )
         if pool_alias is not None:
-            pool = pool_module.named_pools.pools.get(pool_alias)
-            if pool is None:
-                errors._raise_err(
-                    errors.ERR_NAMED_POOL_MISSING, alias=pool_alias
-                )
-        if pool is not None and not isinstance(
-            pool, pool_module.ConnectionPool
-        ):
-            message = "pool must be an instance of oracledb.ConnectionPool"
-            raise TypeError(message)
+            pool = pool_module.check_pool_alias(pool, pool_alias)
+        if pool is not None:
+            if not isinstance(pool, pool_module.ConnectionPool):
+                message = "pool must be an instance of oracledb.ConnectionPool"
+                raise TypeError(message)
+            pool._verify_open()
         return conn_class(dsn=dsn, pool=pool, params=params, **kwargs)
 
     return connect
 
 
-@_connection_factory
+@sync_create_connection
 def connect(
     dsn: str | None = None,
     *,
@@ -2188,9 +2170,8 @@ def async_operation(f):
     @functools.wraps(f)
     async def wrapped_f(self, *args, **kwargs):
         self._verify_connected()
-        method = getattr(self, f"_{f.__name__}")
         return await self._impl.process_async_operation(
-            method(*args, **kwargs)
+            self, f.__name__, args, kwargs
         )
 
     return wrapped_f
@@ -2198,32 +2179,13 @@ def async_operation(f):
 
 class AsyncConnection(BaseConnection):
 
-    def __init__(
-        self,
-        dsn: str,
-        pool: pool_module.AsyncConnectionPool,
-        params: ConnectParams,
-        kwargs: dict,
-    ) -> None:
-        """
-        Constructor for creating an asynchronous connection to the database.
-        """
-        super().__init__()
-        self._pool = pool
-        self._connect_coroutine = self._connect(dsn, pool, params, kwargs)
-
-    def __await__(self):
-        coroutine = self._connect_coroutine
-        self._connect_coroutine = None
-        return coroutine.__await__()
-
     async def __aenter__(self):
         """
         The entry point for the asynchronous connection as a context manager.
         It returns itself.
         """
         if self._connect_coroutine is not None:
-            await self._connect_coroutine
+            await self
         else:
             self._verify_connected()
         return self
@@ -2237,59 +2199,10 @@ class AsyncConnection(BaseConnection):
         if self._impl is not None:
             await self.close()
 
-    async def _connect(self, dsn, pool, params, kwargs):
-        """
-        Internal method for establishing a connection to the database using
-        asyncio.
-        """
-
-        # mandate that thin mode is required; with asyncio, only thin mode is
-        # supported and only one thread is executing, so the manager can be
-        # manipulated directly
-        driver_mode.manager.thin_mode = True
-
-        # determine which connection parameters to use
-        if params is None:
-            params_impl = base_impl.ConnectParamsImpl()
-        elif not isinstance(params, ConnectParams):
-            errors._raise_err(errors.ERR_INVALID_CONNECT_PARAMS)
-        else:
-            params_impl = params._impl.copy()
-        dsn = params_impl.process_args(dsn, kwargs, thin=True)
-
-        # see if connection is being acquired from a pool
-        if pool is None:
-            pool_impl = None
-        elif not isinstance(pool, pool_module.AsyncConnectionPool):
-            message = (
-                "pool must be an instance of oracledb.AsyncConnectionPool"
-            )
-            raise TypeError(message)
-        else:
-            pool._verify_open()
-            pool_impl = pool._impl
-
-        # create implementation object
-        if pool is not None:
-            impl = await pool_impl.acquire(params_impl)
-        else:
-            impl = thin_impl.AsyncThinConnImpl(dsn, params_impl)
-            await impl.connect(params_impl)
-        self._impl = impl
-
-        # invoke callbacks, as applicable
-        if params_impl.on_connect_callback is not None:
-            await params_impl.on_connect_callback(self)
-        if (
-            impl.invoke_session_callback
-            and pool is not None
-            and pool.session_callback is not None
-            and callable(pool.session_callback)
-        ):
-            await pool.session_callback(self, params_impl.tag)
-            impl.invoke_session_callback = False
-
-        return self
+    def __await__(self):
+        coroutine = self._connect_coroutine
+        self._connect_coroutine = None
+        return coroutine.__await__()
 
     def _create_queue(self, impl):
         """
@@ -2605,18 +2518,15 @@ class AsyncConnection(BaseConnection):
         ``fetch_df_all()`` will have the data types and names of the schema.
         """
         batch, cursor = await self._impl.process_async_operation(
-            self._fetch_df_first_batch(
-                statement,
-                parameters,
-                size,
-                fetch_decimals,
-                requested_schema,
-            )
+            self,
+            "fetch_df_first_batch",
+            (statement, parameters, size, fetch_decimals, requested_schema),
+            {},
         )
         while batch is not None:
             yield batch
             batch = await self._impl.process_async_operation(
-                cursor._impl.fetch_df_next_batch(cursor)
+                self, "fetch_df_next_batch", (cursor,), {}
             )
 
     async def fetchmany(
@@ -2937,7 +2847,7 @@ class AsyncConnection(BaseConnection):
         pass
 
 
-def _async_connection_factory(
+def async_create_connection(
     f: Callable[..., AsyncConnection],
 ) -> Callable[..., AsyncConnection]:
     """
@@ -2956,7 +2866,6 @@ def _async_connection_factory(
         params: ConnectParams | None = None,
         **kwargs,
     ) -> AsyncConnection:
-        # check arguments
         f(
             dsn=dsn,
             pool=pool,
@@ -2967,38 +2876,33 @@ def _async_connection_factory(
         )
         if not issubclass(conn_class, AsyncConnection):
             errors._raise_err(errors.ERR_INVALID_CONN_CLASS)
-
-        if pool is not None and pool_alias is not None:
-            errors._raise_err(
-                errors.ERR_DUPLICATED_PARAMETER,
-                deprecated_name="pool",
-                new_name="pool_alias",
-            )
         if pool_alias is not None:
-            pool = pool_module.named_pools.pools.get(pool_alias)
-            if pool is None:
-                errors._raise_err(
-                    errors.ERR_NAMED_POOL_MISSING, alias=pool_alias
+            pool = pool_module.check_pool_alias(pool, pool_alias)
+        if pool is not None:
+            if not isinstance(pool, pool_module.AsyncConnectionPool):
+                message = (
+                    "pool must be an instance of oracledb.AsyncConnectionPool"
                 )
-        if pool is not None and not isinstance(
-            pool, pool_module.AsyncConnectionPool
-        ):
-            message = (
-                "pool must be an instance of oracledb.AsyncConnectionPool"
-            )
-            raise TypeError(message)
+                raise TypeError(message)
+            pool._verify_open()
         if params is not None and not isinstance(params, ConnectParams):
             errors._raise_err(errors.ERR_INVALID_CONNECT_PARAMS)
 
         # build connection class and call the implementation connect to
         # actually establish the connection
         oracledb.enable_thin_mode()
-        return conn_class(dsn, pool, params, kwargs)
+        conn = conn_class()
+        conn._pool = pool
+        impl = thin_impl.ThinConnImpl(is_async=True)
+        conn._connect_coroutine = impl.process_async_operation(
+            conn, "connect", (impl, dsn, pool, params, kwargs), {}
+        )
+        return conn
 
     return connect_async
 
 
-@_async_connection_factory
+@async_create_connection
 def connect_async(
     dsn: str | None = None,
     *,

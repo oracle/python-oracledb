@@ -32,7 +32,7 @@
 cdef class ThinQueueImpl(BaseQueueImpl):
 
     cdef:
-        BaseThinConnImpl _conn_impl
+        ThinConnImpl _conn_impl
         bytes payload_toid
 
     def deq_many(self, uint32_t max_num_messages):
@@ -92,7 +92,7 @@ cdef class ThinQueueImpl(BaseQueueImpl):
         message.props_impl = props_impl
         yield message
 
-    def initialize(self, BaseThinConnImpl conn_impl, str name,
+    def initialize(self, ThinConnImpl conn_impl, str name,
                    ThinDbObjectTypeImpl payload_type, bint is_json):
         """
         Internal method for initializing the queue.
@@ -302,7 +302,7 @@ cdef class ThinMsgPropsImpl(BaseMsgPropsImpl):
         bytes msgid
         int32_t state
         object payload_obj
-        BaseThinConnImpl _conn_impl
+        ThinConnImpl _conn_impl
         bytes enq_txn_id
         bytes sender_agent_name
         bytes sender_agent_address

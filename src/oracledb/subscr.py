@@ -45,9 +45,8 @@ def sync_operation(f):
 
     @functools.wraps(f)
     def wrapped_f(self, *args, **kwargs):
-        method = getattr(self, f"_{f.__name__}")
         return self._impl.connection._impl.process_sync_operation(
-            method(*args, **kwargs)
+            self, f.__name__, args, kwargs
         )
 
     return wrapped_f

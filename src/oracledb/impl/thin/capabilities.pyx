@@ -112,6 +112,8 @@ cdef class Capabilities:
         self._init_compile_caps()
         self._init_runtime_caps()
         self.sdu = 8192                 # initial value to use
+        if sys.platform != "win32":
+            self.supports_oob = True
 
     cdef void _adjust_for_protocol(self, uint16_t protocol_version,
                                    uint16_t protocol_options, uint32_t flags):
@@ -120,7 +122,8 @@ cdef class Capabilities:
         to the initial connection request.
         """
         self.protocol_version = protocol_version
-        self.supports_oob = protocol_options & TNS_GSO_CAN_RECV_ATTENTION
+        if self.supports_oob:
+            self.supports_oob = protocol_options & TNS_GSO_CAN_RECV_ATTENTION
         if flags & TNS_ACCEPT_FLAG_FAST_AUTH:
             self.supports_fast_auth = True
         if flags & TNS_ACCEPT_FLAG_CHECK_OOB:

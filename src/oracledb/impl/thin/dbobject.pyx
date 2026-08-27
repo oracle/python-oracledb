@@ -98,7 +98,7 @@ cdef class DbObjectPickleBuffer(GrowableBuffer):
         else:
             length[0] = short_length
 
-    cdef object read_xmltype(self, BaseThinConnImpl conn_impl):
+    cdef object read_xmltype(self, ThinConnImpl conn_impl):
         """
         Reads an XML type from the buffer. This is similar to reading a
         database object but with specialized processing.
@@ -252,7 +252,7 @@ cdef class ThinDbObjectImpl(BaseDbObjectImpl):
         """
         cdef:
             uint8_t ora_type_num = metadata.dbtype._ora_type_num
-            BaseThinConnImpl conn_impl
+            ThinConnImpl conn_impl
             ThinDbObjectImpl obj_impl
             ThinLobImpl lob_impl
             const char* encoding
@@ -359,7 +359,7 @@ cdef class ThinDbObjectImpl(BaseDbObjectImpl):
         """
         cdef:
             uint8_t ora_type_num = metadata.dbtype._ora_type_num
-            BaseThinConnImpl conn_impl = self.type._conn_impl
+            ThinConnImpl conn_impl = self.type._conn_impl
             uint8_t csfrm = metadata.dbtype._csfrm
             DbObjectPickleBuffer xml_buf
             bint is_null, is_collection
