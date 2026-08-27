@@ -466,7 +466,7 @@ async def test_6329(async_conn, async_cursor):
 
     async_conn.outputtypehandler = type_handler
     blob_data = b"An arbitrary set of blob data for test case 4348"
-    await async_cursor.execute("truncate table TestBLOBs")
+    await async_cursor.execute("delete from TestBLOBs")
     await async_cursor.execute(
         "insert into TestBLOBs (IntCol, BlobCol) values (1, :data)",
         [blob_data],
@@ -474,7 +474,7 @@ async def test_6329(async_conn, async_cursor):
     await async_cursor.execute("select IntCol, BlobCol from TestBLOBs")
     assert await async_cursor.fetchall() == [(1, blob_data)]
 
-    await async_cursor.execute("truncate table TestBLOBs")
+    await async_cursor.execute("delete from TestBLOBs")
     await async_cursor.execute(
         "insert into TestBLOBs (IntCol, BlobCol) values (1, :data)",
         [blob_data],
@@ -640,7 +640,7 @@ async def test_6338(async_conn):
 
 async def test_6339(disable_fetch_lobs, async_cursor):
     "6339 - changing bind type with define needed"
-    await async_cursor.execute("truncate table TestClobs")
+    await async_cursor.execute("delete from TestClobs")
     row_for_1 = (1, "Short value 1")
     row_for_56 = (56, "Short value 56")
     for data in (row_for_1, row_for_56):
@@ -738,7 +738,7 @@ async def test_6343(async_cursor):
 
 async def test_6344(disable_fetch_lobs, async_conn, async_cursor):
     "6344 - test bind order for PL/SQL"
-    await async_cursor.execute("truncate table TestClobs")
+    await async_cursor.execute("delete from TestClobs")
     sql = """
         insert into TestClobs (IntCol, CLOBCol, ExtraNumCol1)
         values (:1, :2, :3)"""
