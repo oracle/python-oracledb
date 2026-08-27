@@ -43,10 +43,13 @@ Thick Mode Changes
 #)  Added support for a proxy user to be used with
     :ref:`token authentication <tokenauth>` when creating standalone
     connections.
-#)  ODPI-C now requires `libclntsh.so` (and `libclntsh.dylib` on macOS) for
-    successful loading with :meth:`oracledb.init_oracle_client()`. In addition,
-    use of `RPATH=$ORIGIN` in `libclntsh.so` will be successfully loaded, even
-    when a symbolic link is used.
+#)  ODPI-C now requires the standard Oracle Client library file names
+    `libclntsh.so` on Linux and `libclntsh.dylib` on macOS when using
+    :meth:`oracledb.init_oracle_client()` to load Oracle Client libraries.
+    Version-specific library names such as `libclntsh.so.19.1` are no longer
+    loaded directly. On Linux, the ``lib_dir`` parameter can be used when
+    `libclntsh.so` uses `RPATH=$ORIGIN` to resolve dependent libraries from the
+    Oracle Client library directory.
 #)  Fixed bug where TIMESTAMP WITH TIME ZONE column data was converted
     incorrectly to :ref:`Arrow data frames <dataframeformat>`
     (`issue 596 <https://github.com/oracle/python-oracledb/issues/596>`__).

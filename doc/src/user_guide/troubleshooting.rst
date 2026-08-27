@@ -183,10 +183,11 @@ library could not be loaded.
   <enablingthick>`.
 
 - On Windows and macOS, pass the ``lib_dir`` library directory parameter
-  in your :meth:`oracledb.init_oracle_client()` call. The parameter
-  should be the location of your Oracle Client libraries. On Linux, only pass
-  ``lib_dir`` if the Oracle Client libraries use ``RPATH=$ORIGIN``. Otherwise,
-  do not pass this parameter on Linux.
+  in your :meth:`oracledb.init_oracle_client()` call. The parameter should be
+  the location of your Oracle Client libraries. On Linux, only pass ``lib_dir``
+  when the Oracle Client library file, `libclntsh.so`, uses `RPATH=$ORIGIN` to
+  resolve dependent libraries from the Oracle Client directory. Otherwise, do
+  not pass this parameter on Linux.
 
 - Check if the Python process has permission to open the Oracle Client
   libraries. OS restrictions may prevent the opening of libraries installed
@@ -234,20 +235,22 @@ library could not be loaded.
 
 - On Linux:
 
-  - Check if the ``LD_LIBRARY_PATH`` environment variable contains the Oracle
-    Client library directory. Some environments such as web servers and
-    daemons reset environment variables.
+  - If you are using Oracle Instant Client, check if the ``LD_LIBRARY_PATH``
+    environment variable contains the Oracle Instant Client directory. Some
+    environments such as web servers and daemons reset environment variables.
 
   - If you are using Oracle Instant Client, a preferred alternative to
     ``LD_LIBRARY_PATH`` is to ensure that a file in the ``/etc/ld.so.conf.d``
     directory contains the path to the Instant Client directory, and then run
     ``ldconfig``.
 
+  - If you are using a full Oracle Client or Oracle Database installation,
+    check that ``ORACLE_HOME`` is set before starting Python.
+
   - If you pass ``lib_dir`` to :meth:`oracledb.init_oracle_client()` on Linux,
-    check whether the Oracle Client libraries are configured with
-    ``RPATH=$ORIGIN``. Earlier versions of Oracle Client libraries may not have
-    this configuration unless the libraries have been modified to use
-    ``RPATH=$ORIGIN``.
+    check whether the Oracle Client library file, `libclntsh.so`, uses
+    `RPATH=$ORIGIN` in order to resolve dependent libraries from the Oracle
+    Instant Client directory.
 
 DPI-1072
 ++++++++

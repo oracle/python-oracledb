@@ -82,9 +82,12 @@ To change from the default python-oracledb Thin mode to Thick mode:
   The use of a ‘raw’ string ``r"..."`` on Windows means that backslashes are
   treated as directory separators.  On Linux, the libraries must be in the
   system library search path *before* the Python process starts, preferably
-  configured with ``ldconfig``.  Note that the ``lib_dir`` parameter can only
-  be used on Linux when the Oracle Instant Client libraries have been built
-  with ``RPATH=$ORIGIN``.
+  configured with ``ldconfig``. For Oracle Instant Client, ``lib_dir`` can only
+  be used when the Oracle Client library file `libclntsh.so` uses
+  `RPATH=$ORIGIN` to resolve dependent libraries from the directory.
+  Otherwise, use the operating system library search path. For full Oracle
+  Client or Oracle Database installations, set ``ORACLE_HOME`` before starting
+  Python.
 
 More details and options are shown in the later sections:
 
@@ -107,10 +110,12 @@ More details and options are shown in the later sections:
   set the ``lib_dir`` parameter, the Oracle Client libraries are loaded
   immediately using the search heuristics discussed in later sections. On Linux
   and related platforms, ``lib_dir`` can only be used when the Oracle Client
-  libraries use ``RPATH=$ORIGIN``. For Oracle Client libraries that do not use
-  ``RPATH=$ORIGIN``, do not set ``lib_dir`` and instead configure the system
-  library search path with ``ldconfig`` or ``LD_LIBRARY_PATH`` before starting
-  Python.
+  library file, `libclntsh.so`, uses `RPATH=$ORIGIN` to resolve dependent
+  libraries from the Oracle Client library directory. Otherwise, do not set
+  ``lib_dir`` and configure the system library search path with ``ldconfig`` or
+  ``LD_LIBRARY_PATH`` before starting Python. For full Oracle Client or Oracle
+  Database installations, set the ``ORACLE_HOME`` environment variable before
+  starting Python, see :ref:`linuxfulloracleclient`.
 
 - Once the Thick mode is enabled, you cannot go back to the Thin mode except by
   removing calls to :meth:`~oracledb.init_oracle_client()` and restarting the
@@ -273,7 +278,7 @@ Enabling python-oracledb Thick Mode on Linux and Related Platforms
 
 On Linux and related platforms, enable Thick mode by calling
 :meth:`~oracledb.init_oracle_client()` without passing a ``lib_dir``
-parameter, unless the Oracle Client libraries use ``RPATH=$ORIGIN``.
+parameter.
 
 .. code-block:: python
 
@@ -281,43 +286,40 @@ parameter, unless the Oracle Client libraries use ``RPATH=$ORIGIN``.
 
     oracledb.init_oracle_client()
 
-For Oracle Client libraries that are configured with ``RPATH=$ORIGIN``, the
-Instant Client directory can be passed with the ``lib_dir`` parameter, for
-example:
+For Oracle Instant Client, the libraries are looked for in the operating system
+library search path, such as configured with ``ldconfig`` or set in the
+environment variable ``LD_LIBRARY_PATH``. This must be configured *prior* to
+running the Python process. Web servers and other daemons commonly reset
+environment variables so using ``ldconfig`` is generally preferred instead.
+On some UNIX platforms an OS-specific equivalent, such as ``LIBPATH`` or
+``SHLIB_PATH``, is used instead of ``LD_LIBRARY_PATH``.
 
-.. code-block:: python
+For full Oracle Client or Oracle Database installations, if libraries are not
+found in the system library search path, then libraries in ``$ORACLE_HOME/lib``
+will be used. Note that the environment variable ``ORACLE_HOME`` should only
+ever be set when you have a full database installation or full client
+installation (such as installed with the Oracle GUI installer).  It should not
+be set if you are using `Oracle Instant Client <https://www.oracle.com/au/
+database/technologies/instant-client.html>`__. If being used, ``ORACLE_HOME``
+and other necessary Oracle environment variables should be set before starting
+Python.  See :ref:`envset`.
 
-    import oracledb
-
-    oracledb.init_oracle_client(lib_dir="/opt/oracle/instantclient_23_26")
-
-Earlier versions of Oracle Client libraries do not include this configuration
-unless the libraries were manually modified to use ``RPATH=$ORIGIN``.
-
-Oracle Client libraries are looked for in the operating system library search
-path, such as configured with ``ldconfig`` or set in the environment variable
-``LD_LIBRARY_PATH``.  This must be configured *prior* to running the Python
-process. Web servers and other daemons commonly reset environment variables so
-using ``ldconfig`` is generally preferred instead.  On some UNIX platforms an
-OS specific equivalent, such as ``LIBPATH`` or ``SHLIB_PATH``, is used instead
-of ``LD_LIBRARY_PATH``.
-
-If libraries are not found in the system library search path, then libraries
-in ``$ORACLE_HOME/lib`` will be used.  Note that the environment variable
-``ORACLE_HOME`` should only ever be set when you have a full database
-installation or full client installation (such as installed with the Oracle
-GUI installer).  It should not be set if you are using `Oracle Instant Client
-<https://www.oracle.com/au/database/technologies/instant-client.html>`__. If
-being used, ``ORACLE_HOME`` and other necessary Oracle environment variables
-should be set before starting Python.  See :ref:`envset`.
+On Linux, ``lib_dir`` can be used with Oracle Instant Client only when the
+Oracle Client library file, `libclntsh.so`, uses `RPATH=$ORIGIN` to resolve
+dependent libraries from the Instant Client directory. If your Instant Client
+package does not provide this support, do not set ``lib_dir``. Instead, use
+``ldconfig`` or ``LD_LIBRARY_PATH`` as described above.
 
 If the Oracle Client libraries cannot be loaded, then an exception is
 raised.
 
 On Linux, python-oracledb Thick mode will not automatically load Oracle Client
 library files from the directory where the python-oracledb binary module is
-located. Use the system library search path, or pass ``lib_dir`` only when
-using Oracle Client libraries that are built to use ``RPATH=$ORIGIN``.
+located. Use the system library search path for Oracle Instant Client, set
+``ORACLE_HOME`` for full Oracle Client or Oracle Database installations, or
+pass ``lib_dir`` only when the Oracle Client library file, `libclntsh.so`,
+uses `RPATH=$ORIGIN` to resolve dependent libraries from the Oracle Instant
+Client directory.
 
 Ensure that the Python process has directory and file access permissions for
 the Oracle Client libraries.  OS restrictions may prevent the opening of Oracle

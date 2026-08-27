@@ -329,10 +329,12 @@ To use python-oracledb in Thick mode you must call
     oracledb.init_oracle_client()
 
 On Linux, do not pass the ``lib_dir`` parameter to
-:meth:`~oracledb.init_oracle_client()` unless the Oracle Instant Client
-libraries are configured with ``RPATH=$ORIGIN``. Otherwise, the Oracle Client
-libraries must be in the system library search path *before* the Python process
-starts.
+:meth:`~oracledb.init_oracle_client()` unless the Oracle Client library file,
+`libclntsh.so` uses `RPATH=$ORIGIN` to resolve dependent libraries from the
+Instant Client directory. Otherwise, Instant Client libraries must be in the
+system library search path *before* the Python process starts, such as by using
+``ldconfig`` or ``LD_LIBRARY_PATH``. For full Oracle Client or Oracle Database
+installations, ``ORACLE_HOME`` is used to locate the libraries.
 
 Oracle Instant Client Zip Files
 +++++++++++++++++++++++++++++++
@@ -573,6 +575,8 @@ To use python-oracledb with Oracle Instant Client RPMs:
 
 5. Call :meth:`oracledb.init_oracle_client()` in your application, if it is not
    already used.
+
+.. _linuxfulloracleclient:
 
 Local Database or Full Oracle Client
 ++++++++++++++++++++++++++++++++++++

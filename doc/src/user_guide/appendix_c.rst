@@ -458,10 +458,12 @@ In python-oracledb, :func:`~oracledb.init_oracle_client()` can be called
 multiple times in a Python process as long as the arguments are the same.
 
 Note that on Linux and related operating systems, the
-:func:`~oracledb.init_oracle_client()` parameter ``lib_dir`` should only be
-passed when the Oracle Client libraries use ``RPATH=$ORIGIN``. Otherwise, set
-the system library search path with ``ldconfig`` or ``LD_LIBRARY_PATH`` prior
-to running Python.
+:func:`~oracledb.init_oracle_client()` parameter ``lib_dir`` should not
+normally be passed. For Oracle Instant Client, ``lib_dir`` can only be used
+when `libclntsh.so` uses `RPATH=$ORIGIN` to resolve dependent libraries
+from the Oracle Instant Client directory. Otherwise, use ``ldconfig`` or
+``LD_LIBRARY_PATH`` before starting Python. For full Oracle Client or Oracle
+Database installations, ``ORACLE_HOME`` is used to locate the libraries.
 
 Modernizing Code
 ----------------
