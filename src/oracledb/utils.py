@@ -41,11 +41,13 @@ from . import errors
 from . import thick_impl
 
 
-def check_parameter_length(name: str, value: str, max_length: int) -> None:
+def check_parameter_length(
+    name: str, value: str | None, max_length: int
+) -> None:
     """
-    Checks the maximum parameter length and raises an error if it exceeds it.
+    Checks the maximum UTF-8 encoded byte length of a parameter.
     """
-    if value is not None and len(value) > max_length:
+    if value is not None and len(value.encode()) > max_length:
         errors._raise_err(
             errors.ERR_PARAM_SIZE_TOO_LARGE, name=name, max_length=max_length
         )

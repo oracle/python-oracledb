@@ -92,7 +92,17 @@ DeqOptions Attributes
 
 .. autoproperty:: DeqOptions.consumername
 
+    .. versionchanged:: 26.0.0
+
+        The maximum length for this attribute was changed to *30* bytes to
+        match Oracle Database limits.
+
 .. autoproperty:: DeqOptions.correlation
+
+    .. versionchanged:: 26.0.0
+
+        The maximum length for this attribute was changed to *128* bytes to
+        match Oracle Database limits.
 
 .. autoproperty:: DeqOptions.deliverymode
 
@@ -103,6 +113,11 @@ DeqOptions Attributes
 .. autoproperty:: DeqOptions.navigation
 
 .. autoproperty:: DeqOptions.transformation
+
+    .. versionchanged:: 26.0.0
+
+        The maximum length for this attribute was changed to *61* bytes to
+        match Oracle Database limits.
 
 .. autoproperty:: DeqOptions.visibility
 
@@ -128,6 +143,11 @@ EnqOptions Attributes
 
 .. autoproperty:: EnqOptions.transformation
 
+    .. versionchanged:: 26.0.0
+
+        The maximum length for this attribute was changed to *61* bytes to
+        match Oracle Database limits.
+
 .. autoproperty:: EnqOptions.visibility
 
 .. _msgproperties:
@@ -152,6 +172,11 @@ MessageProperties Attributes
 
 .. autoproperty:: MessageProperties.correlation
 
+    .. versionchanged:: 26.0.0
+
+        The maximum length for this attribute was changed to *128* bytes to
+        match Oracle Database limits.
+
 .. autoproperty:: MessageProperties.delay
 
 .. autoproperty:: MessageProperties.deliverymode
@@ -159,6 +184,11 @@ MessageProperties Attributes
 .. autoproperty:: MessageProperties.enqtime
 
 .. autoproperty:: MessageProperties.exceptionq
+
+    .. versionchanged:: 26.0.0
+
+        The maximum length for this attribute was changed to *51* bytes to
+        match Oracle Database limits.
 
 .. autoproperty:: MessageProperties.expiration
 
@@ -169,5 +199,10 @@ MessageProperties Attributes
 .. autoproperty:: MessageProperties.priority
 
 .. autoproperty:: MessageProperties.recipients
+
+    .. versionchanged:: 26.0.0
+
+        The maximum length for each recipient name was changed to *30* bytes to
+        match Oracle Database limits.
 
 .. autoproperty:: MessageProperties.state

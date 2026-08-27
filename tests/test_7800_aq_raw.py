@@ -505,22 +505,35 @@ def test_7831(queue, test_env):
 
 def test_7832(queue, test_env):
     "7832 - test enqueue/dequeue options attributes maximum lengths"
+    consumer_name = "€" * 10
+    correlation = "€" * 42 + "XX"
+    transformation = "€" * 20 + "X"
+    queue.deqoptions.consumername = consumer_name
+    queue.deqoptions.correlation = correlation
+    queue.deqoptions.transformation = transformation
+    queue.enqoptions.transformation = transformation
     with test_env.assert_raises_full_code("DPY-2075"):
-        queue.deqoptions.consumername = "A" * 129
+        queue.deqoptions.consumername = consumer_name + "X"
     with test_env.assert_raises_full_code("DPY-2075"):
-        queue.deqoptions.correlation = "A" * 129
+        queue.deqoptions.correlation = correlation + "X"
     with test_env.assert_raises_full_code("DPY-2075"):
-        queue.deqoptions.transformation = "A" * 129
+        queue.deqoptions.transformation = transformation + "X"
     with test_env.assert_raises_full_code("DPY-2075"):
-        queue.enqoptions.transformation = "A" * 129
+        queue.enqoptions.transformation = transformation + "X"
 
 
 def test_7833(conn, test_env):
     "7833 - test message properties attributes maximum lengths"
     props = conn.msgproperties()
+    correlation = "€" * 42 + "XX"
+    exceptionq = "€" * 17
+    recipient = "€" * 10
+    props.correlation = correlation
+    props.exceptionq = exceptionq
+    props.recipients = [recipient]
     with test_env.assert_raises_full_code("DPY-2075"):
-        props.correlation = "A" * 129
+        props.correlation = correlation + "X"
     with test_env.assert_raises_full_code("DPY-2075"):
-        props.exceptionq = "A" * 129
+        props.exceptionq = exceptionq + "X"
     with test_env.assert_raises_full_code("DPY-2075"):
-        props.recipients = ["A" * 121]
+        props.recipients = [recipient + "X"]

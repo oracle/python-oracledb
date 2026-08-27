@@ -33,6 +33,11 @@ Thin Mode Changes
 #)  Added support for the HA readiness requirements of Oracle Database 23.26.3.
 #)  Added round trip name into the packet output when setting the environment
     variable `PYO_DEBUG_PACKETS`.
+#)  Added validation for UTF-8 byte-length limits on AQ attributes
+    :attr:`DeqOptions.consumername`, :attr:`MessageProperties.recipients`,
+    :attr:`DeqOptions.correlation`, :attr:`MessageProperties.correlation`,
+    :attr:`DeqOptions.transformation`, :attr:`EnqOptions.transformation`, and
+    :attr:`MessageProperties.exceptionq`.
 #)  Fixed bug in :func:`Cursor.executemany()` when in/out variables are present
     (`issue 599 <https://github.com/oracle/python-oracledb/issues/599>`__).
 #)  Fixed bug in :func:`oracledb.create_end_user_security_context()` which

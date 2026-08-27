@@ -341,6 +341,12 @@ Refer to the :ref:`python-oracledb AQ API <aq>` and
 <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=ADQUE>`__ for details
 on all of the enqueue and dequeue options available.
 
+AQ string attributes such as :attr:`~DeqOptions.consumername`,
+:attr:`~MessageProperties.recipients`, :attr:`~DeqOptions.correlation`,
+:attr:`~DeqOptions.transformation`, and :attr:`~MessageProperties.exceptionq`
+are validated by their UTF-8 encoded byte length before being passed to Oracle
+Database. See :ref:`AQ <aq>` for more information.
+
 Enqueue options can be set.  For example, to make it so that an explicit call
 to :meth:`~Connection.commit()` on the connection is not needed to send
 messages:

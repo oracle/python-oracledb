@@ -353,13 +353,14 @@ class DeqOptions(metaclass=BaseMetaClass):
         This read-write attribute specifies the name of the consumer. Only
         messages matching the consumer name will be accessed. If the queue is
         not set up for multiple consumers this attribute should not be set. The
-        default is to have no consumer name specified.
+        default is to have no consumer name specified. The maximum length is 30
+        bytes.
         """
         return self._impl.get_consumer_name()
 
     @consumername.setter
     def consumername(self, value: str) -> None:
-        utils.check_parameter_length("value", value, 128)
+        utils.check_parameter_length("consumername", value, 30)
         self._impl.set_consumer_name(value)
 
     @property
@@ -369,13 +370,14 @@ class DeqOptions(metaclass=BaseMetaClass):
         message to be dequeued. Special pattern-matching characters, such as
         the percent sign (%) and the underscore (_), can be used. If multiple
         messages satisfy the pattern, the order of dequeuing is indeterminate.
-        The default is to have no correlation specified.
+        The default is to have no correlation specified. The maximum length is
+        128 bytes.
         """
         return self._impl.get_correlation()
 
     @correlation.setter
     def correlation(self, value: str) -> None:
-        utils.check_parameter_length("value", value, 128)
+        utils.check_parameter_length("correlation", value, 128)
         self._impl.set_correlation(value)
 
     @property
@@ -444,13 +446,13 @@ class DeqOptions(metaclass=BaseMetaClass):
         must be applied after the message is dequeued from the database but
         before it is returned to the calling application. The transformation
         must be created using dbms_transform. The default is to have no
-        transformation specified.
+        transformation specified. The maximum length is 61 bytes.
         """
         return self._impl.get_transformation()
 
     @transformation.setter
     def transformation(self, value: str) -> None:
-        utils.check_parameter_length("value", value, 128)
+        utils.check_parameter_length("transformation", value, 61)
         self._impl.set_transformation(value)
 
     @property
@@ -515,13 +517,13 @@ class EnqOptions(metaclass=BaseMetaClass):
         This read-write attribute specifies the name of the transformation that
         must be applied before the message is enqueued into the database. The
         transformation must be created using dbms_transform. The default is to
-        have no transformation specified.
+        have no transformation specified. The maximum length is 61 bytes.
         """
         return self._impl.get_transformation()
 
     @transformation.setter
     def transformation(self, value: str) -> None:
-        utils.check_parameter_length("value", value, 128)
+        utils.check_parameter_length("transformation", value, 61)
         self._impl.set_transformation(value)
 
     @property
@@ -561,13 +563,13 @@ class MessageProperties(metaclass=BaseMetaClass):
     def correlation(self) -> str:
         """
         This read-write attribute specifies the correlation used when the
-        message was enqueued.
+        message was enqueued. The maximum length is 128 bytes.
         """
         return self._impl.get_correlation()
 
     @correlation.setter
     def correlation(self, value: str) -> None:
-        utils.check_parameter_length("value", value, 128)
+        utils.check_parameter_length("correlation", value, 128)
         self._impl.set_correlation(value)
 
     @property
@@ -611,13 +613,13 @@ class MessageProperties(metaclass=BaseMetaClass):
         maximum number of retries or if the message has expired. All messages
         in the exception queue are in the :data:`~oracledb.MSG_EXPIRED` state.
         The default value is the name of the exception queue associated with
-        the queue table.
+        the queue table. The maximum length is 51 bytes.
         """
         return self._impl.get_exception_queue()
 
     @exceptionq.setter
     def exceptionq(self, value: str) -> None:
-        utils.check_parameter_length("value", value, 128)
+        utils.check_parameter_length("exceptionq", value, 51)
         self._impl.set_exception_queue(value)
 
     @property
@@ -692,7 +694,8 @@ class MessageProperties(metaclass=BaseMetaClass):
         allows a limited set of recipients to dequeue each message. The
         recipient list associated with the message overrides the queue
         subscriber list, if there is one. The recipient names need not be in
-        the subscriber list but can be, if desired.
+        the subscriber list but can be, if desired. The maximum length of each
+        recipient name is 30 bytes.
 
         To dequeue a message, the consumername attribute can be set to one of
         the recipient names. The original message recipient list is not
@@ -711,7 +714,7 @@ class MessageProperties(metaclass=BaseMetaClass):
     def recipients(self, value: list) -> None:
         if value is not None:
             for recipient in value:
-                utils.check_parameter_length("value", recipient, 120)
+                utils.check_parameter_length("recipient", recipient, 30)
         self._impl.set_recipients(value)
         self._recipients = value
 
