@@ -95,7 +95,6 @@ def pytest_ignore_collect(collection_path, config):
     """
     if "py314" in collection_path.parts and sys.version_info < (3, 14):
         return True
-    return False
 
 
 class DefaultsContextManager:
