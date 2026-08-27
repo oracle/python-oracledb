@@ -149,11 +149,11 @@ to map data types.
       - TIMESTAMP
     * - :attr:`DB_TYPE_INTERVAL_DS`
 
-        .. versionadded:: 4.1.0
+        .. versionadded:: 26.0.0
       - INTERVAL_MONTH_DAY_NANO
     * - :attr:`DB_TYPE_INTERVAL_YM`
 
-        .. versionadded:: 4.1.0
+        .. versionadded:: 26.0.0
       - INTERVAL_MONTH_DAY_NANO
     * - :attr:`DB_TYPE_LONG`
       - LARGE_STRING
@@ -166,7 +166,7 @@ to map data types.
     * - :attr:`DB_TYPE_NUMBER`
       - DECIMAL256, DECIMAL128, INT64, or DOUBLE
 
-        .. versionchanged:: 4.1.0
+        .. versionchanged:: 26.0.0
 
           Support for DECIMAL256 was added.
     * - :attr:`DB_TYPE_NVARCHAR`
@@ -421,7 +421,7 @@ cannot be represented in the requested schema type.
           UINT32
           UINT64
 
-          .. versionchanged:: 4.1.0
+          .. versionchanged:: 26.0.0
 
             Support for DECIMAL256 was added.
       * - :attr:`DB_TYPE_BLOB`
@@ -455,7 +455,7 @@ cannot be represented in the requested schema type.
       * - :attr:`DB_TYPE_INTERVAL_DS`
           :attr:`DB_TYPE_INTERVAL_YM`
 
-          .. versionadded:: 4.1.0
+          .. versionadded:: 26.0.0
         - INTERVAL_MONTH_DAY_NANO
 
 .. _convertingodf:

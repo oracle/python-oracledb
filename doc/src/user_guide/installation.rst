@@ -162,7 +162,7 @@ Python environment.
     * - Python Version
       - python-oracledb Package Versions
     * - 3.15
-      - 4.1.0 - current
+      - 26.0.0 - current
     * - 3.14
       - 3.3.0 - current
     * - 3.13
@@ -174,7 +174,7 @@ Python environment.
     * - 3.10
       - 1.0.0 - current
     * - 3.9
-      - 1.0.0 - 4.0.1
+      - 1.0.0 - 4.0.2
     * - 3.8
       - 1.0.0 - 3.3.0
     * - 3.7

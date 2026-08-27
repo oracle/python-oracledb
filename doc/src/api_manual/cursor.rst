@@ -69,7 +69,7 @@ Cursor Methods
 
 .. automethod:: Cursor.execute
 
-    .. versionchanged:: 4.1.0
+    .. versionchanged:: 26.0.0
 
         The ``statement`` parameter can be a Python 3.14+ t-string.
 

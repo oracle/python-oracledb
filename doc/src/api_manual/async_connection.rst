@@ -58,7 +58,7 @@ AsyncConnection Methods
 
 .. automethod:: AsyncConnection.clear_app_context
 
-    .. versionadded:: 4.1.0
+    .. versionadded:: 26.0.0
 
     See :ref:`appcontextconnobjcreate`.
 
@@ -66,7 +66,7 @@ AsyncConnection Methods
 
     See :ref:`endusersecuritycontextcreation`.
 
-    .. versionadded:: 4.1.0
+    .. versionadded:: 26.0.0
 
 .. automethod:: AsyncConnection.close
 
@@ -183,7 +183,7 @@ AsyncConnection Methods
 
 .. automethod:: AsyncConnection.set_app_context
 
-    .. versionadded:: 4.1.0
+    .. versionadded:: 26.0.0
 
     See :ref:`appcontextconnobjcreate`.
 
@@ -191,7 +191,7 @@ AsyncConnection Methods
 
     See :ref:`endusersecuritycontextcreation`.
 
-    .. versionadded:: 4.1.0
+    .. versionadded:: 26.0.0
 
 .. automethod:: AsyncConnection.suspend_sessionless_transaction
 
@@ -300,7 +300,7 @@ AsyncConnection Attributes
 
 .. autoproperty:: AsyncConnection.db_unique_name
 
-    .. versionadded:: 4.1.0
+    .. versionadded:: 26.0.0
 
 .. autoproperty:: AsyncConnection.dbop
 
@@ -314,7 +314,7 @@ AsyncConnection Attributes
 
 .. autoproperty:: AsyncConnection.host
 
-    .. versionadded:: 4.1.0
+    .. versionadded:: 26.0.0
 
 .. autoproperty:: AsyncConnection.inputtypehandler
 
@@ -338,11 +338,11 @@ AsyncConnection Attributes
 
 .. autoproperty:: AsyncConnection.port
 
-    .. versionadded:: 4.1.0
+    .. versionadded:: 26.0.0
 
 .. autoproperty:: AsyncConnection.protocol
 
-    .. versionadded:: 4.1.0
+    .. versionadded:: 26.0.0
 
 .. autoproperty:: AsyncConnection.sdu
 
@@ -366,7 +366,7 @@ AsyncConnection Attributes
 
 .. autoproperty:: AsyncConnection.transaction_priority
 
-    .. versionadded:: 4.1.0
+    .. versionadded:: 26.0.0
 
 .. autoproperty:: AsyncConnection.username
 

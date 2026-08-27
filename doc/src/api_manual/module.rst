@@ -15,7 +15,7 @@ Oracledb Methods
 
 .. autofunction:: clear_all_secrets
 
-    .. versionadded:: 4.1.0
+    .. versionadded:: 26.0.0
 
 .. autofunction:: clientversion
 
@@ -114,7 +114,7 @@ Oracledb Methods
 
     See :ref:`endusersecuritycontextcreation`.
 
-    .. versionchanged:: 4.1.0
+    .. versionchanged:: 26.0.0
 
         The key value in the two-item tuple ``end_user_identity`` parameter can
         now be *None*.
@@ -1298,7 +1298,7 @@ To use this plugin in python-oracledb Thick mode, you must set
 
 See :ref:`gcpprovider` for more information.
 
-.. versionadded:: 4.1.0
+.. versionadded:: 26.0.0
 
 .. _configawsplugin:
 
@@ -1327,7 +1327,7 @@ To use this plugin in python-oracledb Thick mode, you must set
 
 See :ref:`awsprovider` for more information.
 
-.. versionadded:: 4.1.0
+.. versionadded:: 26.0.0
 
 .. _ocicloudnativeauthplugin:
 
@@ -1396,11 +1396,11 @@ End-User Security Provider Plugin Methods
 
 .. autofunction:: oracledb.plugins.end_user_sec_provider.set_end_user_attributes
 
-    .. versionadded:: 4.1.0
+    .. versionadded:: 26.0.0
 
 .. autofunction:: oracledb.plugins.end_user_sec_provider.set_end_user_data_roles
 
-    .. versionadded:: 4.1.0
+    .. versionadded:: 26.0.0
 
 .. autofunction:: oracledb.plugins.end_user_sec_provider.set_end_user_identity
 
@@ -1455,4 +1455,4 @@ EndUserSecurityContext Class
     by calling the factory function
     :func:`oracledb.create_end_user_security_context()`.
 
-.. versionadded:: 4.1.0
+.. versionadded:: 26.0.0

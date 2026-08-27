@@ -55,7 +55,7 @@ Connection Methods
 
 .. automethod:: Connection.clear_app_context
 
-    .. versionadded:: 4.1.0
+    .. versionadded:: 26.0.0
 
     See :ref:`appcontextconnobjcreate`.
 
@@ -178,7 +178,7 @@ Connection Methods
 
 .. automethod:: Connection.set_app_context
 
-    .. versionadded:: 4.1.0
+    .. versionadded:: 26.0.0
 
     See :ref:`appcontextconnobjcreate`.
 
@@ -350,7 +350,7 @@ Connection Attributes
 
     .. dbapiattributeextension::
 
-    .. versionadded:: 4.1.0
+    .. versionadded:: 26.0.0
 
 .. autoproperty:: Connection.dbop
 
@@ -380,7 +380,7 @@ Connection Attributes
 
     .. dbapiattributeextension::
 
-    .. versionadded:: 4.1.0
+    .. versionadded:: 26.0.0
 
 .. autoproperty:: Connection.inputtypehandler
 
@@ -438,13 +438,13 @@ Connection Attributes
 
     .. dbapiattributeextension::
 
-    .. versionadded:: 4.1.0
+    .. versionadded:: 26.0.0
 
 .. autoproperty:: Connection.protocol
 
     .. dbapiattributeextension::
 
-    .. versionadded:: 4.1.0
+    .. versionadded:: 26.0.0
 
 .. autoproperty:: Connection.proxy_user
 
@@ -502,7 +502,7 @@ Connection Attributes
 
     .. dbapiattributeextension::
 
-    .. versionadded:: 4.1.0
+    .. versionadded:: 26.0.0
 
 .. autoproperty:: Connection.username
 
