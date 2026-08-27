@@ -176,10 +176,10 @@ def test_1309():
     for purity in oracledb.Purity:
         if purity is oracledb.Purity.DEFAULT:
             continue
-        cclass = f"cclass_4510_{purity.name}"
+        cclass = f"cclass_1309_{purity.name}"
         connect_string = f"""
             (DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=my_host12)(PORT=694))
-            (CONNECT_DATA=(SERVICE_NAME=service_4510)
+            (CONNECT_DATA=(SERVICE_NAME=service_1309)
             (POOL_CONNECTION_CLASS={cclass})
             (POOL_PURITY={purity.name})))"""
         params = oracledb.ConnectParams()
@@ -354,13 +354,13 @@ def test_1321():
     connect_string = (
         "(DESCRIPTION=(LOAD_BALANCE=ON)(RETRY_COUNT=5)(RETRY_DELAY=2)"
         "(ADDRESS_LIST=(LOAD_BALANCE=ON)"
-        "(ADDRESS=(PROTOCOL=tcp)(HOST=my_host25)(PORT=4521))"
-        "(ADDRESS=(PROTOCOL=tcp)(HOST=my_host26)(PORT=4522)))"
+        "(ADDRESS=(PROTOCOL=tcp)(HOST=my_host25)(PORT=1321))"
+        "(ADDRESS=(PROTOCOL=tcp)(HOST=my_host26)(PORT=1322)))"
         "(CONNECT_DATA=(SERVICE_NAME=my_service_name25)))"
     )
     params.parse_connect_string(connect_string)
     assert params.host == ["my_host25", "my_host26"]
-    assert params.port == [4521, 4522]
+    assert params.port == [1321, 1322]
     assert params.protocol == ["tcp", "tcp"]
     assert params.service_name == "my_service_name25"
     assert params.retry_count == 5
@@ -438,27 +438,27 @@ def test_1324():
     params = oracledb.ConnectParams()
     connect_string = """
         (DESCRIPTION=
-        (ADDRESS=(HTTPS_PROXY=proxy_4528a)(HTTPS_PROXY_PORT=4528)
-        (PROTOCOL=TCP)(HOST=my_host4528a)(PORT=8528))
-        (CONNECT_DATA=(SERVICE_NAME=my_service_name4528a)))"""
+        (ADDRESS=(HTTPS_PROXY=proxy_1324a)(HTTPS_PROXY_PORT=1324)
+        (PROTOCOL=TCP)(HOST=my_host1324a)(PORT=8524))
+        (CONNECT_DATA=(SERVICE_NAME=my_service_name1324a)))"""
     params.parse_connect_string(connect_string)
-    assert params.https_proxy == "proxy_4528a"
-    assert params.https_proxy_port == 4528
+    assert params.https_proxy == "proxy_1324a"
+    assert params.https_proxy_port == 1324
     connect_string = """
-        tcps://my_host_4528b/my_service_name_4528b?
-        https_proxy=proxy_4528b&https_proxy_port=9528"""
+        tcps://my_host_1324b/my_service_name_1324b?
+        https_proxy=proxy_1324b&https_proxy_port=9524"""
     params.parse_connect_string(connect_string)
-    assert params.https_proxy == "proxy_4528b"
-    assert params.https_proxy_port == 9528
+    assert params.https_proxy == "proxy_1324b"
+    assert params.https_proxy_port == 9524
 
 
 def test_1325(test_env):
     "1325 - test connect strings with server_type defined"
     params = oracledb.ConnectParams()
     connect_string = """
-        (DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=my_host4529)(PORT=4529))
+        (DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=my_host1325)(PORT=1325))
         (CONNECT_DATA=(SERVER=DEDICATED)
-        (SERVICE_NAME=my_service_name4529)))"""
+        (SERVICE_NAME=my_service_name1325)))"""
     params.parse_connect_string(connect_string)
     assert params.server_type == "dedicated"
     connect_string = connect_string.replace("DEDICATED", "INVALID")
@@ -469,17 +469,17 @@ def test_1325(test_env):
 def test_1326():
     "1326 - test writable parameters"
     _test_writable_parameter("appcontext", [("a", "b", "c")])
-    _test_writable_parameter("config_dir", "config_dir_4530")
+    _test_writable_parameter("config_dir", "config_dir_1326")
     _test_writable_parameter("disable_oob", True)
-    _test_writable_parameter("edition", "edition_4530")
+    _test_writable_parameter("edition", "edition_1326")
     _test_writable_parameter("events", True)
     _test_writable_parameter("matchanytag", True)
     _test_writable_parameter("mode", oracledb.AUTH_MODE_SYSDBA)
     _test_writable_parameter("shardingkey", [1, 2, 3])
     _test_writable_parameter("stmtcachesize", 25)
     _test_writable_parameter("supershardingkey", [1, 2, 3])
-    _test_writable_parameter("tag", "tag_4530")
-    _test_writable_parameter("debug_jdwp", "host=host;port=4530")
+    _test_writable_parameter("tag", "tag_1326")
+    _test_writable_parameter("debug_jdwp", "host=host;port=1326")
     _test_writable_parameter("externalauth", True)
     _test_writable_parameter("user", "USER_1")
     _test_writable_parameter("proxy_user", "PROXY_USER_1")
@@ -487,8 +487,8 @@ def test_1326():
 
 def test_1327():
     "1327 - test building connect string with TCP connect timeout"
-    host = "my_host4531"
-    service_name = "my_service4531"
+    host = "my_host1327"
+    service_name = "my_service1327"
     options = [
         (25, "25"),
         (120, "2min"),
@@ -607,20 +607,20 @@ def test_1332():
 def test_1333():
     "1333 - test parsing a DSN with credentials and a connect string"
     params = oracledb.ConnectParams()
-    dsn = "my_user4538/my_password4538@localhost:1525/my_service_name"
+    dsn = "my_user1333/my_password1333@localhost:1525/my_service_name"
     user, password, dsn = params.parse_dsn_with_credentials(dsn)
-    assert user == "my_user4538"
-    assert password == "my_password4538"
+    assert user == "my_user1333"
+    assert password == "my_password1333"
     assert dsn == "localhost:1525/my_service_name"
 
 
 def test_1334():
     "1334 - test parsing a DSN with only credentials"
     params = oracledb.ConnectParams()
-    dsn = "my_user4539/my_password4539"
+    dsn = "my_user1334/my_password1334"
     user, password, dsn = params.parse_dsn_with_credentials(dsn)
-    assert user == "my_user4539"
-    assert password == "my_password4539"
+    assert user == "my_user1334"
+    assert password == "my_password1334"
     assert dsn is None
 
 
@@ -636,7 +636,7 @@ def test_1335():
 
 def test_1336():
     "1336 - test parsing a DSN with no credentials"
-    dsn_in = "my_alias_4561"
+    dsn_in = "my_alias_1336"
     params = oracledb.ConnectParams()
     user, password, dsn_out = params.parse_dsn_with_credentials(dsn_in)
     assert user is None
@@ -649,28 +649,28 @@ def test_1337():
     params = oracledb.ConnectParams()
     connect_string = """
         (DESCRIPTION=
-            (ADDRESS=(PROTOCOL=TCP)(HOST=my_host4562a)(PORT=4562))
-            (CONNECT_DATA=(CONNECTION_ID_PREFIX=prefix4562a)
-            (SERVICE_NAME=my_service_name4562a)))"""
+            (ADDRESS=(PROTOCOL=TCP)(HOST=my_host1337a)(PORT=1337))
+            (CONNECT_DATA=(CONNECTION_ID_PREFIX=prefix1337a)
+            (SERVICE_NAME=my_service_name1337a)))"""
     params.parse_connect_string(connect_string)
-    assert params.connection_id_prefix == "prefix4562a"
+    assert params.connection_id_prefix == "prefix1337a"
     params = oracledb.ConnectParams()
-    params.set(connection_id_prefix="prefix4562b")
-    params.parse_connect_string("my_host4562b/my_service_name_4562b")
-    assert params.connection_id_prefix == "prefix4562b"
+    params.set(connection_id_prefix="prefix1337b")
+    params.parse_connect_string("my_host1337b/my_service_name_1337b")
+    assert params.connection_id_prefix == "prefix1337b"
 
 
 def test_1338():
     "1338 - test overriding parameters"
     params = oracledb.ConnectParams()
-    host = "my_host_4538"
+    host = "my_host_1338"
     port = 3578
-    service_name = "my_service_name_4538"
+    service_name = "my_service_name_1338"
     connect_string = f"{host}:{port}/{service_name}"
     params.parse_connect_string(connect_string)
     assert params.service_name == service_name
     assert params.port == port
-    new_service_name = "new_service_name_4538"
+    new_service_name = "new_service_name_1338"
     new_port = 613
     params.set(service_name=new_service_name, port=new_port)
     assert params.service_name == new_service_name
@@ -686,7 +686,7 @@ def test_1339():
         ("port", 1521),
         ("protocol", "tcp"),
         ("https_proxy", "proxy_a"),
-        ("https_proxy_port", 4528),
+        ("https_proxy_port", 1339),
         ("service_name", "my_service_name1"),
         ("instance_name", "my_instance_name"),
         ("sid", "my_sid1"),
@@ -712,8 +712,8 @@ def test_1339():
         ("appcontext", [("a", "b", "c")]),
         ("shardingkey", [1, 2, 3]),
         ("supershardingkey", [4]),
-        ("debug_jdwp", "host=host;port=4538"),
-        ("connection_id_prefix", "prefix4564"),
+        ("debug_jdwp", "host=host;port=1339"),
+        ("connection_id_prefix", "prefix1339"),
         ("ssl_context", None),
         ("sdu", 16384),
         ("pool_boundary", "statement"),
@@ -746,7 +746,7 @@ def test_1339():
         ("port", 1621),
         ("protocol", "tcps"),
         ("https_proxy", "proxy_b"),
-        ("https_proxy_port", 4529),
+        ("https_proxy_port", 1339),
         ("service_name", "my_service_name_new"),
         ("instance_name", "my_instance_name_new"),
         ("sid", "my_sid_new"),
@@ -839,9 +839,9 @@ def test_1342():
 def test_1343():
     "1343 - test easy connect string with protocol specified"
     protocol = "tcp"
-    host = "my_host_4568"
+    host = "my_host_1343"
     port = 1668
-    service_name = "my_service_4568"
+    service_name = "my_service_1343"
     connect_string = f"{protocol}://{host}:{port}/{service_name}"
     params = oracledb.ConnectParams()
     params.parse_connect_string(connect_string)
@@ -867,7 +867,7 @@ def test_1344():
     assert params.shardingkey == sharding_key
     assert params.supershardingkey == super_sharding_key
     assert params.ssl_context == ssl_context
-    user = "user_4571"
+    user = "user_1344"
     params.set(user=user)
     assert params.user == user
     assert params.appcontext == app_context
@@ -896,9 +896,9 @@ def test_1345():
 def test_1346(test_env):
     "1346 - test connect descriptor without addresses defined"
     params = oracledb.ConnectParams()
-    host = "host_4546"
-    port = 4546
-    service_name = "service_name_4546"
+    host = "host_1346"
+    port = 1346
+    service_name = "service_name_1346"
     ok_container_names = ("DESCRIPTION", "ADDRESS")
     options = [
         ("DESRIPTION", "ADDRESS"),
@@ -925,8 +925,8 @@ def test_1346(test_env):
 def test_1347():
     "1347 - test simple EasyConnect string parsing with IPv6 address"
     host = "::1"
-    port = 4547
-    service_name = "service_name_4547"
+    port = 1347
+    service_name = "service_name_1347"
     connect_string = f"[{host}]:{port}/{service_name}"
     params = oracledb.ConnectParams()
     params.parse_connect_string(connect_string)
@@ -938,32 +938,32 @@ def test_1347():
 def test_1348():
     "1348 - test easy connect string with multiple hosts, different ports"
     connect_string = (
-        "host4548a,host4548b:4548,host4548c,host4548d:4549/"
-        "service_name_4548"
+        "host1348a,host1348b:1348,host1348c,host1348d:1348/"
+        "service_name_1348"
     )
     params = oracledb.ConnectParams()
     params.parse_connect_string(connect_string)
-    assert params.host == ["host4548a", "host4548b", "host4548c", "host4548d"]
-    assert params.port == [4548, 4548, 4549, 4549]
-    assert params.service_name == "service_name_4548"
+    assert params.host == ["host1348a", "host1348b", "host1348c", "host1348d"]
+    assert params.port == [1348, 1348, 1348, 1348]
+    assert params.service_name == "service_name_1348"
 
 
 def test_1349():
     "1349 - test easy connect string with multiple address lists"
     connect_string = (
-        "host4549a;host4549b,host4549c:4549;host4549d/service_name_4549"
+        "host1349a;host1349b,host1349c:1349;host1349d/service_name_1349"
     )
     params = oracledb.ConnectParams()
     params.parse_connect_string(connect_string)
-    assert params.host == ["host4549a", "host4549b", "host4549c", "host4549d"]
-    assert params.port == [1521, 4549, 4549, 1521]
-    assert params.service_name == "service_name_4549"
+    assert params.host == ["host1349a", "host1349b", "host1349c", "host1349d"]
+    assert params.port == [1521, 1349, 1349, 1521]
+    assert params.service_name == "service_name_1349"
     expected_conn_string = (
-        "(DESCRIPTION=(ADDRESS=(PROTOCOL=tcp)(HOST=host4549a)(PORT=1521))"
-        "(ADDRESS_LIST=(ADDRESS=(PROTOCOL=tcp)(HOST=host4549b)(PORT=4549))"
-        "(ADDRESS=(PROTOCOL=tcp)(HOST=host4549c)(PORT=4549)))"
-        "(ADDRESS=(PROTOCOL=tcp)(HOST=host4549d)(PORT=1521))"
-        "(CONNECT_DATA=(SERVICE_NAME=service_name_4549)))"
+        "(DESCRIPTION=(ADDRESS=(PROTOCOL=tcp)(HOST=host1349a)(PORT=1521))"
+        "(ADDRESS_LIST=(ADDRESS=(PROTOCOL=tcp)(HOST=host1349b)(PORT=1349))"
+        "(ADDRESS=(PROTOCOL=tcp)(HOST=host1349c)(PORT=1349)))"
+        "(ADDRESS=(PROTOCOL=tcp)(HOST=host1349d)(PORT=1521))"
+        "(CONNECT_DATA=(SERVICE_NAME=service_name_1349)))"
     )
     assert params.get_connect_string() == expected_conn_string
 
@@ -998,9 +998,9 @@ def test_1351(test_env):
 
 def test_1352():
     "1352 - test easy connect string with degenerate protocol"
-    host = "host_4552"
-    port = 4552
-    service_name = "service_name_4552"
+    host = "host_1352"
+    port = 1352
+    service_name = "service_name_1352"
     connect_string = f"//{host}:{port}/{service_name}"
     params = oracledb.ConnectParams()
     params.parse_connect_string(connect_string)
@@ -1012,9 +1012,9 @@ def test_1352():
 def test_1353():
     "1353 - test easy connect string with registered protocol"
     protocol = "proto-test"
-    protocol_arg = "args/for/proto4553"
-    host = "host_4553"
-    service_name = "service_name_4553"
+    protocol_arg = "args/for/proto1353"
+    host = "host_1353"
+    service_name = "service_name_1353"
     connect_string = f"{protocol}://{protocol_arg}"
 
     def hook(passed_protocol, passed_protocol_arg, passed_params):
@@ -1113,10 +1113,10 @@ def test_1362():
 def test_1363():
     "1363 - test restoring pre-registered protocols (tcp and tcps)"
 
-    host = "host_4563"
-    port = 4563
-    service_name = "service_4563"
-    user = "user_4563"
+    host = "host_1363"
+    port = 1363
+    service_name = "service_1363"
+    user = "user_1363"
 
     def hook(passed_protocol, passed_protocol_arg, passed_params):
         passed_params.set(user=user)
@@ -1174,8 +1174,8 @@ def test_1364():
         ("use_tcp_fast_open", "off", False),
         ("wallet_location", "test_location", "test_location"),
     ]
-    host = "host_4564"
-    service_name = "service_4564"
+    host = "host_1364"
+    service_name = "service_1364"
     for name, str_value, actual_value in test_scenarios:
         conn_string = f"{host}/{service_name}?pyo.{name}={str_value}"
         params = oracledb.ConnectParams()
@@ -1188,7 +1188,7 @@ def test_1364():
 @pytest.mark.filterwarnings("ignore:base64 encoded")
 def test_1365(test_env):
     "1365 - test set_from_config() with no user and password set"
-    user = "user_4565"
+    user = "user_1365"
     password = test_env.get_random_string()
     options = [
         ("a", user, password),
@@ -1196,8 +1196,8 @@ def test_1365(test_env):
         ("c", None, None),
     ]
     for option, user, password in options:
-        host = f"host_4565{option}"
-        service_name = f"service_4565{option}"
+        host = f"host_1365{option}"
+        service_name = f"service_1365{option}"
         connect_string = f"{host}/{service_name}"
         config = dict(connect_descriptor=connect_string)
         if user is not None:
@@ -1217,12 +1217,12 @@ def test_1365(test_env):
 
 def test_1366(test_env):
     "1366 - test set_from_config() with user and password already set"
-    host = "host_4566"
-    service_name = "service_4566"
+    host = "host_1366"
+    service_name = "service_1366"
     connect_string = f"{host}/{service_name}"
-    user = "user_4566"
+    user = "user_1366"
     password = test_env.get_random_string()
-    config_user = "user_4566_in_config"
+    config_user = "user_1366_in_config"
     config_password = test_env.get_random_string()
     config = dict(
         connect_descriptor=connect_string,
@@ -1248,11 +1248,11 @@ def test_1367(test_env):
 
 def test_1368(test_env):
     "1368 - test set_from_config() with extended parameters"
-    host = "host_4566"
-    service_name = "service_4566"
+    host = "host_1368"
+    service_name = "service_1368"
     connect_string = f"{host}/{service_name}"
     stmtcachesize = 35
-    user = "user_4566"
+    user = "user_1368"
     password = test_env.get_random_string()
     config = dict(
         connect_descriptor=connect_string,
@@ -1274,9 +1274,9 @@ def test_1368(test_env):
 def test_1369():
     "1369 - test USE_SNI in connect string"
     options = [("on", True), ("off", False)]
-    service_name = "service_4569"
-    host = "host_4569"
-    port = 4569
+    service_name = "service_1369"
+    host = "host_1369"
+    port = 1369
     for str_val, val in options:
         easy_connect = f"{host}:{port}/{service_name}?use_sni={str_val}"
         descriptor_part = f"(USE_SNI={str_val.upper()})" if val else ""
@@ -1304,8 +1304,8 @@ def test_1370():
     ]
     for option in options:
         connect_string = (
-            "(DESCRIPTION=(ADDRESS=(PROTOCOL=tcp)(HOST=host4570)"
-            "(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=service4570)"
+            "(DESCRIPTION=(ADDRESS=(PROTOCOL=tcp)(HOST=host1370)"
+            "(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=service1370)"
             f"{option}))"
         )
         params = oracledb.ConnectParams()
@@ -1315,10 +1315,10 @@ def test_1370():
 
 def test_1371():
     "1371 - test INSTANCE_NAME in connect string"
-    service_name = "service_4571"
-    instance_name = "instance_4571"
-    host = "host_4571"
-    port = 4571
+    service_name = "service_1371"
+    instance_name = "instance_1371"
+    host = "host_1371"
+    port = 1371
     easy_connect = f"{host}:{port}/{service_name}/{instance_name}"
     connect_descriptor = (
         f"(DESCRIPTION=(ADDRESS=(PROTOCOL=tcp)(HOST={host})(PORT={port}))"
@@ -1344,8 +1344,8 @@ def test_1372():
     ]
     for option in options:
         connect_string = (
-            "(DESCRIPTION=(ADDRESS=(PROTOCOL=tcps)(HOST=host4572)"
-            "(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=service4572))"
+            "(DESCRIPTION=(ADDRESS=(PROTOCOL=tcps)(HOST=host1372)"
+            "(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=service1372))"
             f"(SECURITY=(SSL_SERVER_DN_MATCH=ON){option}))"
         )
         params = oracledb.ConnectParams()
@@ -1364,11 +1364,11 @@ def test_1373():
         connect_string = (
             "(DESCRIPTION_LIST="
             f"(DESCRIPTION={option}(ADDRESS=(PROTOCOL=tcp)"
-            "(HOST=host4573a)(PORT=1521))"
-            "(CONNECT_DATA=(SERVICE_NAME=service4573)))"
+            "(HOST=host1373a)(PORT=1521))"
+            "(CONNECT_DATA=(SERVICE_NAME=service1373)))"
             f"(DESCRIPTION={option}(ADDRESS=(PROTOCOL=tcp)"
-            "(HOST=host4573b)(PORT=1521))"
-            "(CONNECT_DATA=(SERVICE_NAME=service4573))))"
+            "(HOST=host1373b)(PORT=1521))"
+            "(CONNECT_DATA=(SERVICE_NAME=service1373))))"
         )
         params = oracledb.ConnectParams()
         params.parse_connect_string(connect_string)
@@ -1378,13 +1378,13 @@ def test_1373():
 def test_1374():
     "1374 - test passing through specific unsupported parameters"
     easy_connect = (
-        "host_4574/service_4574?"
+        "host_1374/service_1374?"
         "enable=broken&recv_buf_size=1024&send_buf_size=2048"
     )
     connect_descriptor = (
         "(DESCRIPTION=(ENABLE=broken)(RECV_BUF_SIZE=1024)"
-        "(SEND_BUF_SIZE=2048)(ADDRESS=(PROTOCOL=tcp)(HOST=host_4574)"
-        "(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=service_4574)))"
+        "(SEND_BUF_SIZE=2048)(ADDRESS=(PROTOCOL=tcp)(HOST=host_1374)"
+        "(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=service_1374)))"
     )
     params = oracledb.ConnectParams()
     params.parse_connect_string(easy_connect)
@@ -1405,8 +1405,8 @@ def test_1375(test_env):
         ("(KEY_CONTAINS'\n'=SIMPLE_VALUE)", False),
     ]:
         connect_string = (
-            "(DESCRIPTION=(ADDRESS=(PROTOCOL=tcp)(HOST=host4573)"
-            + "(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=service4573)"
+            "(DESCRIPTION=(ADDRESS=(PROTOCOL=tcp)(HOST=host1375)"
+            + "(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=service1375)"
             + f"{value}))"
         )
         if ok:
@@ -1430,18 +1430,18 @@ def test_1376(test_env):
         ("key_contains'r'=simple_value", False),
         ("key_contains'\n'=simple_value", False),
     ]:
-        easy_connect = f"""host4574:1589/service4574?{value}"""
+        easy_connect = f"""host1376:1589/service1376?{value}"""
         connect_string_exp = (
             "(DESCRIPTION="
-            + "(ADDRESS=(PROTOCOL=tcp)(HOST=host4574)(PORT=1589))"
-            + "(CONNECT_DATA=(SERVICE_NAME=service4574)))"
+            + "(ADDRESS=(PROTOCOL=tcp)(HOST=host1376)(PORT=1589))"
+            + "(CONNECT_DATA=(SERVICE_NAME=service1376)))"
         )
         if ok:
             params = oracledb.ConnectParams()
             params.parse_connect_string(easy_connect)
-            assert params.host == "host4574"
+            assert params.host == "host1376"
             assert params.port == 1589
-            assert params.service_name == "service4574"
+            assert params.service_name == "service1376"
             assert params.get_connect_string() == connect_string_exp
         else:
             with test_env.assert_raises_full_code("DPY-4018"):
@@ -1516,11 +1516,11 @@ def test_1378():
         ),
     ]
 
-    service_name = "service_4576"
-    host1 = "host_4576_1"
-    host2 = "host_4576_2"
-    port1 = 45761
-    port2 = 45762
+    service_name = "service_1378"
+    host1 = "host_1378_1"
+    host2 = "host_1378_2"
+    port1 = 13781
+    port2 = 13782
     for str_val, exp_val in options:
         descriptor_part = str_val
         descriptor_part_exp = exp_val
@@ -1549,19 +1549,19 @@ def test_1378():
 def test_1379():
     "1379 - test for connect data parameters in connect descriptor"
     options = [
-        "(COLOCATION_TAG=ColocationTag4577)",
-        "(COLOCATION_TAG=ColocationTag_4577)",
+        "(COLOCATION_TAG=ColocationTag1379)",
+        "(COLOCATION_TAG=ColocationTag_1379)",
         "(FAILOVER_MODE=(BACKUP=bhost)(TYPE=session)(METHOD=basic))",
         "(FAILOVER_MODE=(BACKUP=bhost)(TYPE=select)(METHOD=preconnect))",
         "(FAILOVER_MODE=(TYPE=select)(METHOD=basic)(RETRIES=2)(DELAY=15))",
         "(HS=ok)",
         "(TUNNEL_SERVICE_NAME=south)",
-        "(POOL_NAME=pool_name_4579)",
+        "(POOL_NAME=pool_name_1379)",
     ]
 
-    service_name = "service_4577"
-    host = "host_4577"
-    port = 4577
+    service_name = "service_1379"
+    host = "host_1379"
+    port = 1379
     for str_val in options:
         connect_data_part = str_val
         connect_descriptor = (
@@ -1624,9 +1624,9 @@ def test_1380():
         ),
     }
 
-    service_name = "service_4578"
-    host = "host_4578"
-    port = 4578
+    service_name = "service_1380"
+    host = "host_1380"
+    port = 1380
     for str_val, exp_val in security_options.items():
         security_part = str_val
         security_part_exp = exp_val
@@ -1692,9 +1692,9 @@ def test_1381():
         ),
     ]
 
-    service_name = "service_4579"
-    host = "host_4579"
-    port = 4579
+    service_name = "service_1381"
+    host = "host_1381"
+    port = 1381
     for str_val, exp_str in options:
         descriptor_part = exp_str
         easy_connect = f"""{host}:{port}/{service_name}?{str_val}"""
@@ -1713,15 +1713,15 @@ def test_1381():
 
 def test_1382():
     "1382 - test for security parameters in easy connect descriptor"
-    service_name = "service_4580"
+    service_name = "service_1382"
     srvc_str = (
         "ssl_server_dn_match=true"
         "&ssl_server_cert_dn='cn=sales,cn=OracleContext,"
         "dc=us,dc=example,dc=com'"
         "&wallet_location='/tmp/oracle'"
     )
-    host = "host_4580"
-    port = 4580
+    host = "host_1382"
+    port = 1382
     easy_connect = f"tcps://{host}:{port}/{service_name}?{srvc_str}"
     connect_descriptor_exp = (
         f"(DESCRIPTION="
@@ -1774,7 +1774,7 @@ def test_1383():
         ("port", 1584),
         ("protocol", "tcps"),
         ("https_proxy", "proxy_a"),
-        ("https_proxy_port", 4528),
+        ("https_proxy_port", 1384),
         ("service_name", "my_service_name1"),
         ("instance_name", "my_instance_name"),
         ("sid", "my_sid1"),
@@ -1800,8 +1800,8 @@ def test_1383():
         ("appcontext", [("a", "b", "c")]),
         ("shardingkey", [1, 2, 3]),
         ("supershardingkey", [4]),
-        ("debug_jdwp", "host=host;port=4538"),
-        ("connection_id_prefix", "prefix4564"),
+        ("debug_jdwp", "host=host;port=1384"),
+        ("connection_id_prefix", "prefix1384"),
         ("ssl_context", ssl.create_default_context()),
         ("sdu", 16384),
         ("pool_boundary", "statement"),
@@ -1835,8 +1835,8 @@ def test_1384(attr_name, value):
     assert other_params == params
 
 
-def test_4585():
-    "4585 - test callback parameters"
+def test_1385():
+    "1385 - test callback parameters"
 
     def on_connect_callback(connection):
         pass
