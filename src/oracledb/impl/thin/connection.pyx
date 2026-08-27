@@ -119,18 +119,6 @@ cdef class BaseThinConnImpl(BaseConnImpl):
         self.thin = True
         self._app_context = None
 
-    cdef int _check_tpc_commit_state(self, uint32_t state,
-                                     bint one_phase) except -1:
-        """
-        Check the state returned by the tpc_commit() call.
-        """
-        if one_phase and state not in (TNS_TPC_TXN_STATE_READ_ONLY,
-                                       TNS_TPC_TXN_STATE_COMMITTED) \
-                or not one_phase and state != TNS_TPC_TXN_STATE_FORGOTTEN:
-            errors._raise_err(errors.ERR_UNKNOWN_TRANSACTION_STATE,
-                              state=state)
-        self._transaction_context = None
-
     cdef int _clear_dbobject_type_cache(self) except -1:
         """
         """
@@ -154,20 +142,22 @@ cdef class BaseThinConnImpl(BaseConnImpl):
             if sock is not None:
                 sock.shutdown(socket.SHUT_RDWR)
 
-    cdef BaseThinLobImpl _create_lob_impl(self, DbType dbtype,
-                                          bytes locator=None):
+    cdef ThinLobImpl _create_lob_impl(self, DbType dbtype, bytes locator=None):
         """
         Create and return a LOB implementation object.
         """
-        cdef BaseThinLobImpl lob_impl
-        if self._protocol._transport._is_async:
-            lob_impl = AsyncThinLobImpl.__new__(AsyncThinLobImpl)
-        else:
-            lob_impl = ThinLobImpl.__new__(ThinLobImpl)
+        cdef ThinLobImpl lob_impl
+        lob_impl = ThinLobImpl.__new__(ThinLobImpl)
         lob_impl._conn_impl = self
         lob_impl.dbtype = dbtype
         lob_impl._locator = locator
         return lob_impl
+
+    cdef BaseCursorImpl _create_cursor_impl(self):
+        """
+        Internal method for creating an empty cursor implementation object.
+        """
+        return ThinCursorImpl.__new__(ThinCursorImpl, self)
 
     cdef Message _create_message(self, type typ):
         """
@@ -179,40 +169,110 @@ cdef class BaseThinConnImpl(BaseConnImpl):
         message._initialize(self)
         return message
 
-    cdef AuthMessage _create_change_password_message(self, str old_password,
-                                                     str new_password):
-        """
-        Creates a change password message which is an authentication message
-        with different attributes set.
-        """
-        cdef AuthMessage message
-        message = self._create_message(AuthMessage)
-        message.change_password = True
-        message.function_code = TNS_FUNC_AUTH_PHASE_TWO
-        message.user_bytes = self.username.encode()
-        message.user_bytes_len = len(message.user_bytes)
-        message.auth_mode = TNS_AUTH_MODE_WITH_PASSWORD | \
-                TNS_AUTH_MODE_CHANGE_PASSWORD
-        message.password = old_password.encode()
-        message.newpassword = new_password.encode()
-        message.resend = False
-        return message
-
-    cdef TransactionChangeStateMessage _create_tpc_commit_message(
-            self, object xid, bint one_phase
+    def _create_message_for_pipeline_op(
+        self, object conn, PipelineOpImpl op_impl
     ):
         """
-        Creates a two-phase commit message suitable for committing a
-        transaction.
+        Creates a single message for a pipeline operation.
         """
-        cdef TransactionChangeStateMessage message
-        message = self._create_message(TransactionChangeStateMessage)
-        message.operation = TNS_TPC_TXN_COMMIT
-        message.state = TNS_TPC_TXN_STATE_READ_ONLY if one_phase \
-                else TNS_TPC_TXN_STATE_COMMITTED
-        message.xid = xid
-        message.context = self._transaction_context
+        cdef:
+            ThinCursorImpl cursor_impl
+            MessageWithData message
+            uint32_t num_execs = 1
+            object cursor
+        if op_impl.op_type == PIPELINE_OP_TYPE_COMMIT:
+            return self._create_message(CommitMessage)
+        cursor = conn.cursor()
+        cursor_impl = cursor._impl
+        if op_impl.op_type == PIPELINE_OP_TYPE_CALL_FUNC:
+            execute_args = cursor._call_get_execute_args(
+                op_impl.name,
+                op_impl.parameters,
+                op_impl.keyword_parameters,
+                cursor.var(op_impl.return_type)
+            )
+            cursor._prepare_for_execute(*execute_args)
+        elif op_impl.op_type == PIPELINE_OP_TYPE_CALL_PROC:
+            execute_args = cursor._call_get_execute_args(
+                op_impl.name,
+                op_impl.parameters,
+                op_impl.keyword_parameters
+            )
+            cursor._prepare_for_execute(*execute_args)
+        elif op_impl.op_type == PIPELINE_OP_TYPE_EXECUTE:
+            cursor._prepare_for_execute(op_impl.statement, op_impl.parameters)
+        elif op_impl.op_type == PIPELINE_OP_TYPE_EXECUTE_MANY:
+            op_impl.batch_load_manager = cursor_impl._prepare_for_executemany(
+                cursor,
+                op_impl.statement,
+                op_impl.parameters,
+                2 ** 32 - 1
+            )
+            op_impl.num_execs = op_impl.batch_load_manager.num_rows
+            if not cursor_impl._statement.requires_single_execute():
+                num_execs = op_impl.num_execs
+        elif op_impl.op_type == PIPELINE_OP_TYPE_FETCH_ONE:
+            cursor._prepare_for_execute(op_impl.statement, op_impl.parameters)
+            cursor_impl.prefetchrows = 1
+            cursor_impl.arraysize = 1
+            cursor_impl.rowfactory = op_impl.rowfactory
+            cursor_impl.fetch_lobs = op_impl.fetch_lobs
+            cursor_impl.fetch_decimals = op_impl.fetch_decimals
+        elif op_impl.op_type == PIPELINE_OP_TYPE_FETCH_MANY:
+            cursor._prepare_for_execute(op_impl.statement, op_impl.parameters)
+            cursor_impl.prefetchrows = op_impl.num_rows
+            cursor_impl.arraysize = op_impl.num_rows
+            cursor_impl.rowfactory = op_impl.rowfactory
+            cursor_impl.fetch_lobs = op_impl.fetch_lobs
+            cursor_impl.fetch_decimals = op_impl.fetch_decimals
+        elif op_impl.op_type == PIPELINE_OP_TYPE_FETCH_ALL:
+            cursor._prepare_for_execute(op_impl.statement, op_impl.parameters)
+            cursor_impl.prefetchrows = op_impl.arraysize
+            cursor_impl.arraysize = op_impl.arraysize
+            cursor_impl.rowfactory = op_impl.rowfactory
+            cursor_impl.fetch_lobs = op_impl.fetch_lobs
+            cursor_impl.fetch_decimals = op_impl.fetch_decimals
+        else:
+            errors._raise_err(errors.ERR_UNSUPPORTED_PIPELINE_OPERATION,
+                              op_type=op_impl.op_type)
+        yield from cursor_impl._preprocess_execute(conn)
+        message = cursor_impl._create_message(ExecuteMessage, cursor)
+        message.num_execs = num_execs
         return message
+
+    def _create_messages_for_pipeline(
+        self, object conn, list results, bint continue_on_error
+    ):
+        """
+        Creates a list of messages for the pipeline and returns them after they
+        have been submitted to the database for processing.
+        """
+        cdef:
+            PipelineOpResultImpl result_impl
+            PipelineOpImpl op_impl
+            uint64_t token_num
+            Message message
+            object result
+            list messages
+        messages = []
+        token_num = 1
+        for result in results:
+            result_impl = result._impl
+            op_impl = result_impl.operation
+            try:
+                message = yield from self._create_message_for_pipeline_op(
+                    conn, op_impl
+                )
+            except Exception as e:
+                if not continue_on_error:
+                    raise
+                result_impl._capture_err(e)
+                continue
+            message.pipeline_result_impl = result_impl
+            message.token_num = token_num
+            token_num += 1
+            messages.append(message)
+        return messages
 
     cdef Message _create_tpc_rollback_message(self, object xid=None):
         """
@@ -277,13 +337,61 @@ cdef class BaseThinConnImpl(BaseConnImpl):
         """
         self._statement_cache.return_statement(statement)
 
-    cdef TransactionSwitchMessage _start_sessionless_transaction(
+    def _run_pipeline_op_without_pipelining(
+        self, object conn, PipelineOpResultImpl result_impl
+    ):
+        """
+        Runs a pipeline operation without the use of pipelining.
+        """
+        cdef:
+            PipelineOpImpl op_impl = result_impl.operation
+            object cursor
+        if op_impl.op_type == PIPELINE_OP_TYPE_COMMIT:
+            yield from conn._commit()
+            return
+        cursor = conn.cursor()
+        if op_impl.op_type == PIPELINE_OP_TYPE_CALL_FUNC:
+            result_impl.return_value = yield from cursor._callfunc(
+                op_impl.name,
+                op_impl.return_type,
+                op_impl.parameters,
+                op_impl.keyword_parameters,
+            )
+        elif op_impl.op_type == PIPELINE_OP_TYPE_CALL_PROC:
+            yield from cursor._callproc(
+                op_impl.name, op_impl.parameters, op_impl.keyword_parameters
+            )
+        elif op_impl.op_type == PIPELINE_OP_TYPE_EXECUTE:
+            yield from cursor._execute(op_impl.statement, op_impl.parameters)
+        elif op_impl.op_type == PIPELINE_OP_TYPE_EXECUTE_MANY:
+            yield from cursor._executemany(
+                op_impl.statement, op_impl.parameters
+            )
+        elif op_impl.op_type == PIPELINE_OP_TYPE_FETCH_ALL:
+            yield from cursor._execute(op_impl.statement, op_impl.parameters)
+            cursor.rowfactory = op_impl.rowfactory
+            result_impl.rows = yield from cursor._fetchall()
+        elif op_impl.op_type == PIPELINE_OP_TYPE_FETCH_MANY:
+            yield from cursor._execute(op_impl.statement, op_impl.parameters)
+            cursor.rowfactory = op_impl.rowfactory
+            result_impl.rows = yield from cursor._fetchmany(op_impl.num_rows)
+        elif op_impl.op_type == PIPELINE_OP_TYPE_FETCH_ONE:
+            yield from cursor._execute(op_impl.statement, op_impl.parameters)
+            cursor.rowfactory = op_impl.rowfactory
+            result_impl.rows = yield from cursor._fetchmany(1)
+        else:
+            errors._raise_err(errors.ERR_UNSUPPORTED_PIPELINE_OPERATION,
+                              op_type=op_impl.op_type)
+        result_impl.warning = cursor.warning
+        result_impl.fetch_metadata = cursor._impl.fetch_metadata
+
+    cdef int _start_sessionless_transaction(
         self,
         bytes transaction_id,
         uint32_t timeout,
         uint32_t flags,
         bint defer_round_trip
-    ):
+    ) except -1:
         """
         Starts (either begins or resumes) a sessionless transaction. A message
         is returned if the request is not going to be deferred.
@@ -297,23 +405,108 @@ cdef class BaseThinConnImpl(BaseConnImpl):
         self._sessionless_data.flags = flags
         if defer_round_trip:
             self._sessionless_data.piggyback_pending = True
+
+    def begin_sessionless_transaction(
+        self,
+        bytes transaction_id,
+        int timeout,
+        bint defer_round_trip
+    ):
+        """
+        Begins a sessionless transaction.
+        """
+        self._start_sessionless_transaction(
+            transaction_id, timeout, TPC_TXN_FLAGS_NEW, defer_round_trip
+        )
         if not defer_round_trip:
-            return self._sessionless_data.create_message(self)
+            yield self._sessionless_data.create_message(self)
 
     def cancel(self):
         self._protocol._break_external()
 
+    def change_password(self, str old_password, str new_password):
+        """
+        Change the password of the logged on user.
+        """
+        cdef AuthMessage message
+        message = self._create_message(AuthMessage)
+        message.change_password = True
+        message.function_code = TNS_FUNC_AUTH_PHASE_TWO
+        message.user_bytes = self.username.encode()
+        message.user_bytes_len = len(message.user_bytes)
+        message.auth_mode = TNS_AUTH_MODE_WITH_PASSWORD | \
+                TNS_AUTH_MODE_CHANGE_PASSWORD
+        message.password = old_password.encode()
+        message.newpassword = new_password.encode()
+        message.resend = False
+        yield message
+
     def clear_end_user_security_context(self):
         """
-        Internal method for clearing the end user security context.
+        Clears the end user security context.
         """
         self.security_context = None
+
+    def commit(self):
+        """
+        Commits the current transaction.
+        """
+        yield self._create_message(CommitMessage)
 
     def create_msg_props_impl(self):
         cdef ThinMsgPropsImpl impl
         impl = ThinMsgPropsImpl()
         impl._conn_impl = self
         return impl
+
+    def create_queue_impl(self):
+        return ThinQueueImpl.__new__(ThinQueueImpl)
+
+    def create_temp_lob_impl(self, DbType dbtype):
+        cdef ThinLobImpl lob_impl = self._create_lob_impl(dbtype)
+        yield from lob_impl.create_temp()
+        return lob_impl
+
+    def direct_path_load(self, str schema_name, str table_name,
+                         list column_names, object data,
+                         uint32_t batch_size):
+        """
+        Performs a direct path load.
+        """
+        cdef:
+            DirectPathPrepareMessage prepare_message
+            DirectPathLoadStreamMessage load_message
+            DirectPathOpMessage op_message
+            BatchLoadManager manager
+
+        # prepare message
+        prepare_message = self._create_message(DirectPathPrepareMessage)
+        prepare_message.schema_name = schema_name
+        prepare_message.table_name = table_name
+        prepare_message.column_names = column_names
+        yield prepare_message
+
+        # setup op message
+        op_message = self._create_message(DirectPathOpMessage)
+        op_message.prepare(prepare_message.cursor_id, TNS_DP_OP_ABORT)
+
+        # load message
+        load_message = self._create_message(DirectPathLoadStreamMessage)
+        try:
+            manager = BatchLoadManager.create_for_direct_path_load(
+                data, prepare_message.column_metadata, batch_size
+            )
+            while manager.num_rows > 0:
+                load_message.prepare(
+                    prepare_message.cursor_id,
+                    manager,
+                    prepare_message.column_metadata
+                )
+                yield load_message
+                manager.next_batch()
+            op_message.op_code = TNS_DP_OP_FINISH
+        finally:
+            yield op_message
 
     def get_call_timeout(self):
         return self._call_timeout
@@ -388,9 +581,88 @@ cdef class BaseThinConnImpl(BaseConnImpl):
         return self._txn_priority
 
     def get_type(self, object conn, str name):
-        cdef ThinDbObjectTypeCache cache = \
-                get_dbobject_type_cache(self._dbobject_type_cache_num)
-        return cache.get_type(conn, name)
+        """
+        Returns a type given its name.
+        """
+        cdef ThinDbObjectTypeCache cache
+        cache = get_dbobject_type_cache(self._dbobject_type_cache_num)
+        return (yield from cache.get_type(conn, name))
+
+    def ping(self):
+        """
+        Sends a "ping" to the database.
+        """
+        yield self._create_message(PingMessage)
+
+    def resume_sessionless_transaction(
+        self,
+        bytes transaction_id,
+        int timeout,
+        bint defer_round_trip
+    ):
+        """
+        Resumes a sessionless transaction.
+        """
+        self._start_sessionless_transaction(
+            transaction_id, timeout, TPC_TXN_FLAGS_RESUME, defer_round_trip
+        )
+        if not defer_round_trip:
+            yield self._sessionless_data.create_message(self)
+
+    def rollback(self):
+        """
+        Rolls back the current transaction.
+        """
+        yield self._create_message(RollbackMessage)
+
+    def run_pipeline_with_pipelining(
+        self, object conn, list results, bint continue_on_error
+    ):
+        """
+        Run the pipeline with pipelining when the database supports it.
+        """
+        cdef EndPipelineMessage message
+        message = self._create_message(EndPipelineMessage)
+        message.messages = yield from self._create_messages_for_pipeline(
+            conn, results, continue_on_error
+        )
+        message.continue_on_error = continue_on_error
+        if message.messages:
+            self._protocol._read_buf.reset_packets()
+            if continue_on_error:
+                self.pipeline_mode = TNS_PIPELINE_MODE_CONTINUE_ON_ERROR
+            else:
+                self.pipeline_mode = TNS_PIPELINE_MODE_ABORT_ON_ERROR
+            yield message
+            yield from message._resend_messages()
+            yield message
+            yield from message._complete_pipeline_ops()
+
+    def run_pipeline_without_pipelining(
+        self, object conn, list results, bint continue_on_error
+    ):
+        """
+        Run the pipeline without pipelining when the database doesn't support
+        pipelining or when only one operation is being processed. Call timeouts
+        are disabled for consistency with when run with pipelining.
+        """
+        cdef:
+            uint32_t call_timeout = self._call_timeout
+            PipelineOpResultImpl result_impl
+            object result
+        try:
+            for result in results:
+                result_impl = result._impl
+                try:
+                    yield from self._run_pipeline_op_without_pipelining(
+                        conn, result_impl
+                    )
+                except Exception as e:
+                    if not continue_on_error:
+                        raise
+                    result_impl._capture_err(e)
+        finally:
+            self._call_timeout = call_timeout
 
     def set_action(self, str value):
         self._action = value
@@ -455,11 +727,111 @@ cdef class BaseThinConnImpl(BaseConnImpl):
     def set_stmt_cache_size(self, uint32_t value):
         self._statement_cache.resize(value)
 
+    def set_call_timeout(self, uint32_t value):
+        self._protocol._transport.set_timeout(value / 1000)
+        self._call_timeout = value
+
     def set_transaction_priority(self, value):
         if not self._protocol._caps.supports_txn_priority:
             errors._raise_err(errors.ERR_UNSUPPORTED_TXN_PRIORITY)
         self._txn_priority = value
         self._txn_priority_modified = True
+
+    def supports_pipelining(self):
+        """
+        Returns whether the connection supports pipelining. Currently this is
+        only supported with asyncio and Oracle Database version 23, and later.
+        """
+        return self._protocol._transport._is_async \
+                and self._protocol._caps.supports_pipelining
+
+    def suspend_sessionless_transaction(self):
+        """
+        Suspend a sessionless transaction.
+        """
+        cdef TransactionSwitchMessage message
+        if self._sessionless_data is None:
+            errors._raise_err(errors.ERR_SESSIONLESS_INACTIVE)
+        elif self._sessionless_data.started_on_server:
+            errors._raise_err(errors.ERR_SESSIONLESS_DIFFERING_METHODS)
+        message = self._create_message(TransactionSwitchMessage)
+        message.operation = TNS_TPC_TXN_DETACH
+        message.flags = TPC_TXN_FLAGS_SESSIONLESS
+        yield message
+
+    def tpc_begin(self, xid, uint32_t flags, uint32_t timeout):
+        """
+        Begin a Two-Phase Commit (TPC) on a global transaction.
+        """
+        cdef TransactionSwitchMessage message
+        message = self._create_message(TransactionSwitchMessage)
+        message.operation = TNS_TPC_TXN_START
+        message.xid = xid
+        message.flags = flags
+        message.timeout = timeout
+        yield message
+        self._transaction_context = message.context
+
+    def tpc_commit(self, xid, bint one_phase):
+        """
+        Commit a global transaction.
+        """
+        cdef TransactionChangeStateMessage message
+        message = self._create_message(TransactionChangeStateMessage)
+        message.operation = TNS_TPC_TXN_COMMIT
+        message.state = TNS_TPC_TXN_STATE_READ_ONLY if one_phase \
+                else TNS_TPC_TXN_STATE_COMMITTED
+        message.xid = xid
+        message.context = self._transaction_context
+        yield message
+        if one_phase and message.state not in (TNS_TPC_TXN_STATE_READ_ONLY,
+                                               TNS_TPC_TXN_STATE_COMMITTED) \
+                or not one_phase \
+                and message.state != TNS_TPC_TXN_STATE_FORGOTTEN:
+            errors._raise_err(errors.ERR_UNKNOWN_TRANSACTION_STATE,
+                              state=message.state)
+        self._transaction_context = None
+
+    def tpc_end(self, xid, uint32_t flags):
+        """
+        Ends a global transaction.
+        """
+        cdef TransactionSwitchMessage message
+        message = self._create_message(TransactionSwitchMessage)
+        message.operation = TNS_TPC_TXN_DETACH
+        message.xid = xid
+        message.context = self._transaction_context
+        message.flags = flags
+        yield message
+        self._transaction_context = None
+
+    def tpc_prepare(self, xid):
+        """
+        Prepares a global transaction for commit.
+        """
+        cdef TransactionChangeStateMessage message
+        message = self._create_message(TransactionChangeStateMessage)
+        message.operation = TNS_TPC_TXN_PREPARE
+        message.xid = xid
+        message.context = self._transaction_context
+        yield message
+        if message.state == TNS_TPC_TXN_STATE_REQUIRES_COMMIT:
+            return True
+        elif message.state == TNS_TPC_TXN_STATE_READ_ONLY:
+            return False
+        errors._raise_err(errors.ERR_UNKNOWN_TRANSACTION_STATE,
+                          state=message.state)
+
+    def tpc_rollback(self, xid):
+        """
+        Roll back a global transaction.
+        """
+        cdef TransactionChangeStateMessage message
+        message = self._create_tpc_rollback_message(xid)
+        yield message
+        if message.state != TNS_TPC_TXN_STATE_ABORTED:
+            errors._raise_err(errors.ERR_UNKNOWN_TRANSACTION_STATE,
+                              state=message.state)
 
 
 cdef class ThinConnImpl(BaseThinConnImpl):
@@ -551,38 +923,6 @@ cdef class ThinConnImpl(BaseThinConnImpl):
             if not self._protocol._in_connect:
                 break
 
-    cdef BaseCursorImpl _create_cursor_impl(self):
-        """
-        Internal method for creating an empty cursor implementation object.
-        """
-        return ThinCursorImpl.__new__(ThinCursorImpl, self)
-
-    def begin_sessionless_transaction(
-        self,
-        bytes transaction_id,
-        int timeout,
-        bint defer_round_trip
-    ):
-        """
-        Internal method for beginning a sessionless transaction.
-        """
-        cdef:
-            Protocol protocol = <Protocol> self._protocol
-            TransactionSwitchMessage message
-        message = self._start_sessionless_transaction(
-            transaction_id, timeout, TPC_TXN_FLAGS_NEW, defer_round_trip
-        )
-        if message is not None:
-            protocol._process_single_message(message)
-
-    def change_password(self, str old_password, str new_password):
-        cdef:
-            Protocol protocol = <Protocol> self._protocol
-            Message message
-        message = self._create_change_password_message(old_password,
-                                                       new_password)
-        protocol._process_single_message(message)
-
     def close(self, bint in_del=False):
         """
         Internal method for closing the connection to the database.
@@ -594,13 +934,6 @@ cdef class ThinConnImpl(BaseThinConnImpl):
         except (ssl.SSLError, exceptions.DatabaseError):
             pass
 
-    def commit(self):
-        cdef:
-            Protocol protocol = <Protocol> self._protocol
-            Message message
-        message = self._create_message(CommitMessage)
-        protocol._process_single_message(message)
-
     def connect(self, ConnectParamsImpl params):
         cdef Protocol protocol = <Protocol> self._protocol
         try:
@@ -610,9 +943,6 @@ cdef class ThinConnImpl(BaseThinConnImpl):
         except:
             protocol._disconnect()
             raise
-
-    def create_queue_impl(self):
-        return ThinQueueImpl.__new__(ThinQueueImpl)
 
     def create_subscr_impl(self, object conn, object callback,
                            uint32_t namespace, str name, uint32_t protocol,
@@ -639,161 +969,20 @@ cdef class ThinConnImpl(BaseThinConnImpl):
         impl.client_initiated = client_initiated
         return impl
 
-    def create_temp_lob_impl(self, DbType dbtype):
-        cdef ThinLobImpl lob_impl = self._create_lob_impl(dbtype)
-        lob_impl.create_temp()
-        return lob_impl
-
-    def direct_path_load(self, str schema_name, str table_name,
-                         list column_names, object data,
-                         uint32_t batch_size):
-        cdef:
-            Protocol protocol = <Protocol> self._protocol
-            DirectPathPrepareMessage prepare_message
-            DirectPathLoadStreamMessage load_message
-            DirectPathOpMessage op_message
-            BatchLoadManager manager
-
-        # prepare message
-        prepare_message = self._create_message(DirectPathPrepareMessage)
-        prepare_message.schema_name = schema_name
-        prepare_message.table_name = table_name
-        prepare_message.column_names = column_names
-        protocol._process_single_message(prepare_message)
-
-        # setup op message
-        op_message = self._create_message(DirectPathOpMessage)
-        op_message.prepare(prepare_message.cursor_id, TNS_DP_OP_ABORT)
-
-        # load message
-        load_message = self._create_message(DirectPathLoadStreamMessage)
-        try:
-            manager = BatchLoadManager.create_for_direct_path_load(
-                data, prepare_message.column_metadata, batch_size
-            )
-            while manager.num_rows > 0:
-                load_message.prepare(
-                    prepare_message.cursor_id,
-                    manager,
-                    prepare_message.column_metadata
-                )
-                protocol._process_single_message(load_message)
-                manager.next_batch()
-            op_message.op_code = TNS_DP_OP_FINISH
-        finally:
-            protocol._process_single_message(op_message)
-
-    def get_type(self, object conn, str name):
-        cdef ThinDbObjectTypeCache cache = \
-                get_dbobject_type_cache(self._dbobject_type_cache_num)
-        return cache.get_type(conn, name)
-
-    def ping(self):
-        cdef:
-            Protocol protocol = <Protocol> self._protocol
-            Message message
-        message = self._create_message(PingMessage)
-        protocol._process_single_message(message)
-
-    def resume_sessionless_transaction(
-        self,
-        bytes transaction_id,
-        int timeout,
-        bint defer_round_trip
-    ):
+    def process_sync_operation(self, object generator):
         """
-        Internal method for resuming a sessionless transaction.
+        Processes a database operation synchronously. The generator returns
+        messages that need to be processed by the database.
         """
         cdef:
             Protocol protocol = <Protocol> self._protocol
-            TransactionSwitchMessage message
-        message = self._start_sessionless_transaction(
-            transaction_id, timeout, TPC_TXN_FLAGS_RESUME, defer_round_trip
-        )
-        if message is not None:
-            protocol._process_single_message(message)
-
-    def rollback(self):
-        cdef:
-            Protocol protocol = <Protocol> self._protocol
             Message message
-        message = self._create_message(RollbackMessage)
-        protocol._process_single_message(message)
-
-    def set_call_timeout(self, uint32_t value):
-        self._protocol._transport.set_timeout(value / 1000)
-        self._call_timeout = value
-
-    def suspend_sessionless_transaction(self):
-        cdef:
-            Protocol protocol = <Protocol> self._protocol
-            TransactionSwitchMessage message
-        if self._sessionless_data is None:
-            errors._raise_err(errors.ERR_SESSIONLESS_INACTIVE)
-        elif self._sessionless_data.started_on_server:
-            errors._raise_err(errors.ERR_SESSIONLESS_DIFFERING_METHODS)
-        message = self._create_message(TransactionSwitchMessage)
-        message.operation = TNS_TPC_TXN_DETACH
-        message.flags = TPC_TXN_FLAGS_SESSIONLESS
-        protocol._process_single_message(message)
-
-    def tpc_begin(self, xid, uint32_t flags, uint32_t timeout):
-        cdef:
-            Protocol protocol = <Protocol> self._protocol
-            TransactionSwitchMessage message
-        message = self._create_message(TransactionSwitchMessage)
-        message.operation = TNS_TPC_TXN_START
-        message.xid = xid
-        message.flags = flags
-        message.timeout = timeout
-        protocol._process_single_message(message)
-        self._transaction_context = message.context
-
-    def tpc_commit(self, xid, bint one_phase):
-        cdef:
-            Protocol protocol = <Protocol> self._protocol
-            TransactionChangeStateMessage message
-        message = self._create_tpc_commit_message(xid, one_phase)
-        protocol._process_single_message(message)
-        self._check_tpc_commit_state(message.state, one_phase)
-
-    def tpc_end(self, xid, uint32_t flags):
-        cdef:
-            Protocol protocol = <Protocol> self._protocol
-            TransactionSwitchMessage message
-        message = self._create_message(TransactionSwitchMessage)
-        message.operation = TNS_TPC_TXN_DETACH
-        message.xid = xid
-        message.context = self._transaction_context
-        message.flags = flags
-        protocol._process_single_message(message)
-        self._transaction_context = None
-
-    def tpc_prepare(self, xid):
-        cdef:
-            Protocol protocol = <Protocol> self._protocol
-            TransactionChangeStateMessage message
-        message = self._create_message(TransactionChangeStateMessage)
-        message.operation = TNS_TPC_TXN_PREPARE
-        message.xid = xid
-        message.context = self._transaction_context
-        protocol._process_single_message(message)
-        if message.state == TNS_TPC_TXN_STATE_REQUIRES_COMMIT:
-            return True
-        elif message.state == TNS_TPC_TXN_STATE_READ_ONLY:
-            return False
-        errors._raise_err(errors.ERR_UNKNOWN_TRANSACTION_STATE,
-                          state=message.state)
-
-    def tpc_rollback(self, xid):
-        cdef:
-            Protocol protocol = <Protocol> self._protocol
-            TransactionChangeStateMessage message
-        message = self._create_tpc_rollback_message(xid)
-        protocol._process_single_message(message)
-        if message.state != TNS_TPC_TXN_STATE_ABORTED:
-            errors._raise_err(errors.ERR_UNKNOWN_TRANSACTION_STATE,
-                              state=message.state)
+        while True:
+            try:
+                message = next(generator)
+                protocol._process_single_message(message)
+            except StopIteration as e:
+                return e.value
 
 
 cdef class AsyncThinConnImpl(BaseThinConnImpl):
@@ -801,108 +990,6 @@ cdef class AsyncThinConnImpl(BaseThinConnImpl):
     def __init__(self, str dsn, ConnectParamsImpl params):
         BaseThinConnImpl.__init__(self, dsn, params)
         self._protocol = AsyncProtocol()
-
-    cdef BaseCursorImpl _create_cursor_impl(self):
-        """
-        Internal method for creating an empty cursor implementation object.
-        """
-        return AsyncThinCursorImpl.__new__(AsyncThinCursorImpl, self)
-
-    async def _complete_pipeline_op(self, Message message):
-        """
-        Completes a particular pipeline operation.
-        """
-        cdef:
-            BaseAsyncProtocol protocol = <BaseAsyncProtocol> self._protocol
-            PipelineOpResultImpl result_impl = message.pipeline_result_impl
-            MessageWithData fetch_message, message_with_data
-            PipelineOpImpl op_impl = result_impl.operation
-            uint8_t op_type = op_impl.op_type
-            AsyncThinCursorImpl cursor_impl
-            BindVar bind_var
-
-        # all operations other than commit make use of a cursor
-        if op_type == PIPELINE_OP_TYPE_COMMIT:
-            return 0
-
-        # keep warning, if applicable
-        message_with_data = <MessageWithData> message
-        result_impl.warning = message_with_data.warning
-
-        # resend the message if that is required (for operations that fetch
-        # LOBS, for example)
-        cursor_impl = <AsyncThinCursorImpl> message_with_data.cursor_impl
-        if message.resend:
-            await protocol._process_message(message)
-        await message.postprocess_async()
-        if op_impl.op_type == PIPELINE_OP_TYPE_CALL_FUNC:
-            bind_var = <BindVar> cursor_impl.bind_vars[0]
-            result_impl.return_value = bind_var.var_impl.get_value(0)
-        elif op_type in (
-            PIPELINE_OP_TYPE_FETCH_ONE,
-            PIPELINE_OP_TYPE_FETCH_MANY,
-            PIPELINE_OP_TYPE_FETCH_ALL,
-        ):
-            result_impl.rows = []
-            while cursor_impl._buffer_rowcount > 0:
-                result_impl.rows.append(cursor_impl._create_row())
-        result_impl.fetch_metadata = cursor_impl.fetch_metadata
-
-        # for fetchall(), perform as many round trips as are required to
-        # complete the fetch
-        if op_type == PIPELINE_OP_TYPE_FETCH_ALL \
-                and cursor_impl._more_rows_to_fetch:
-            fetch_message = cursor_impl._create_message(
-                FetchMessage, message_with_data.cursor
-            )
-            while cursor_impl._more_rows_to_fetch:
-                await protocol._process_single_message(fetch_message)
-                while cursor_impl._buffer_rowcount > 0:
-                    result_impl.rows.append(cursor_impl._create_row())
-                if op_type != PIPELINE_OP_TYPE_FETCH_ALL:
-                    break
-
-        # for PL/SQL blocks that required a single execute, perform any
-        # remaining executes now
-        if op_type == PIPELINE_OP_TYPE_EXECUTE_MANY \
-                and message_with_data.num_execs < op_impl.num_execs:
-            while op_impl.num_execs > 0:
-                op_impl.num_execs -= 1
-                message_with_data.offset += 1
-                if not cursor_impl._statement.requires_single_execute():
-                    break
-                await protocol._process_message(message)
-            if op_impl.num_execs > 0:
-                message_with_data.num_execs = op_impl.num_execs
-                await protocol._process_message(message)
-
-        # populate the metadata for any partial types observed during the
-        # execution of the pipeline
-        if message_with_data.type_cache is not None:
-            conn = message_with_data.cursor.connection
-            await message_with_data.type_cache.populate_partial_types(conn)
-
-    async def _complete_pipeline_ops(
-        self, list messages, bint continue_on_error
-    ):
-        """
-        Completes any pipeline operations that have not actually completed.
-        This could be due to the fact that LOBs were fetched or a fetch all
-        operation has more rows to fetch.
-        """
-        cdef:
-            PipelineOpResultImpl result_impl
-            Message message
-        for message in messages:
-            result_impl = message.pipeline_result_impl
-            if result_impl.error is not None:
-                continue
-            try:
-                await self._complete_pipeline_op(message)
-            except Exception as e:
-                if not continue_on_error:
-                    raise
-                result_impl._capture_err(e)
 
     async def _connect_with_address(self, Address address,
                                     Description description,
@@ -981,198 +1068,6 @@ cdef class AsyncThinConnImpl(BaseThinConnImpl):
             if not self._protocol._in_connect:
                 break
 
-    cdef Message _create_message_for_pipeline_op(
-        self, object conn, PipelineOpImpl op_impl
-    ):
-        """
-        Creates a single message for a pipeline operation.
-        """
-        cdef:
-            AsyncThinCursorImpl cursor_impl
-            MessageWithData message
-            uint32_t num_execs = 1
-            object cursor
-        if op_impl.op_type == PIPELINE_OP_TYPE_COMMIT:
-            return self._create_message(CommitMessage)
-        cursor = conn.cursor()
-        cursor_impl = <AsyncThinCursorImpl> cursor._impl
-        if op_impl.op_type == PIPELINE_OP_TYPE_CALL_FUNC:
-            execute_args = cursor._call_get_execute_args(
-                op_impl.name,
-                op_impl.parameters,
-                op_impl.keyword_parameters,
-                cursor.var(op_impl.return_type)
-            )
-            cursor._prepare_for_execute(*execute_args)
-        elif op_impl.op_type == PIPELINE_OP_TYPE_CALL_PROC:
-            execute_args = cursor._call_get_execute_args(
-                op_impl.name,
-                op_impl.parameters,
-                op_impl.keyword_parameters
-            )
-            cursor._prepare_for_execute(*execute_args)
-        elif op_impl.op_type == PIPELINE_OP_TYPE_EXECUTE:
-            cursor._prepare_for_execute(op_impl.statement, op_impl.parameters)
-        elif op_impl.op_type == PIPELINE_OP_TYPE_EXECUTE_MANY:
-            op_impl.batch_load_manager = cursor_impl._prepare_for_executemany(
-                cursor,
-                op_impl.statement,
-                op_impl.parameters,
-                2 ** 32 - 1
-            )
-            op_impl.num_execs = op_impl.batch_load_manager.num_rows
-            if not cursor_impl._statement.requires_single_execute():
-                num_execs = op_impl.num_execs
-        elif op_impl.op_type == PIPELINE_OP_TYPE_FETCH_ONE:
-            cursor._prepare_for_execute(op_impl.statement, op_impl.parameters)
-            cursor_impl.prefetchrows = 1
-            cursor_impl.arraysize = 1
-            cursor_impl.rowfactory = op_impl.rowfactory
-            cursor_impl.fetch_lobs = op_impl.fetch_lobs
-            cursor_impl.fetch_decimals = op_impl.fetch_decimals
-        elif op_impl.op_type == PIPELINE_OP_TYPE_FETCH_MANY:
-            cursor._prepare_for_execute(op_impl.statement, op_impl.parameters)
-            cursor_impl.prefetchrows = op_impl.num_rows
-            cursor_impl.arraysize = op_impl.num_rows
-            cursor_impl.rowfactory = op_impl.rowfactory
-            cursor_impl.fetch_lobs = op_impl.fetch_lobs
-            cursor_impl.fetch_decimals = op_impl.fetch_decimals
-        elif op_impl.op_type == PIPELINE_OP_TYPE_FETCH_ALL:
-            cursor._prepare_for_execute(op_impl.statement, op_impl.parameters)
-            cursor_impl.prefetchrows = op_impl.arraysize
-            cursor_impl.arraysize = op_impl.arraysize
-            cursor_impl.rowfactory = op_impl.rowfactory
-            cursor_impl.fetch_lobs = op_impl.fetch_lobs
-            cursor_impl.fetch_decimals = op_impl.fetch_decimals
-        else:
-            errors._raise_err(errors.ERR_UNSUPPORTED_PIPELINE_OPERATION,
-                              op_type=op_impl.op_type)
-        cursor_impl._preprocess_execute(conn)
-        message = cursor_impl._create_message(ExecuteMessage, cursor)
-        message.num_execs = num_execs
-        return message
-
-    cdef list _create_messages_for_pipeline(
-        self, object conn, list results, bint continue_on_error
-    ):
-        """
-        Creates a list of messages for the pipeline and returns them after they
-        have been submitted to the database for processing.
-        """
-        cdef:
-            PipelineOpResultImpl result_impl
-            PipelineOpImpl op_impl
-            uint64_t token_num
-            Message message
-            object result
-            list messages
-        messages = []
-        token_num = 1
-        for result in results:
-            result_impl = result._impl
-            op_impl = result_impl.operation
-            try:
-                message = self._create_message_for_pipeline_op(conn, op_impl)
-            except Exception as e:
-                if not continue_on_error:
-                    raise
-                result_impl._capture_err(e)
-                continue
-            message.pipeline_result_impl = result_impl
-            message.token_num = token_num
-            token_num += 1
-            messages.append(message)
-        return messages
-
-    async def _run_pipeline_op_without_pipelining(
-        self, object conn, PipelineOpResultImpl result_impl
-    ):
-        """
-        Runs a pipeline operation without the use of pipelining.
-        """
-        cdef:
-            PipelineOpImpl op_impl = result_impl.operation
-            object cursor
-        if op_impl.op_type == PIPELINE_OP_TYPE_COMMIT:
-            await conn.commit()
-            return
-        cursor = conn.cursor()
-        if op_impl.op_type == PIPELINE_OP_TYPE_CALL_FUNC:
-            result_impl.return_value = await cursor.callfunc(
-                op_impl.name,
-                op_impl.return_type,
-                op_impl.parameters,
-                op_impl.keyword_parameters,
-            )
-        elif op_impl.op_type == PIPELINE_OP_TYPE_CALL_PROC:
-            await cursor.callproc(
-                op_impl.name, op_impl.parameters, op_impl.keyword_parameters
-            )
-        elif op_impl.op_type == PIPELINE_OP_TYPE_EXECUTE:
-            await cursor.execute(op_impl.statement, op_impl.parameters)
-        elif op_impl.op_type == PIPELINE_OP_TYPE_EXECUTE_MANY:
-            await cursor.executemany(op_impl.statement, op_impl.parameters)
-        elif op_impl.op_type == PIPELINE_OP_TYPE_FETCH_ALL:
-            await cursor.execute(op_impl.statement, op_impl.parameters)
-            cursor.rowfactory = op_impl.rowfactory
-            result_impl.rows = await cursor.fetchall()
-        elif op_impl.op_type == PIPELINE_OP_TYPE_FETCH_MANY:
-            await cursor.execute(op_impl.statement, op_impl.parameters)
-            cursor.rowfactory = op_impl.rowfactory
-            result_impl.rows = await cursor.fetchmany(op_impl.num_rows)
-        elif op_impl.op_type == PIPELINE_OP_TYPE_FETCH_ONE:
-            await cursor.execute(op_impl.statement, op_impl.parameters)
-            cursor.rowfactory = op_impl.rowfactory
-            result_impl.rows = await cursor.fetchmany(1)
-        else:
-            errors._raise_err(errors.ERR_UNSUPPORTED_PIPELINE_OPERATION,
-                              op_type=op_impl.op_type)
-        result_impl.warning = cursor.warning
-        result_impl.fetch_metadata = cursor._impl.fetch_metadata
-
-    cdef int _send_messages_for_pipeline(
-        self, list messages, bint continue_on_error
-    ) except -1:
-        """
-        Sends the messages for the pipeline to the database for processing.
-        """
-        cdef:
-            BaseAsyncProtocol protocol = <BaseAsyncProtocol> self._protocol
-            Message message
-        for message in messages:
-            try:
-                message.send(protocol._write_buf)
-            except Exception as e:
-                if not continue_on_error:
-                    raise
-                message.pipeline_result_impl._capture_err(e)
-
-    async def begin_sessionless_transaction(
-        self,
-        bytes transaction_id,
-        int timeout,
-        bint defer_round_trip
-    ):
-        """
-        Internal method for beginning a sessionless transaction.
-        """
-        cdef:
-            BaseAsyncProtocol protocol = <BaseAsyncProtocol> self._protocol
-            TransactionSwitchMessage message
-        message = self._start_sessionless_transaction(
-            transaction_id, timeout, TPC_TXN_FLAGS_NEW, defer_round_trip
-        )
-        if message is not None:
-            await protocol._process_single_message(message)
-
-    async def change_password(self, str old_password, str new_password):
-        cdef:
-            BaseAsyncProtocol protocol = <BaseAsyncProtocol> self._protocol
-            Message message
-        message = self._create_change_password_message(old_password,
-                                                       new_password)
-        await protocol._process_single_message(message)
-
     async def close(self, bint in_del=False):
         """
         Sends the messages needed to disconnect from the database.
@@ -1182,16 +1077,6 @@ cdef class AsyncThinConnImpl(BaseThinConnImpl):
             await protocol.close(self, in_del)
         except (ssl.SSLError, exceptions.DatabaseError):
             pass
-
-    async def commit(self):
-        """
-        Sends the message to commit any pending transaction.
-        """
-        cdef:
-            BaseAsyncProtocol protocol = <BaseAsyncProtocol> self._protocol
-            Message message
-        message = self._create_message(CommitMessage)
-        await protocol._process_single_message(message)
 
     async def connect(self, ConnectParamsImpl params):
         """
@@ -1207,221 +1092,17 @@ cdef class AsyncThinConnImpl(BaseThinConnImpl):
             protocol._disconnect()
             raise
 
-    def create_queue_impl(self):
+    async def process_async_operation(self, object generator):
         """
-        Create and return the implementation object to use for AQ queuing.
-        """
-        return AsyncThinQueueImpl.__new__(AsyncThinQueueImpl)
-
-    async def create_temp_lob_impl(self, DbType dbtype):
-        cdef AsyncThinLobImpl lob_impl = self._create_lob_impl(dbtype)
-        await lob_impl.create_temp()
-        return lob_impl
-
-    async def direct_path_load(self, str schema_name, str table_name,
-                               list column_names, object data,
-                               uint32_t batch_size):
-        cdef:
-            BaseAsyncProtocol protocol = <BaseAsyncProtocol> self._protocol
-            DirectPathPrepareMessage prepare_message
-            DirectPathLoadStreamMessage load_message
-            DirectPathOpMessage op_message
-            BatchLoadManager manager
-
-        # prepare message
-        prepare_message = self._create_message(DirectPathPrepareMessage)
-        prepare_message.schema_name = schema_name
-        prepare_message.table_name = table_name
-        prepare_message.column_names = column_names
-        await protocol._process_single_message(prepare_message)
-
-        # setup op message
-        op_message = self._create_message(DirectPathOpMessage)
-        op_message.prepare(prepare_message.cursor_id, TNS_DP_OP_ABORT)
-
-        # load message
-        load_message = self._create_message(DirectPathLoadStreamMessage)
-        try:
-            manager = BatchLoadManager.create_for_direct_path_load(
-                data, prepare_message.column_metadata, batch_size
-            )
-            while manager.num_rows > 0:
-                load_message.prepare(
-                    prepare_message.cursor_id,
-                    manager,
-                    prepare_message.column_metadata
-                )
-                await protocol._process_single_message(load_message)
-                manager.next_batch()
-            op_message.op_code = TNS_DP_OP_FINISH
-        finally:
-            await protocol._process_single_message(op_message)
-
-    async def get_type(self, object conn, str name):
-        cdef AsyncThinDbObjectTypeCache cache = \
-                get_dbobject_type_cache(self._dbobject_type_cache_num)
-        return await cache.get_type(conn, name)
-
-    async def ping(self):
-        cdef:
-            BaseAsyncProtocol protocol = <BaseAsyncProtocol> self._protocol
-            Message message
-        message = self._create_message(PingMessage)
-        await protocol._process_single_message(message)
-
-    async def resume_sessionless_transaction(
-        self,
-        bytes transaction_id,
-        int timeout,
-        bint defer_round_trip
-    ):
-        """
-        Internal method for resuming a sessionless transaction.
-        """
-        cdef:
-            BaseAsyncProtocol protocol = <BaseAsyncProtocol> self._protocol
-            TransactionSwitchMessage message
-        message = self._start_sessionless_transaction(
-            transaction_id, timeout, TPC_TXN_FLAGS_RESUME, defer_round_trip
-        )
-        if message is not None:
-            await protocol._process_single_message(message)
-
-    async def rollback(self):
-        """
-        Sends the message to roll back any pending transaction.
+        Processes a database operation asynchronously. The generator returns
+        messages that need to be processed by the database.
         """
         cdef:
             BaseAsyncProtocol protocol = <BaseAsyncProtocol> self._protocol
             Message message
-        message = self._create_message(RollbackMessage)
-        await protocol._process_single_message(message)
-
-    async def run_pipeline_with_pipelining(
-        self, object conn, list results, bint continue_on_error
-    ):
-        """
-        Run the pipeline with pipelining when the database supports it.
-        """
-        cdef:
-            BaseAsyncProtocol protocol = <BaseAsyncProtocol> self._protocol
-            list messages
-        messages = self._create_messages_for_pipeline(
-            conn, results, continue_on_error
-        )
-        if messages:
-            protocol._read_buf.reset_packets()
-            if continue_on_error:
-                self.pipeline_mode = TNS_PIPELINE_MODE_CONTINUE_ON_ERROR
-            else:
-                self.pipeline_mode = TNS_PIPELINE_MODE_ABORT_ON_ERROR
-            self._send_messages_for_pipeline(messages, continue_on_error)
-            await protocol.end_pipeline(self, messages, continue_on_error)
-            await self._complete_pipeline_ops(messages, continue_on_error)
-
-    async def run_pipeline_without_pipelining(
-        self, object conn, list results, bint continue_on_error
-    ):
-        """
-        Run the pipeline without pipelining when the database doesn't support
-        pipelining. Call timeouts are disabled for consistency with when
-        run with pipelining.
-        """
-        cdef:
-            uint32_t call_timeout = self._call_timeout
-            PipelineOpResultImpl result_impl
-            object result
-        try:
-            for result in results:
-                result_impl = result._impl
-                try:
-                    await self._run_pipeline_op_without_pipelining(
-                        conn, result_impl
-                    )
-                except Exception as e:
-                    if not continue_on_error:
-                        raise
-                    result_impl._capture_err(e)
-        finally:
-            self._call_timeout = call_timeout
-
-    def set_call_timeout(self, uint32_t value):
-        self._call_timeout = value
-
-    def supports_pipelining(self):
-        """
-        Returns whether the connection supports pipelining. Currently this is
-        only supported with asyncio and Oracle Database version 23, and later.
-        """
-        return self._protocol._caps.supports_pipelining
-
-    async def suspend_sessionless_transaction(self):
-        cdef:
-            BaseAsyncProtocol protocol = <BaseAsyncProtocol> self._protocol
-            TransactionSwitchMessage message
-        if self._sessionless_data is None:
-            errors._raise_err(errors.ERR_SESSIONLESS_INACTIVE)
-        elif self._sessionless_data.started_on_server:
-            errors._raise_err(errors.ERR_SESSIONLESS_DIFFERING_METHODS)
-        message = self._create_message(TransactionSwitchMessage)
-        message.operation = TNS_TPC_TXN_DETACH
-        message.flags = TPC_TXN_FLAGS_SESSIONLESS
-        await protocol._process_single_message(message)
-
-    async def tpc_begin(self, xid, uint32_t flags, uint32_t timeout):
-        cdef:
-            BaseAsyncProtocol protocol = <BaseAsyncProtocol> self._protocol
-            TransactionSwitchMessage message
-        message = self._create_message(TransactionSwitchMessage)
-        message.operation = TNS_TPC_TXN_START
-        message.xid = xid
-        message.flags = flags
-        message.timeout = timeout
-        await protocol._process_single_message(message)
-        self._transaction_context = message.context
-
-    async def tpc_commit(self, xid, bint one_phase):
-        cdef:
-            BaseAsyncProtocol protocol = <BaseAsyncProtocol> self._protocol
-            TransactionChangeStateMessage message
-        message = self._create_tpc_commit_message(xid, one_phase)
-        await protocol._process_single_message(message)
-        self._check_tpc_commit_state(message.state, one_phase)
-
-    async def tpc_end(self, xid, uint32_t flags):
-        cdef:
-            BaseAsyncProtocol protocol = <BaseAsyncProtocol> self._protocol
-            TransactionSwitchMessage message
-        message = self._create_message(TransactionSwitchMessage)
-        message.operation = TNS_TPC_TXN_DETACH
-        message.xid = xid
-        message.context = self._transaction_context
-        message.flags = flags
-        await protocol._process_single_message(message)
-        self._transaction_context = None
-
-    async def tpc_prepare(self, xid):
-        cdef:
-            BaseAsyncProtocol protocol = <BaseAsyncProtocol> self._protocol
-            TransactionChangeStateMessage message
-        message = self._create_message(TransactionChangeStateMessage)
-        message.operation = TNS_TPC_TXN_PREPARE
-        message.xid = xid
-        message.context = self._transaction_context
-        await protocol._process_single_message(message)
-        if message.state == TNS_TPC_TXN_STATE_REQUIRES_COMMIT:
-            return True
-        elif message.state == TNS_TPC_TXN_STATE_READ_ONLY:
-            return False
-        errors._raise_err(errors.ERR_UNKNOWN_TRANSACTION_STATE,
-                          state=message.state)
-
-    async def tpc_rollback(self, xid):
-        cdef:
-            BaseAsyncProtocol protocol = <BaseAsyncProtocol> self._protocol
-            TransactionChangeStateMessage message
-        message = self._create_tpc_rollback_message(xid)
-        await protocol._process_single_message(message)
-        if message.state != TNS_TPC_TXN_STATE_ABORTED:
-            errors._raise_err(errors.ERR_UNKNOWN_TRANSACTION_STATE,
-                              state=message.state)
+        while True:
+            try:
+                message = next(generator)
+                await protocol._process_single_message(message)
+            except StopIteration as e:
+                return e.value

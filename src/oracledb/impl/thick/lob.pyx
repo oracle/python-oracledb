@@ -31,6 +31,7 @@
 
 cdef class ThickLobImpl(BaseLobImpl):
     cdef:
+        ThickConnImpl _conn_impl
         dpiLob *_handle
 
     @staticmethod
@@ -48,9 +49,11 @@ cdef class ThickLobImpl(BaseLobImpl):
                 _raise_from_odpi()
         elif dpiLob_addRef(handle) < 0:
             _raise_from_odpi()
+        impl._conn_impl = conn_impl
         impl._handle = handle
         return impl
 
+    @sync_operation
     def close(self):
         """
         Internal method for closing a LOB that was opened earlier.
@@ -61,6 +64,7 @@ cdef class ThickLobImpl(BaseLobImpl):
         if status < 0:
             _raise_from_odpi()
 
+    @sync_operation
     def file_exists(self):
         """
         Internal method for returning whether the file referenced by a BFILE
@@ -82,6 +86,7 @@ cdef class ThickLobImpl(BaseLobImpl):
         if self._handle != NULL:
             dpiLob_release(self._handle)
 
+    @sync_operation
     def get_chunk_size(self):
         """
         Internal method for returning the chunk size of the LOB.
@@ -110,6 +115,7 @@ cdef class ThickLobImpl(BaseLobImpl):
         return (dir_alias[:dir_alias_len].decode(),
                 file_name[:file_name_len].decode())
 
+    @sync_operation
     def get_is_open(self):
         """
         Internal method for returning whether the LOB is open or not.
@@ -127,8 +133,12 @@ cdef class ThickLobImpl(BaseLobImpl):
         """
         Internal method for returning the maximum amount that can be read.
         """
-        return self.get_size()
+        cdef uint64_t size
+        if dpiLob_getSize(self._handle, &size) < 0:
+            _raise_from_odpi()
+        return size
 
+    @sync_operation
     def get_size(self):
         """
         Internal method for returning the size of a LOB.
@@ -138,6 +148,7 @@ cdef class ThickLobImpl(BaseLobImpl):
             _raise_from_odpi()
         return size
 
+    @sync_operation
     def open(self):
         """
         Internal method for opening a LOB.
@@ -148,6 +159,13 @@ cdef class ThickLobImpl(BaseLobImpl):
         if status < 0:
             _raise_from_odpi()
 
+    def process_sync_operation(self, object generator):
+        """
+        Processes a database operation synchronously.
+        """
+        return self._conn_impl.process_sync_operation(generator)
+
+    @sync_operation
     def read(self, uint64_t offset, uint64_t amount):
         """
         Internal method for reading a portion (or all) of the data in the LOB.
@@ -199,6 +217,7 @@ cdef class ThickLobImpl(BaseLobImpl):
         if status < 0:
             _raise_from_odpi()
 
+    @sync_operation
     def trim(self, uint64_t new_size):
         """
         Internal method for trimming the data in the LOB to the new size
@@ -209,6 +228,7 @@ cdef class ThickLobImpl(BaseLobImpl):
         if status < 0:
             _raise_from_odpi()
 
+    @sync_operation
     def write(self, object value, uint64_t offset):
         """
         Internal method for writing data to the LOB object.

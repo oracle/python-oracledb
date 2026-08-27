@@ -131,29 +131,6 @@ cdef class ThickCursorImpl(BaseCursorImpl):
         if dpiStmt_define(self._handle, pos + 1, var_impl._handle) < 0:
             _raise_from_odpi()
 
-    cdef int _fetch_rows(self, object cursor) except -1:
-        """
-        Internal method for fetching rows from a cursor.
-        """
-        cdef:
-            uint32_t temp_buffer_row_index, num_rows_in_buffer
-            bint more_rows_to_fetch
-            ThickVarImpl var_impl
-            int status
-        with nogil:
-            status = dpiStmt_fetchRows(self._handle,
-                                       self._fetch_array_size,
-                                       &temp_buffer_row_index,
-                                       &num_rows_in_buffer,
-                                       &more_rows_to_fetch)
-        if status < 0:
-            _raise_from_odpi()
-        self._buffer_index = 0
-        self._buffer_rowcount = num_rows_in_buffer
-        self._more_rows_to_fetch = more_rows_to_fetch
-        if self.fetching_arrow:
-            self._populate_arrow_arrays()
-
     cdef BaseConnImpl _get_conn_impl(self):
         """
         Internal method used to return the connection implementation associated
@@ -310,6 +287,7 @@ cdef class ThickCursorImpl(BaseCursorImpl):
             _raise_from_odpi()
         self._fixup_ref_cursor = True
 
+    @sync_operation
     def execute(self, cursor):
         """
         Internal method for executing a statement.
@@ -343,6 +321,7 @@ cdef class ThickCursorImpl(BaseCursorImpl):
         elif self._stmt_info.isReturning or self._stmt_info.isPLSQL:
             self._transform_binds()
 
+    @sync_operation
     def executemany(self, object cursor, uint32_t num_execs, bint batcherrors,
                     bint arraydmlrowcounts, uint32_t offset=0):
         """
@@ -383,6 +362,30 @@ cdef class ThickCursorImpl(BaseCursorImpl):
             self.warning = _create_new_from_info(&error_info)
         if self._stmt_info.isReturning or self._stmt_info.isPLSQL:
             self._transform_binds()
+
+    @sync_operation
+    def fetch_rows(self, object cursor):
+        """
+        Internal method for fetching rows from a cursor.
+        """
+        cdef:
+            uint32_t temp_buffer_row_index, num_rows_in_buffer
+            bint more_rows_to_fetch
+            ThickVarImpl var_impl
+            int status
+        with nogil:
+            status = dpiStmt_fetchRows(self._handle,
+                                       self._fetch_array_size,
+                                       &temp_buffer_row_index,
+                                       &num_rows_in_buffer,
+                                       &more_rows_to_fetch)
+        if status < 0:
+            _raise_from_odpi()
+        self._buffer_index = 0
+        self._buffer_rowcount = num_rows_in_buffer
+        self._more_rows_to_fetch = more_rows_to_fetch
+        if self.fetching_arrow:
+            self._populate_arrow_arrays()
 
     def get_array_dml_row_counts(self):
         """
@@ -528,6 +531,7 @@ cdef class ThickCursorImpl(BaseCursorImpl):
             self._fixup_ref_cursor = False
         return self.fetch_vars is not None
 
+    @sync_operation
     def parse(self, cursor):
         """
         Internal method for parsing a statement.
@@ -546,6 +550,7 @@ cdef class ThickCursorImpl(BaseCursorImpl):
         if num_query_cols > 0:
             self._perform_define(cursor, num_query_cols)
 
+    @sync_operation
     def scroll(self, object cursor, int32_t offset, object mode):
         cdef:
             uint32_t temp_buffer_row_index = 0, num_rows_in_buffer = 0

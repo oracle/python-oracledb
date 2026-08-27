@@ -29,7 +29,7 @@
 # thin_impl.pyx).
 #------------------------------------------------------------------------------
 
-cdef class BaseThinCursorImpl(BaseCursorImpl):
+cdef class ThinCursorImpl(BaseCursorImpl):
 
     cdef:
         BaseThinConnImpl _conn_impl
@@ -47,6 +47,22 @@ cdef class BaseThinCursorImpl(BaseCursorImpl):
 
     def __cinit__(self, conn_impl):
         self._conn_impl = conn_impl
+
+    def _build_json_converter_fn(self):
+        """
+        Internal method for building a JSON converter function.
+        """
+        if not self._conn_impl._protocol._transport._is_async:
+            return BaseCursorImpl._build_json_converter_fn(self)
+
+        async def converter(value):
+            if isinstance(value, PY_TYPE_ASYNC_LOB):
+                value = await value.read()
+            if isinstance(value, bytes):
+                value = value.decode()
+            if value:
+                return json.loads(value)
+        return converter
 
     cdef int _close(self, bint in_del) except -1:
         if self._statement is not None:
@@ -178,15 +194,6 @@ cdef class BaseThinCursorImpl(BaseCursorImpl):
         self.fetch_var_impls = self._statement._fetch_var_impls
         self._num_columns = self._statement._num_columns
 
-    cdef int _preprocess_execute(self, object conn) except -1:
-        cdef BindInfo bind_info
-        if self.bind_vars is not None:
-            self._perform_binds(conn, 0)
-        for bind_info in self._statement._bind_info_list:
-            if bind_info._bind_var_impl is None:
-                errors._raise_err(errors.ERR_MISSING_BIND_VALUE,
-                                  name=bind_info._bind_name)
-
     cdef int _post_process_scroll(self, ExecuteMessage message) except -1:
         """
         Called after a scroll operation has completed successfully. The row
@@ -227,6 +234,42 @@ cdef class BaseThinCursorImpl(BaseCursorImpl):
                 var_impl.num_elements = self._fetch_array_size
                 var_impl._values.extend([None] * num_vals)
 
+    def _preprocess_execute(self, object conn):
+        """
+        Preprocess the execute.
+        """
+        cdef:
+            ThinVarImpl var_impl
+            BindInfo bind_info
+            ssize_t idx
+        if self.bind_vars is not None:
+            self._perform_binds(conn, 0)
+        for bind_info in self._statement._bind_info_list:
+            var_impl = bind_info._bind_var_impl
+            if var_impl is None:
+                errors._raise_err(errors.ERR_MISSING_BIND_VALUE,
+                                  name=bind_info._bind_name)
+            if var_impl.metadata.dbtype._ora_type_num in (ORA_TYPE_NUM_CLOB,
+                                                          ORA_TYPE_NUM_BLOB):
+                for idx, value in enumerate(var_impl._values):
+                    if value is None or isinstance(value, (PY_TYPE_LOB,
+                                                           PY_TYPE_ASYNC_LOB)):
+                        continue
+                    var_impl._values[idx] = yield from conn._createlob(
+                        var_impl.metadata.dbtype, value
+                    )
+
+    def fetch_rows(self, object cursor):
+        """
+        Fetch some more rows from the database.
+        """
+        if self._statement._sql is None or self.scrollable:
+            yield self._create_execute_message(cursor)
+        else:
+            yield self._create_message(FetchMessage, cursor)
+        self._buffer_min_row = self.rowcount + 1
+        self._buffer_max_row = self._buffer_min_row + self._buffer_rowcount
+
     def get_array_dml_row_counts(self):
         if self._dmlrowcounts is None:
             errors._raise_err(errors.ERR_ARRAY_DML_ROW_COUNTS_NOT_ENABLED)
@@ -237,6 +280,58 @@ cdef class BaseThinCursorImpl(BaseCursorImpl):
 
     def get_bind_names(self):
         return list(self._statement._bind_info_dict.keys())
+
+    def execute(self, cursor):
+        """
+        Executes the statement.
+        """
+        cdef:
+            object conn = cursor.connection
+            MessageWithData message
+        yield from self._preprocess_execute(conn)
+        message = self._create_execute_message(cursor)
+        yield message
+        self.warning = message.warning
+        if self._statement._is_query:
+            if message.type_cache is not None:
+                yield from message.type_cache.populate_partial_types(conn)
+
+    def executemany(self, object cursor, uint32_t num_execs, bint batcherrors,
+                    bint arraydmlrowcounts, uint32_t offset=0):
+        cdef:
+            Protocol protocol = <Protocol> self._conn_impl._protocol
+            MessageWithData messsage
+            Statement stmt
+            uint32_t i
+
+        # set up message to send
+        yield from self._preprocess_execute(cursor.connection)
+        message = self._create_message(ExecuteMessage, cursor)
+        message.num_execs = num_execs
+        message.batcherrors = batcherrors
+        message.arraydmlrowcounts = arraydmlrowcounts
+        message.offset = offset
+        stmt = self._statement
+
+        # only DML statements may use the batch errors or array DML row counts
+        # flags
+        if not stmt._is_dml and (batcherrors or arraydmlrowcounts):
+            errors._raise_err(errors.ERR_EXECUTE_MODE_ONLY_FOR_DML)
+
+        # if a PL/SQL statement requires a full execute, perform only a single
+        # iteration in order to allow the determination of input/output binds
+        # to be completed; after that, an execution of the remaining iterations
+        # can be performed (but only if the cursor remains intact and there are
+        # no in/out binds)
+        while num_execs > 0 and stmt.requires_single_execute():
+            message.num_execs = 1
+            num_execs -= 1
+            yield message
+            message.offset += 1
+        if num_execs > 0:
+            message.num_execs = num_execs
+            yield message
+        self.warning = message.warning
 
     def get_implicit_results(self, connection):
         if self._implicit_resultsets is None:
@@ -250,235 +345,15 @@ cdef class BaseThinCursorImpl(BaseCursorImpl):
     def is_query(self, connection):
         return self.fetch_vars is not None
 
-
-
-cdef class ThinCursorImpl(BaseThinCursorImpl):
-
-    cdef int _fetch_rows(self, object cursor) except -1:
-        """
-        Internal method used for fetching rows from the database.
-        """
-        cdef:
-            Protocol protocol = <Protocol> self._conn_impl._protocol
-            MessageWithData message
-        if self._statement._sql is None or self.scrollable:
-            message = self._create_execute_message(cursor)
-        else:
-            message = self._create_message(FetchMessage, cursor)
-        protocol._process_single_message(message)
-        self._buffer_min_row = self.rowcount + 1
-        self._buffer_max_row = self._buffer_min_row + self._buffer_rowcount
-
-    def execute(self, cursor):
-        cdef:
-            Protocol protocol = <Protocol> self._conn_impl._protocol
-            object conn = cursor.connection
-            MessageWithData message
-        self._preprocess_execute(conn)
-        message = self._create_execute_message(cursor)
-        protocol._process_single_message(message)
-        self.warning = message.warning
-        if self._statement._is_query:
-            if message.type_cache is not None:
-                message.type_cache.populate_partial_types(conn)
-
-    def executemany(self, object cursor, uint32_t num_execs, bint batcherrors,
-                    bint arraydmlrowcounts, uint32_t offset=0):
-        cdef:
-            Protocol protocol = <Protocol> self._conn_impl._protocol
-            MessageWithData messsage
-            Statement stmt
-            uint32_t i
-
-        # set up message to send
-        self._preprocess_execute(cursor.connection)
-        message = self._create_message(ExecuteMessage, cursor)
-        message.num_execs = num_execs
-        message.batcherrors = batcherrors
-        message.arraydmlrowcounts = arraydmlrowcounts
-        message.offset = offset
-        stmt = self._statement
-
-        # only DML statements may use the batch errors or array DML row counts
-        # flags
-        if not stmt._is_dml and (batcherrors or arraydmlrowcounts):
-            errors._raise_err(errors.ERR_EXECUTE_MODE_ONLY_FOR_DML)
-
-        # if a PL/SQL statement requires a full execute, perform only a single
-        # iteration in order to allow the determination of input/output binds
-        # to be completed; after that, an execution of the remaining iterations
-        # can be performed (but only if the cursor remains intact and there are
-        # no in/out binds)
-        while num_execs > 0 and stmt.requires_single_execute():
-            message.num_execs = 1
-            num_execs -= 1
-            protocol._process_single_message(message)
-            message.offset += 1
-        if num_execs > 0:
-            message.num_execs = num_execs
-            protocol._process_single_message(message)
-        self.warning = message.warning
-
     def parse(self, cursor):
-        cdef:
-            Protocol protocol = <Protocol> self._conn_impl._protocol
-            MessageWithData message
+        cdef MessageWithData message
         message = self._create_message(ExecuteMessage, cursor)
         message.parse_only = True
-        protocol._process_single_message(message)
+        yield message
 
     def scroll(self, object cursor, int32_t offset, object mode):
-        cdef:
-            Protocol protocol = <Protocol> self._conn_impl._protocol
-            ExecuteMessage message
+        cdef ExecuteMessage message
         message = self._create_scroll_message(cursor, mode, offset)
         if message is not None:
-            protocol._process_single_message(message)
-            self._post_process_scroll(message)
-
-
-cdef class AsyncThinCursorImpl(BaseThinCursorImpl):
-
-    def _build_json_converter_fn(self):
-        """
-        Internal method for building a JSON converter function with asyncio.
-        """
-        async def converter(value):
-            if isinstance(value, PY_TYPE_ASYNC_LOB):
-                value = await value.read()
-            if isinstance(value, bytes):
-                value = value.decode()
-            if value:
-                return json.loads(value)
-        return converter
-
-    async def _fetch_rows_async(self, object cursor):
-        """
-        Internal method used for fetching rows from the database.
-        """
-        cdef MessageWithData message
-        if self._statement._sql is None or self.scrollable:
-            message = self._create_execute_message(cursor)
-        else:
-            message = self._create_message(FetchMessage, cursor)
-        await self._conn_impl._protocol._process_single_message(message)
-        self._buffer_min_row = self.rowcount + 1
-
-    async def _preprocess_execute_async(self, object conn):
-        """
-        Performs the necessary steps required before actually executing the
-        statement associated with the cursor.
-        """
-        cdef:
-            ThinVarImpl var_impl
-            BindInfo bind_info
-            ssize_t idx
-        self._preprocess_execute(conn)
-        for bind_info in self._statement._bind_info_list:
-            var_impl = bind_info._bind_var_impl
-            if var_impl._coroutine_indexes is not None:
-                for idx in var_impl._coroutine_indexes:
-                    var_impl._values[idx] = await var_impl._values[idx]
-                var_impl._coroutine_indexes = None
-
-    async def execute(self, cursor):
-        cdef:
-            object conn = cursor.connection
-            BaseAsyncProtocol protocol
-            MessageWithData message
-        protocol = <BaseAsyncProtocol> self._conn_impl._protocol
-        await self._preprocess_execute_async(conn)
-        message = self._create_execute_message(cursor)
-        await protocol._process_single_message(message)
-        self.warning = message.warning
-        if self._statement._is_query:
-            if message.type_cache is not None:
-                await message.type_cache.populate_partial_types(conn)
-
-    async def executemany(self, object cursor, uint32_t num_execs,
-                          bint batcherrors, bint arraydmlrowcounts,
-                          uint32_t offset):
-        cdef:
-            BaseAsyncProtocol protocol
-            MessageWithData messsage
-            Statement stmt
-            uint32_t i
-
-        # set up message to send
-        protocol = <BaseAsyncProtocol> self._conn_impl._protocol
-        await self._preprocess_execute_async(cursor.connection)
-        message = self._create_message(ExecuteMessage, cursor)
-        message.num_execs = num_execs
-        message.batcherrors = batcherrors
-        message.arraydmlrowcounts = arraydmlrowcounts
-        message.offset = offset
-        stmt = self._statement
-
-        # only DML statements may use the batch errors or array DML row counts
-        # flags
-        if not stmt._is_dml and (batcherrors or arraydmlrowcounts):
-            errors._raise_err(errors.ERR_EXECUTE_MODE_ONLY_FOR_DML)
-
-        # if a PL/SQL statement requires a full execute, perform only a single
-        # iteration in order to allow the determination of input/output binds
-        # to be completed; after that, an execution of the remaining iterations
-        # can be performed (but only if the cursor remains intact and there are
-        # no in/out binds)
-        while num_execs > 0 and stmt.requires_single_execute():
-            message.num_execs = 1
-            num_execs -= 1
-            await protocol._process_single_message(message)
-            message.offset += 1
-        if num_execs > 0:
-            message.num_execs = num_execs
-            await protocol._process_single_message(message)
-        self.warning = message.warning
-
-    async def fetch_df_all(self, cursor):
-        """
-        Internal method used for fetching all data as DataFrame
-        """
-        while self._more_rows_to_fetch:
-            await self._fetch_rows_async(cursor)
-        return self._finish_building_arrow_arrays()
-
-    async def fetch_df_batches(self, cursor, int batch_size):
-        """
-        Internal method used for fetching next batch as DataFrame.
-        """
-        # Return the prefetched batch
-        yield self._finish_building_arrow_arrays()
-
-        while self._more_rows_to_fetch:
-            self._create_arrow_arrays()
-            await self._fetch_rows_async(cursor)
-            if self._buffer_rowcount > 0:
-                yield self._finish_building_arrow_arrays()
-
-    async def fetch_next_row(self, cursor):
-        """
-        Internal method used for fetching the next row from a cursor.
-        """
-        if self._buffer_rowcount == 0 and self._more_rows_to_fetch:
-            await self._fetch_rows_async(cursor)
-        if self._buffer_rowcount > 0:
-            return self._create_row()
-
-    async def parse(self, cursor):
-        cdef:
-            BaseAsyncProtocol protocol
-            MessageWithData message
-        protocol = <BaseAsyncProtocol> self._conn_impl._protocol
-        message = self._create_message(ExecuteMessage, cursor)
-        message.parse_only = True
-        await protocol._process_single_message(message)
-
-    async def scroll(self, object cursor, int32_t offset, object mode):
-        cdef:
-            BaseAsyncProtocol protocol
-            MessageWithData message
-        protocol = <BaseAsyncProtocol> self._conn_impl._protocol
-        message = self._create_scroll_message(cursor, mode, offset)
-        if message is not None:
-            await protocol._process_single_message(message)
+            yield message
             self._post_process_scroll(message)

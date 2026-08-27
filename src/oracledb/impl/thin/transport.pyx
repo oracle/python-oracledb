@@ -366,7 +366,8 @@ cdef class Transport:
         """
         Sets the timeout on the transport.
         """
-        self._transport.settimeout(value or None)
+        if not self._is_async:
+            self._transport.settimeout(value or None)
 
     cdef int write_packet(self, WriteBuffer buf) except -1:
         """

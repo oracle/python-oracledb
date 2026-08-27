@@ -31,7 +31,8 @@
 
 import datetime
 import decimal
-from typing import Any, Callable, Type
+import functools
+from typing import Any, Callable, Self, Type
 
 from . import connection as connection_module
 from . import errors
@@ -100,11 +101,10 @@ class BaseCursor(metaclass=BaseMetaClass):
         stored procedures.
         """
         utils.verify_stored_proc_args(parameters, keyword_parameters)
-        self._verify_open()
         statement, bind_values = self._call_get_execute_args(
             name, parameters, keyword_parameters, return_value
         )
-        return self.execute(statement, bind_values)
+        return (yield from self._execute(statement, bind_values))
 
     def _call_get_execute_args(
         self,
@@ -137,6 +137,144 @@ class BaseCursor(metaclass=BaseMetaClass):
         statement = "".join(statement_parts)
         return (statement, bind_values)
 
+    def _callfunc(
+        self,
+        name: str,
+        return_type: Any,
+        parameters: list | tuple | None = None,
+        keyword_parameters: dict | None = None,
+        *,
+        keywordParameters: dict | None = None,
+    ) -> Any:
+        """
+        Common logic for callfunc().
+        """
+        var = self.var(return_type)
+        if keywordParameters is not None:
+            if keyword_parameters is not None:
+                errors._raise_err(
+                    errors.ERR_DUPLICATED_PARAMETER,
+                    deprecated_name="keywordParameters",
+                    new_name="keyword_parameters",
+                )
+            keyword_parameters = keywordParameters
+        yield from self._call(name, parameters, keyword_parameters, var)
+        return var.getvalue()
+
+    def _callproc(
+        self,
+        name: str,
+        parameters: list | tuple | None = None,
+        keyword_parameters: dict | None = None,
+        *,
+        keywordParameters: dict | None = None,
+    ) -> list:
+        """
+        Common logic for callproc().
+        """
+        if keywordParameters is not None:
+            if keyword_parameters is not None:
+                errors._raise_err(
+                    errors.ERR_DUPLICATED_PARAMETER,
+                    deprecated_name="keywordParameters",
+                    new_name="keyword_parameters",
+                )
+            keyword_parameters = keywordParameters
+        yield from self._call(name, parameters, keyword_parameters)
+        if parameters is None:
+            return []
+        return [
+            v.get_value(0) for v in self._impl.bind_vars[: len(parameters)]
+        ]
+
+    def _execute(
+        self,
+        statement: str | Template | None,
+        parameters: list | tuple | dict | None = None,
+        *,
+        suspend_on_success: bool = False,
+        fetch_lobs: bool | None = None,
+        fetch_decimals: bool | None = None,
+        **keyword_parameters: Any,
+    ) -> Any:
+        """
+        Common logic for execute().
+        """
+        self._prepare_for_execute(statement, parameters, keyword_parameters)
+        impl = self._impl
+        if fetch_lobs is not None:
+            impl.fetch_lobs = fetch_lobs
+        if fetch_decimals is not None:
+            impl.fetch_decimals = fetch_decimals
+        impl.suspend_on_success = suspend_on_success
+        yield from impl.execute(self)
+        if impl.fetch_vars is not None:
+            return self
+
+    def _executemany(
+        self,
+        statement: str | None,
+        parameters: Any,
+        *,
+        batcherrors: bool = False,
+        arraydmlrowcounts: bool = False,
+        suspend_on_success: bool = False,
+        batch_size: int = 2**32 - 1,
+    ) -> None:
+        """
+        Common logic for executemany().
+        """
+        manager = self._impl._prepare_for_executemany(
+            self,
+            self._normalize_statement(statement),
+            parameters,
+            batch_size,
+        )
+        self._impl.suspend_on_success = suspend_on_success
+        while manager.num_rows > 0:
+            yield from self._impl.executemany(
+                self,
+                manager.num_rows,
+                batcherrors,
+                arraydmlrowcounts,
+                manager.message_offset,
+            )
+            manager.next_batch()
+
+    def _fetchall(self) -> list:
+        """
+        Common logic for fetchall().
+        """
+        self._verify_fetch()
+        return (yield from self._impl.fetch_all_rows(self))
+
+    def _fetchmany(
+        self, size: int | None = None, numRows: int | None = None
+    ) -> list:
+        """
+        Common logic for fetchall().
+        """
+        self._verify_fetch()
+        if size is None:
+            if numRows is not None:
+                size = numRows
+            else:
+                size = self._impl.arraysize
+        elif numRows is not None:
+            errors._raise_err(
+                errors.ERR_DUPLICATED_PARAMETER,
+                deprecated_name="numRows",
+                new_name="size",
+            )
+        return (yield from self._impl.fetch_n_rows(self, size))
+
+    def _fetchone(self) -> Any:
+        """
+        Common logic for fetchone().
+        """
+        self._verify_fetch()
+        return (yield from self._impl.fetch_one_row(self))
+
     def _normalize_statement(self, statement: str | None) -> str | None:
         """
         Normalizes a statement by stripping leading and trailing spaces. If the
@@ -148,6 +286,13 @@ class BaseCursor(metaclass=BaseMetaClass):
                 errors._raise_err(errors.ERR_EMPTY_STATEMENT)
         return statement
 
+    def _parse(self, statement: str) -> None:
+        """
+        Common logic for parse().
+        """
+        self._prepare(statement)
+        yield from self._impl.parse(self)
+
     def _prepare(
         self, statement: str, tag: str = None, cache_statement: bool = True
     ) -> None:
@@ -155,27 +300,6 @@ class BaseCursor(metaclass=BaseMetaClass):
         Internal method used for preparing a statement for execution.
         """
         self._impl.prepare(statement, tag, cache_statement)
-
-    def _prepare_for_execute(
-        self, statement, parameters, keyword_parameters=None
-    ):
-        """
-        Internal method for preparing a statement for execution.
-        """
-        self._verify_open()
-        if isinstance(statement, str):
-            statement = self._normalize_statement(statement)
-        elif isinstance(statement, Template):
-            if parameters or keyword_parameters:
-                errors._raise_err(errors.ERR_TEMPLATE_WITH_DIRECT_PARAMETERS)
-            parameters = []
-            statement = self._process_template(statement, parameters)
-        self._impl._prepare_for_execute(
-            self,
-            statement,
-            parameters,
-            keyword_parameters,
-        )
 
     def _process_template(self, template, parameters):
         """
@@ -215,6 +339,26 @@ class BaseCursor(metaclass=BaseMetaClass):
                 parts.append(f":{ix}")
         return "".join(parts)
 
+    def _prepare_for_execute(
+        self, statement, parameters, keyword_parameters=None
+    ):
+        """
+        Internal method for preparing a statement for execution.
+        """
+        if isinstance(statement, str):
+            statement = self._normalize_statement(statement)
+        elif isinstance(statement, Template):
+            if parameters or keyword_parameters:
+                errors._raise_err(errors.ERR_TEMPLATE_WITH_DIRECT_PARAMETERS)
+            parameters = []
+            statement = self._process_template(statement, parameters)
+        self._impl._prepare_for_execute(
+            self,
+            statement,
+            parameters,
+            keyword_parameters,
+        )
+
     def _process_template_literal(self, value):
         """
         Internal method that transforms Python values into SQL literals for
@@ -236,11 +380,18 @@ class BaseCursor(metaclass=BaseMetaClass):
         else:
             raise TypeError(f"cannot process literal for type {type(value)!r}")
 
+    def _scroll(self, value: int = 0, mode: str = "relative") -> None:
+        """
+        Common logic for scroll().
+        """
+        if not self._impl.scrollable:
+            errors._raise_err(errors.ERR_SCROLL_NOT_SUPPORTED)
+        yield from self._impl.scroll(self, value, mode)
+
     def _verify_fetch(self) -> None:
         """
         Verifies that fetching is possible from this cursor.
         """
-        self._verify_open()
         if not self._impl.is_query(self):
             errors._raise_err(errors.ERR_NOT_A_QUERY)
 
@@ -731,6 +882,25 @@ class BaseCursor(metaclass=BaseMetaClass):
         return self._impl.warning
 
 
+def sync_operation(f):
+    """
+    Decorator function which is used on all synchronous operations that
+    interact with the database. It checks to see that the cursor is still open
+    before calling the actual method. The actual method is shared between sync
+    and async operations and uses the same name with a leading underscore.
+    """
+
+    @functools.wraps(f)
+    def wrapped_f(self, *args, **kwargs):
+        self._verify_open()
+        method = getattr(self, f"_{f.__name__}")
+        return self._connection._impl.process_sync_operation(
+            method(*args, **kwargs)
+        )
+
+    return wrapped_f
+
+
 class Cursor(BaseCursor):
 
     def __iter__(self):
@@ -740,8 +910,7 @@ class Cursor(BaseCursor):
         return self
 
     def __next__(self):
-        self._verify_fetch()
-        row = self._impl.fetch_next_row(self)
+        row = self.fetchone()
         if row is not None:
             return row
         raise StopIteration
@@ -764,6 +933,7 @@ class Cursor(BaseCursor):
         self._verify_open()
         self._impl._set_oci_attr(attr_num, attr_type, value)
 
+    @sync_operation
     def callfunc(
         self,
         name: str,
@@ -790,18 +960,9 @@ class Cursor(BaseCursor):
         parameter ``keywordParameters`` was renamed to ``keyword_parameters``.
         The old name will continue to work for a period of time.
         """
-        var = self.var(return_type)
-        if keywordParameters is not None:
-            if keyword_parameters is not None:
-                errors._raise_err(
-                    errors.ERR_DUPLICATED_PARAMETER,
-                    deprecated_name="keywordParameters",
-                    new_name="keyword_parameters",
-                )
-            keyword_parameters = keywordParameters
-        self._call(name, parameters, keyword_parameters, var)
-        return var.getvalue()
+        pass
 
+    @sync_operation
     def callproc(
         self,
         name: str,
@@ -830,20 +991,7 @@ class Cursor(BaseCursor):
         parameter ``keywordParameters`` was renamed to ``keyword_parameters``.
         The old name will continue to work for a period of time.
         """
-        if keywordParameters is not None:
-            if keyword_parameters is not None:
-                errors._raise_err(
-                    errors.ERR_DUPLICATED_PARAMETER,
-                    deprecated_name="keywordParameters",
-                    new_name="keyword_parameters",
-                )
-            keyword_parameters = keywordParameters
-        self._call(name, parameters, keyword_parameters)
-        if parameters is None:
-            return []
-        return [
-            v.get_value(0) for v in self._impl.bind_vars[: len(parameters)]
-        ]
+        pass
 
     @property
     def connection(self) -> "connection_module.Connection":
@@ -865,6 +1013,7 @@ class Cursor(BaseCursor):
         """
         return self._impl.get_handle()
 
+    @sync_operation
     def execute(
         self,
         statement: str | Template | None,
@@ -874,7 +1023,7 @@ class Cursor(BaseCursor):
         fetch_lobs: bool | None = None,
         fetch_decimals: bool | None = None,
         **keyword_parameters: Any,
-    ) -> Any:
+    ) -> Self | None:
         """
         Executes a statement against the database. See :ref:`sqlexecution`.
 
@@ -927,17 +1076,9 @@ class Cursor(BaseCursor):
         convenience to the caller (so it can be used directly as an iterator
         over the rows in the cursor); otherwise, *None* is returned.
         """
-        self._prepare_for_execute(statement, parameters, keyword_parameters)
-        impl = self._impl
-        if fetch_lobs is not None:
-            impl.fetch_lobs = fetch_lobs
-        if fetch_decimals is not None:
-            impl.fetch_decimals = fetch_decimals
-        impl.suspend_on_success = suspend_on_success
-        impl.execute(self)
-        if impl.fetch_vars is not None:
-            return self
+        pass
 
+    @sync_operation
     def executemany(
         self,
         statement: str | None,
@@ -1005,24 +1146,9 @@ class Cursor(BaseCursor):
         string of length 1 so any values that are later bound as numbers or
         dates will raise a TypeError exception.
         """
-        self._verify_open()
-        manager = self._impl._prepare_for_executemany(
-            self,
-            self._normalize_statement(statement),
-            parameters,
-            batch_size,
-        )
-        self._impl.suspend_on_success = suspend_on_success
-        while manager.num_rows > 0:
-            self._impl.executemany(
-                self,
-                manager.num_rows,
-                batcherrors,
-                arraydmlrowcounts,
-                manager.message_offset,
-            )
-            manager.next_batch()
+        pass
 
+    @sync_operation
     def fetchall(self) -> list:
         """
         Fetches all (remaining) rows of a SELECT query result, returning them
@@ -1039,16 +1165,9 @@ class Cursor(BaseCursor):
         An exception is raised if the previous call to :meth:`execute()` did
         not produce any result set or no call was issued yet.
         """
-        self._verify_fetch()
-        result = []
-        fetch_next_row = self._impl.fetch_next_row
-        while True:
-            row = fetch_next_row(self)
-            if row is None:
-                break
-            result.append(row)
-        return result
+        pass
 
+    @sync_operation
     def fetchmany(
         self, size: int | None = None, numRows: int | None = None
     ) -> list:
@@ -1067,27 +1186,9 @@ class Cursor(BaseCursor):
         An exception is raised if the previous call to :meth:`execute()` did
         not produce any result set or no call was issued yet.
         """
-        self._verify_fetch()
-        if size is None:
-            if numRows is not None:
-                size = numRows
-            else:
-                size = self._impl.arraysize
-        elif numRows is not None:
-            errors._raise_err(
-                errors.ERR_DUPLICATED_PARAMETER,
-                deprecated_name="numRows",
-                new_name="size",
-            )
-        result = []
-        fetch_next_row = self._impl.fetch_next_row
-        while len(result) < size:
-            row = fetch_next_row(self)
-            if row is None:
-                break
-            result.append(row)
-        return result
+        pass
 
+    @sync_operation
     def fetchone(self) -> Any:
         """
         Fetches the next row of a SELECT query result set, returning a single
@@ -1099,19 +1200,18 @@ class Cursor(BaseCursor):
         :attr:`arraysize` attribute can affect performance, as internally data
         is fetched in batches of that size from Oracle Database.
         """
-        self._verify_fetch()
-        return self._impl.fetch_next_row(self)
+        pass
 
+    @sync_operation
     def parse(self, statement: str) -> None:
         """
         This can be used to parse a statement without actually executing it
         (parsing step is done automatically by Oracle when a statement is
         :meth:`executed <execute>`).
         """
-        self._verify_open()
-        self._prepare(statement)
-        self._impl.parse(self)
+        pass
 
+    @sync_operation
     def scroll(self, value: int = 0, mode: str = "relative") -> None:
         """
         Scrolls the cursor in the result set to a new position according to the
@@ -1126,10 +1226,26 @@ class Cursor(BaseCursor):
         An error is raised if the mode is *relative* or *absolute* and the
         scroll operation would position the cursor outside of the result set.
         """
+        pass
+
+
+def async_operation(f):
+    """
+    Decorator function which is used on all asynchronous operations that
+    interact with the database. It checks to see that the cursor is still open
+    before calling the actual method. The actual method is shared between sync
+    and async operations and uses the same name with a leading underscore.
+    """
+
+    @functools.wraps(f)
+    async def wrapped_f(self, *args, **kwargs):
         self._verify_open()
-        if not self._impl.scrollable:
-            errors._raise_err(errors.ERR_SCROLL_NOT_SUPPORTED)
-        self._impl.scroll(self, value, mode)
+        method = getattr(self, f"_{f.__name__}")
+        return await self._connection._impl.process_async_operation(
+            method(*args, **kwargs)
+        )
+
+    return wrapped_f
 
 
 class AsyncCursor(BaseCursor):
@@ -1157,12 +1273,12 @@ class AsyncCursor(BaseCursor):
         return self
 
     async def __anext__(self):
-        self._verify_fetch()
-        row = await self._impl.fetch_next_row(self)
+        row = await self.fetchone()
         if row is not None:
             return row
         raise StopAsyncIteration
 
+    @async_operation
     async def callfunc(
         self,
         name: str,
@@ -1183,10 +1299,9 @@ class AsyncCursor(BaseCursor):
 
         Use :meth:`var()` to define any OUT or IN OUT parameters, if necessary.
         """
-        var = self.var(return_type)
-        await self._call(name, parameters, keyword_parameters, var)
-        return var.getvalue()
+        pass
 
+    @async_operation
     async def callproc(
         self,
         name: str,
@@ -1209,12 +1324,7 @@ class AsyncCursor(BaseCursor):
         :ref:`REF CURSOR <refcur>` parameters or :ref:`Implicit Results
         <implicitresults>`.
         """
-        await self._call(name, parameters, keyword_parameters)
-        if parameters is None:
-            return []
-        return [
-            v.get_value(0) for v in self._impl.bind_vars[: len(parameters)]
-        ]
+        pass
 
     @property
     def connection(self) -> "connection_module.AsyncConnection":
@@ -1224,6 +1334,7 @@ class AsyncCursor(BaseCursor):
         """
         return self._connection
 
+    @async_operation
     async def execute(
         self,
         statement: str | Template | None,
@@ -1233,7 +1344,7 @@ class AsyncCursor(BaseCursor):
         fetch_lobs: bool | None = None,
         fetch_decimals: bool | None = None,
         **keyword_parameters: Any,
-    ) -> None:
+    ) -> Self | None:
         """
         Executes a statement against the database. See :ref:`sqlexecution`.
 
@@ -1286,15 +1397,9 @@ class AsyncCursor(BaseCursor):
         convenience to the caller (so it can be used directly as an iterator
         over the rows in the cursor); otherwise, *None* is returned.
         """
-        self._prepare_for_execute(statement, parameters, keyword_parameters)
-        impl = self._impl
-        impl.suspend_on_success = suspend_on_success
-        if fetch_lobs is not None:
-            impl.fetch_lobs = fetch_lobs
-        if fetch_decimals is not None:
-            impl.fetch_decimals = fetch_decimals
-        await self._impl.execute(self)
+        pass
 
+    @async_operation
     async def executemany(
         self,
         statement: str | None,
@@ -1361,21 +1466,9 @@ class AsyncCursor(BaseCursor):
         any values that are later bound as numbers or dates will raise a
         TypeError exception.
         """
-        self._verify_open()
-        manager = self._impl._prepare_for_executemany(
-            self, self._normalize_statement(statement), parameters, batch_size
-        )
-        self._impl.suspend_on_success = suspend_on_success
-        while manager.num_rows > 0:
-            await self._impl.executemany(
-                self,
-                manager.num_rows,
-                batcherrors,
-                arraydmlrowcounts,
-                manager.message_offset,
-            )
-            manager.next_batch()
+        pass
 
+    @async_operation
     async def fetchall(self) -> list:
         """
         Fetches all (remaining) rows of a SELECT query result, returning them
@@ -1388,16 +1481,9 @@ class AsyncCursor(BaseCursor):
         affect the performance of this operation, as internally data is fetched
         in batches of that size from the database.
         """
-        self._verify_fetch()
-        result = []
-        fetch_next_row = self._impl.fetch_next_row
-        while True:
-            row = await fetch_next_row(self)
-            if row is None:
-                break
-            result.append(row)
-        return result
+        pass
 
+    @async_operation
     async def fetchmany(self, size: int | None = None) -> list:
         """
         Fetches the next set of rows of a SELECT query result, returning a list
@@ -1413,18 +1499,9 @@ class AsyncCursor(BaseCursor):
         An exception is raised if the previous call to :meth:`execute()` did
         not produce any result set or no call was issued yet.
         """
-        self._verify_fetch()
-        if size is None:
-            size = self._impl.arraysize
-        result = []
-        fetch_next_row = self._impl.fetch_next_row
-        while len(result) < size:
-            row = await fetch_next_row(self)
-            if row is None:
-                break
-            result.append(row)
-        return result
+        pass
 
+    @async_operation
     async def fetchone(self) -> Any:
         """
         Fetches the next row of a SELECT query result set, returning a single
@@ -1436,19 +1513,18 @@ class AsyncCursor(BaseCursor):
         :attr:`arraysize` attribute can affect performance, as internally data
         is fetched in batches of that size from Oracle Database.
         """
-        self._verify_fetch()
-        return await self._impl.fetch_next_row(self)
+        pass
 
+    @async_operation
     async def parse(self, statement: str) -> None:
         """
         This can be used to parse a statement without actually executing it
         (parsing step is done automatically by Oracle when a statement is
         :meth:`executed <execute>`).
         """
-        self._verify_open()
-        self._prepare(statement)
-        await self._impl.parse(self)
+        pass
 
+    @async_operation
     async def scroll(self, value: int = 0, mode: str = "relative") -> None:
         """
         Scrolls the cursor in the result set to a new position according to the
@@ -1463,7 +1539,4 @@ class AsyncCursor(BaseCursor):
         An error is raised if the mode is *relative* or *absolute* and the
         scroll operation would position the cursor outside of the result set.
         """
-        self._verify_open()
-        if not self._impl.scrollable:
-            errors._raise_err(errors.ERR_SCROLL_NOT_SUPPORTED)
-        await self._impl.scroll(self, value, mode)
+        pass

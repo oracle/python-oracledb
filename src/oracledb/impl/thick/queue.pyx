@@ -38,6 +38,7 @@ cdef class ThickQueueImpl(BaseQueueImpl):
         if self._handle != NULL:
             dpiQueue_release(self._handle)
 
+    @sync_operation
     def deq_many(self, uint32_t max_num_messages):
         """
         Internal method for dequeuing multiple message from a queue.
@@ -69,6 +70,7 @@ cdef class ThickQueueImpl(BaseQueueImpl):
             cpython.PyMem_Free(handles)
         return result
 
+    @sync_operation
     def deq_one(self):
         """
         Internal method for dequeuing a single message from a queue.
@@ -85,6 +87,7 @@ cdef class ThickQueueImpl(BaseQueueImpl):
             props._initialize(self)
             return props
 
+    @sync_operation
     def enq_many(self, list props_impls):
         """
         Internal method for enqueuing many messages into a queue.
@@ -106,6 +109,7 @@ cdef class ThickQueueImpl(BaseQueueImpl):
         if status < 0:
             _raise_from_odpi()
 
+    @sync_operation
     def enq_one(self, ThickMsgPropsImpl props_impl):
         """
         Internal method for enqueuing a single message into a queue.

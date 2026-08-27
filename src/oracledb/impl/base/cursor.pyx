@@ -269,12 +269,6 @@ cdef class BaseCursorImpl:
         """
         raise NotImplementedError()
 
-    cdef int _fetch_rows(self, object cursor) except -1:
-        """
-        Internal method used for fetching rows from a cursor.
-        """
-        raise NotImplementedError()
-
     cdef BaseConnImpl _get_conn_impl(self):
         """
         Internal method used to return the connection implementation associated
@@ -382,8 +376,7 @@ cdef class BaseCursorImpl:
         """
         Internal method for preparing a statement for execution.
         """
-        cdef:
-            bint prepare_needed
+        cdef bint prepare_needed
 
         # verify parameters
         if statement is None and self.statement is None:
@@ -570,43 +563,78 @@ cdef class BaseCursorImpl:
                     bint arraydmlrowcounts, uint32_t offset=0):
         errors._raise_not_supported("executing a statement in batch")
 
-    def fetch_next_row(self, cursor):
+    def fetch_all_rows(self, cursor):
         """
-        Internal method used for fetching the next row from a cursor.
+        Fetch all remaining rows from the cursor.
+        """
+        cdef list result = []
+        while True:
+            while self._buffer_rowcount > 0:
+                result.append(self._create_row())
+            if not self._more_rows_to_fetch:
+                break
+            yield from self.fetch_rows(cursor)
+        return result
+
+    def fetch_n_rows(self, cursor, n):
+        """
+        Fetch up to N remaining rows from the cursor.
+        """
+        cdef:
+            ssize_t num_rows = n
+            list result = []
+        while True:
+            while num_rows > 0 and self._buffer_rowcount > 0:
+                result.append(self._create_row())
+                num_rows -= 1
+            if num_rows == 0 or not self._more_rows_to_fetch:
+                break
+            yield from self.fetch_rows(cursor)
+        return result
+
+    def fetch_one_row(self, cursor):
+        """
+        Fetch one row from the cursor.
         """
         if self._buffer_rowcount == 0 and self._more_rows_to_fetch:
-            self._fetch_rows(cursor)
+            yield from self.fetch_rows(cursor)
         if self._buffer_rowcount > 0:
             return self._create_row()
 
     def fetch_df_all(self, cursor):
         """
-        Internal method used for fetching all data as DataFrame
+        Fetch all rows as a DataFrame
         """
         while self._more_rows_to_fetch:
-            self._fetch_rows(cursor)
+            yield from self.fetch_rows(cursor)
         return self._finish_building_arrow_arrays()
 
-    def fetch_df_batches(self, cursor, int batch_size):
+    def fetch_df_first_batch(self, cursor):
         """
-        Internal method used for fetching next batch as DataFrame
-        cursor.arraysize = batchsize
+        Fetches the initial batch of a set of batches. In thin mode, the
+        prefetched rows have already been processed but in thick mode, that
+        needs to be done explicitly.
         """
-        cdef:
-            BaseConnImpl conn_impl = self._get_conn_impl()
-            bint returned = False
+        cdef BaseConnImpl conn_impl = self._get_conn_impl()
+        if not conn_impl.thin:
+            yield from self.fetch_rows(cursor)
+        return self._finish_building_arrow_arrays()
 
-        # Return the prefetched batch (thin mode)
-        if conn_impl.thin:
-            returned = True
-            yield self._finish_building_arrow_arrays()
-
-        while self._more_rows_to_fetch:
+    def fetch_df_next_batch(self, cursor):
+        """
+        Fetches the next batch of a set of batches.
+        """
+        if self._more_rows_to_fetch:
             self._create_arrow_arrays()
-            self._fetch_rows(cursor)
-            if not returned or self._buffer_rowcount > 0:
-                returned = True
-                yield self._finish_building_arrow_arrays()
+            yield from self.fetch_rows(cursor)
+            if self._buffer_rowcount > 0:
+                return self._finish_building_arrow_arrays()
+
+    def fetch_rows(self, cursor):
+        """
+        Internal method used for fetching rows from a cursor.
+        """
+        errors._raise_not_supported("fetching rows from the database")
 
     def get_array_dml_row_counts(self):
         errors._raise_not_supported("getting a list of array DML row counts")

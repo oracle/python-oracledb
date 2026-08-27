@@ -67,7 +67,6 @@ cdef class ExecuteMessage(MessageWithData):
         cdef:
             uint32_t options, exec_flags = 0, num_params = 0, num_iters = 1
             Statement stmt = self.cursor_impl._statement
-            BaseThinCursorImpl cursor_impl = self.cursor_impl
             uint32_t registration_id_msb, registration_id_lsb
             list params = stmt._bind_info_list
 
@@ -82,7 +81,7 @@ cdef class ExecuteMessage(MessageWithData):
             exec_flags |= TNS_EXEC_FLAGS_IMPLICIT_RESULTSET
             if not self.scroll_operation:
                 options |= TNS_EXEC_OPTION_EXECUTE
-        if cursor_impl.scrollable and not self.parse_only:
+        if self.cursor_impl.scrollable and not self.parse_only:
             exec_flags |= TNS_EXEC_FLAGS_SCROLLABLE
             exec_flags |= TNS_EXEC_FLAGS_NO_CANCEL_ON_EOF
         if stmt._cursor_id == 0 or stmt._is_ddl:

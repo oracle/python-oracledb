@@ -776,7 +776,6 @@ cdef class BaseCursorImpl:
                                        OracleMetadata metadata)
     cdef object _create_row(self)
     cdef BaseVarImpl _create_var_impl(self, object conn)
-    cdef int _fetch_rows(self, object cursor) except -1
     cdef BaseConnImpl _get_conn_impl(self)
     cdef object _get_input_type_handler(self)
     cdef object _get_output_type_handler(self, bint* uses_fetch_info)

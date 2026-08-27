@@ -32,6 +32,7 @@
 from __future__ import annotations
 
 import datetime
+import functools
 from typing import Any
 
 from . import connection as connection_module
@@ -50,6 +51,45 @@ class BaseQueue(metaclass=BaseMetaClass):
         queue._payload_type = None
         queue._impl = impl
         return queue
+
+    def _deqmany(self, max_num_messages: int) -> list["MessageProperties"]:
+        """
+        Common logic for deqmany().
+        """
+        if self._impl._supports_deq_many(self._connection._impl):
+            message_impls = yield from self._impl.deq_many(max_num_messages)
+        else:
+            message_impls = []
+            while len(message_impls) < max_num_messages:
+                message_impl = yield from self._impl.deq_one()
+                if message_impl is None:
+                    break
+                message_impls.append(message_impl)
+        return [MessageProperties._from_impl(impl) for impl in message_impls]
+
+    def _deqone(self) -> MessageProperties | None:
+        """
+        Common logic for deqone().
+        """
+        message_impl = yield from self._impl.deq_one()
+        if message_impl is not None:
+            return MessageProperties._from_impl(message_impl)
+
+    def _enqmany(self, messages: list["MessageProperties"]) -> None:
+        """
+        Common logic for enqmany().
+        """
+        for message in messages:
+            self._verify_message(message)
+        message_impls = [m._impl for m in messages]
+        yield from self._impl.enq_many(message_impls)
+
+    def _enqone(self, message: "MessageProperties") -> None:
+        """
+        Common logic for enqone().
+        """
+        self._verify_message(message)
+        yield from self._impl.enq_one(message._impl)
 
     def _verify_message(self, message: "MessageProperties") -> None:
         """
@@ -141,23 +181,31 @@ class BaseQueue(metaclass=BaseMetaClass):
         return self.payload_type
 
 
+def sync_operation(f):
+    """
+    Decorator function which is used on all synchronous operations that
+    interact with the database.
+    """
+
+    @functools.wraps(f)
+    def wrapped_f(self, *args, **kwargs):
+        method = getattr(self, f"_{f.__name__}")
+        return self._connection._impl.process_sync_operation(
+            method(*args, **kwargs)
+        )
+
+    return wrapped_f
+
+
 class Queue(BaseQueue):
 
+    @sync_operation
     def deqmany(self, max_num_messages: int) -> list["MessageProperties"]:
         """
         Dequeues up to the specified number of messages from the queue and
         returns a list of these messages.
         """
-        if self._impl._supports_deq_many(self._connection._impl):
-            message_impls = self._impl.deq_many(max_num_messages)
-        else:
-            message_impls = []
-            while len(message_impls) < max_num_messages:
-                message_impl = self._impl.deq_one()
-                if message_impl is None:
-                    break
-                message_impls.append(message_impl)
-        return [MessageProperties._from_impl(impl) for impl in message_impls]
+        pass
 
     def deqMany(self, max_num_messages: int) -> list["MessageProperties"]:
         """
@@ -165,14 +213,13 @@ class Queue(BaseQueue):
         """
         return self.deqmany(max_num_messages)
 
+    @sync_operation
     def deqone(self) -> MessageProperties | None:
         """
         Dequeues at most one message from the queue and returns it. If no
         message is dequeued, None is returned.
         """
-        message_impl = self._impl.deq_one()
-        if message_impl is not None:
-            return MessageProperties._from_impl(message_impl)
+        pass
 
     def deqOne(self) -> MessageProperties | None:
         """
@@ -180,6 +227,7 @@ class Queue(BaseQueue):
         """
         return self.deqone()
 
+    @sync_operation
     def enqmany(self, messages: list["MessageProperties"]) -> None:
         """
         Enqueues multiple messages into the queue. The messages parameter must
@@ -195,10 +243,7 @@ class Queue(BaseQueue):
         multiple calls to :meth:`Queue.enqone()`. The function
         :meth:`Queue.deqmany()` call is not affected.
         """
-        for message in messages:
-            self._verify_message(message)
-        message_impls = [m._impl for m in messages]
-        self._impl.enq_many(message_impls)
+        pass
 
     def enqMany(self, messages: list["MessageProperties"]) -> None:
         """
@@ -206,14 +251,14 @@ class Queue(BaseQueue):
         """
         return self.enqmany(messages)
 
+    @sync_operation
     def enqone(self, message: "MessageProperties") -> None:
         """
         Enqueues a single message into the queue. The message must be a message
         property object which has had its payload attribute set to a value that
         the queue supports.
         """
-        self._verify_message(message)
-        self._impl.enq_one(message._impl)
+        pass
 
     def enqOne(self, message: "MessageProperties") -> None:
         """
@@ -222,8 +267,25 @@ class Queue(BaseQueue):
         return self.enqone(message)
 
 
+def async_operation(f):
+    """
+    Decorator function which is used on all asynchronous operations that
+    interact with the database.
+    """
+
+    @functools.wraps(f)
+    async def wrapped_f(self, *args, **kwargs):
+        method = getattr(self, f"_{f.__name__}")
+        return await self._connection._impl.process_async_operation(
+            method(*args, **kwargs)
+        )
+
+    return wrapped_f
+
+
 class AsyncQueue(BaseQueue):
 
+    @async_operation
     async def deqmany(
         self, max_num_messages: int
     ) -> list["MessageProperties"]:
@@ -231,18 +293,17 @@ class AsyncQueue(BaseQueue):
         Dequeues up to the specified number of messages from the queue and
         returns a list of these messages.
         """
-        message_impls = await self._impl.deq_many(max_num_messages)
-        return [MessageProperties._from_impl(impl) for impl in message_impls]
+        pass
 
+    @async_operation
     async def deqone(self) -> MessageProperties | None:
         """
         Dequeues at most one message from the queue and returns it. If no
         message is dequeued, None is returned.
         """
-        message_impl = await self._impl.deq_one()
-        if message_impl is not None:
-            return MessageProperties._from_impl(message_impl)
+        pass
 
+    @async_operation
     async def enqmany(self, messages: list["MessageProperties"]) -> None:
         """
         Enqueues multiple messages into the queue. The messages parameter must
@@ -255,19 +316,16 @@ class AsyncQueue(BaseQueue):
         or connections from different pools, or make multiple calls to
         enqone() instead. The function Queue.deqmany() call is not affected.
         """
-        for message in messages:
-            self._verify_message(message)
-        message_impls = [m._impl for m in messages]
-        await self._impl.enq_many(message_impls)
+        pass
 
+    @async_operation
     async def enqone(self, message: "MessageProperties") -> None:
         """
         Enqueues a single message into the queue. The message must be a message
         property object which has had its payload attribute set to a value that
         the queue supports.
         """
-        self._verify_message(message)
-        await self._impl.enq_one(message._impl)
+        pass
 
 
 class DeqOptions(metaclass=BaseMetaClass):

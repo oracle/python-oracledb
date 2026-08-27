@@ -128,7 +128,7 @@ cdef class BaseProtocol:
         of the request being ended.
         """
         cdef:
-            BaseThinDbObjectTypeCache type_cache
+            ThinDbObjectTypeCache type_cache
             int cache_num
         if conn_impl._dbobject_type_cache_num > 0:
             cache_num = conn_impl._dbobject_type_cache_num
@@ -896,7 +896,10 @@ cdef class BaseAsyncProtocol(BaseProtocol):
         """
         message.preprocess()
         async with self._request_lock:
-            await self._process_message(message)
+            if isinstance(message, EndPipelineMessage):
+                await message.process_pipeline()
+            else:
+                await self._process_message(message)
             if message.resend:
                 await self._process_message(message)
         await message.postprocess_async()

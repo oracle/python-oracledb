@@ -34,7 +34,7 @@ cdef class ThinVarImpl(BaseVarImpl):
         object _last_raw_value
         ArrowArrayImpl _last_arrow_array
         ArrowArrayImpl _saved_arrow_array
-        list _coroutine_indexes
+        bint _plsql_lob_transformation
 
     cdef int _bind(self, object conn, BaseCursorImpl cursor_impl,
                    uint32_t num_execs, object name, uint32_t pos) except -1:
@@ -47,7 +47,6 @@ cdef class ThinVarImpl(BaseVarImpl):
             ssize_t idx, num_binds, num_vars
             BindInfo bind_info
             str normalized_name
-            bint is_async
             object value
 
         # for PL/SQL blocks, if the size of a string or bytes object exceeds
@@ -62,27 +61,7 @@ cdef class ThinVarImpl(BaseVarImpl):
                 metadata.dbtype = DB_TYPE_NCLOB
             else:
                 metadata.dbtype = DB_TYPE_CLOB
-            orig_converter = self.outconverter
-            def converter(v):
-                v = v.read()
-                if orig_converter is not None:
-                    v = orig_converter(v)
-                return v
-            self.outconverter = converter
-
-        # for variables containing LOBs, create temporary LOBs, if needed
-        is_async = thin_cursor_impl._conn_impl._protocol._transport._is_async
-        if metadata.dbtype._ora_type_num == ORA_TYPE_NUM_CLOB \
-                or metadata.dbtype._ora_type_num == ORA_TYPE_NUM_BLOB:
-            for idx, value in enumerate(self._values):
-                if value is not None \
-                        and not isinstance(value, (PY_TYPE_LOB,
-                                                   PY_TYPE_ASYNC_LOB)):
-                    self._values[idx] = conn.createlob(metadata.dbtype, value)
-                    if is_async:
-                        if self._coroutine_indexes is None:
-                            self._coroutine_indexes = []
-                        self._coroutine_indexes.append(idx)
+            self._plsql_lob_transformation = True
 
         # bind by name
         if name is not None:

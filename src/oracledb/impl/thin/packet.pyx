@@ -478,7 +478,7 @@ cdef class ReadBuffer(Buffer):
         """
         cdef:
             uint32_t chunk_size, num_bytes
-            BaseThinLobImpl lob_impl
+            ThinLobImpl lob_impl
             uint64_t size
             bytes locator
         self.read_ub4(&num_bytes)
@@ -865,7 +865,7 @@ cdef class WriteBuffer(Buffer):
         self.write_bytes_with_two_lengths(binary_value)
         self.write_ub2(keyword)
 
-    cdef int write_lob_with_length(self, BaseThinLobImpl lob_impl) except -1:
+    cdef int write_lob_with_length(self, ThinLobImpl lob_impl) except -1:
         """
         Writes a LOB locator to the buffer.
         """

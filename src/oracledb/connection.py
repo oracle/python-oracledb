@@ -79,6 +79,389 @@ class BaseConnection(metaclass=BaseMetaClass):
             return f"<{cls_name} to externally identified user>"
         return f"<{cls_name} to {self.username}@{self.dsn}>"
 
+    def _begin_sessionless_transaction(
+        self,
+        transaction_id: str | bytes | None = None,
+        timeout: int = 60,
+        defer_round_trip: bool = False,
+    ) -> bytes:
+        """
+        Common logic for begin_sessionless_transaction().
+        """
+        if not isinstance(timeout, int) or timeout <= 0:
+            raise TypeError("timeout must be a positive integer")
+        normalized_txnid = normalize_sessionless_transaction_id(transaction_id)
+        yield from self._impl.begin_sessionless_transaction(
+            normalized_txnid, timeout, defer_round_trip
+        )
+        return normalized_txnid
+
+    def _changepassword(self, old_password: str, new_password: str) -> None:
+        """
+        Common logic for changepassword().
+        """
+        yield from self._impl.change_password(old_password, new_password)
+
+    def _commit(self) -> None:
+        """
+        Common logic for commit().
+        """
+        yield from self._impl.commit()
+
+    def _createlob(
+        self, lob_type: DbType, data: str | bytes | None = None
+    ) -> LOB:
+        """
+        Common logic for createlob().
+        """
+        if lob_type not in (DB_TYPE_CLOB, DB_TYPE_NCLOB, DB_TYPE_BLOB):
+            message = (
+                "parameter should be one of oracledb.DB_TYPE_CLOB, "
+                "oracledb.DB_TYPE_BLOB or oracledb.DB_TYPE_NCLOB"
+            )
+            raise TypeError(message)
+        impl = yield from self._impl.create_temp_lob_impl(lob_type)
+        cls = LOB if isinstance(self, Connection) else AsyncLOB
+        lob = cls._from_impl(impl)
+        if data:
+            yield from lob._write(data)
+        return lob
+
+    def _direct_path_load(
+        self,
+        schema_name: str,
+        table_name: str,
+        column_names: list[str],
+        data: Any,
+        *,
+        batch_size: int = 2**32 - 1,
+    ) -> None:
+        """
+        Common logic for direct_path_load().
+        """
+        yield from self._impl.direct_path_load(
+            schema_name, table_name, column_names, data, batch_size
+        )
+
+    def _fetch_df_all(
+        self,
+        statement: str | None = None,
+        parameters: list | tuple | dict | None = None,
+        arraysize: int | None = None,
+        *,
+        fetch_decimals: bool | None = None,
+        requested_schema: Any = None,
+        handle: Any = None,
+    ) -> DataFrame:
+        """
+        Common logic for fetch_df_all().
+        """
+        if not (statement is not None) ^ (handle is not None):
+            raise ValueError(
+                "One of the parameters 'statement' or 'handle' "
+                "is required but not both"
+            )
+        if handle is None:
+            cursor = self.cursor()
+        else:
+            cursor = self.cursor(handle=handle)
+        cursor._impl.fetching_arrow = True
+        if requested_schema is not None:
+            cursor._impl.schema_impl = ArrowSchemaImpl.from_arrow_schema(
+                requested_schema
+            )
+        if arraysize is not None:
+            cursor.arraysize = arraysize
+        cursor.prefetchrows = cursor.arraysize
+        if statement is not None:
+            yield from cursor._execute(
+                statement,
+                parameters,
+                fetch_decimals=fetch_decimals,
+            )
+        cursor._verify_fetch()
+        return (yield from cursor._impl.fetch_df_all(cursor))
+
+    def _fetch_df_first_batch(
+        self,
+        statement: str | None = None,
+        parameters: list | tuple | dict | None = None,
+        size: int | None = None,
+        fetch_decimals: bool | None = None,
+        requested_schema: Any = None,
+        handle: Any = None,
+    ) -> Iterator[DataFrame]:
+        """
+        Fetches the first batch for fetch_df_batches().
+        """
+        if not (statement is not None) ^ (handle is not None):
+            raise ValueError(
+                "One of the parameters 'statement' or 'handle' "
+                "is required but not both"
+            )
+        if handle is None:
+            cursor = self.cursor()
+        else:
+            cursor = self.cursor(handle=handle)
+        cursor._impl.fetching_arrow = True
+        if requested_schema is not None:
+            cursor._impl.schema_impl = ArrowSchemaImpl.from_arrow_schema(
+                requested_schema
+            )
+        if size is not None:
+            cursor.arraysize = size
+        cursor.prefetchrows = cursor.arraysize
+        if statement is not None:
+            yield from cursor._execute(
+                statement,
+                parameters,
+                fetch_decimals=fetch_decimals,
+            )
+        cursor._verify_fetch()
+        if size is None:
+            batch = yield from cursor._impl.fetch_df_all(cursor)
+        else:
+            batch = yield from cursor._impl.fetch_df_first_batch(cursor)
+        return (batch, cursor)
+
+    def _gettype(self, name: str) -> DbObjectType:
+        """
+        Returns a type object given its name. This can then be used to create
+        objects which can be bound to cursors created by this connection.
+        """
+        obj_type_impl = yield from self._impl.get_type(self, name)
+        return DbObjectType._from_impl(obj_type_impl)
+
+    def _ping(self) -> None:
+        """
+        Common logic for ping().
+        """
+        yield from self._impl.ping()
+
+    def _resume_sessionless_transaction(
+        self,
+        transaction_id: str | bytes,
+        timeout: int = 60,
+        defer_round_trip: bool = False,
+    ) -> bytes:
+        """
+        Common logic for resume_sessionless_transaction().
+        """
+        if transaction_id is None:
+            raise ValueError("transaction_id is required for resuming")
+
+        normalized_txnid = normalize_sessionless_transaction_id(transaction_id)
+
+        if not (isinstance(timeout, int) and timeout >= 0):
+            raise TypeError("timeout must be a non-negative integer")
+
+        yield from self._impl.resume_sessionless_transaction(
+            normalized_txnid, timeout, defer_round_trip
+        )
+        return normalized_txnid
+
+    def _rollback(self) -> None:
+        """
+        Common logic for rollback().
+        """
+        yield from self._impl.rollback()
+
+    def _run_pipeline(
+        self,
+        pipeline: Pipeline,
+        continue_on_error: bool = False,
+    ) -> list[PipelineOpResult]:
+        """
+        Common logic for run_pipeline().
+        """
+        results = [op._create_result() for op in pipeline.operations]
+        if self._impl.supports_pipelining() and len(results) > 1:
+            yield from self._impl.run_pipeline_with_pipelining(
+                self, results, continue_on_error
+            )
+        else:
+            yield from self._impl.run_pipeline_without_pipelining(
+                self, results, continue_on_error
+            )
+        return results
+
+    def _subscribe(
+        self,
+        namespace: int = oracledb.SUBSCR_NAMESPACE_DBCHANGE,
+        protocol: int = oracledb.SUBSCR_PROTO_CALLBACK,
+        callback: Callable | None = None,
+        timeout: int = 0,
+        operations: int = oracledb.OPCODE_ALLOPS,
+        port: int = 0,
+        qos: int = oracledb.SUBSCR_QOS_DEFAULT,
+        ip_address: str | None = None,
+        grouping_class: int = oracledb.SUBSCR_GROUPING_CLASS_NONE,
+        grouping_value: int = 0,
+        grouping_type: int = oracledb.SUBSCR_GROUPING_TYPE_SUMMARY,
+        name: str | None = None,
+        client_initiated: bool = False,
+        *,
+        ipAddress: str | None = None,
+        groupingClass: int = oracledb.SUBSCR_GROUPING_CLASS_NONE,
+        groupingValue: int = 0,
+        groupingType: int = oracledb.SUBSCR_GROUPING_TYPE_SUMMARY,
+        clientInitiated: bool = False,
+    ) -> Subscription:
+        """
+        Common logic for subscribe().
+        """
+        if ipAddress is not None:
+            if ip_address is not None:
+                errors._raise_err(
+                    errors.ERR_DUPLICATED_PARAMETER,
+                    deprecated_name="ipAddress",
+                    new_name="ip_address",
+                )
+            ip_address = ipAddress
+        if groupingClass != oracledb.SUBSCR_GROUPING_CLASS_NONE:
+            if grouping_class != oracledb.SUBSCR_GROUPING_CLASS_NONE:
+                errors._raise_err(
+                    errors.ERR_DUPLICATED_PARAMETER,
+                    deprecated_name="groupingClass",
+                    new_name="grouping_class",
+                )
+            grouping_class = groupingClass
+        if groupingValue != 0:
+            if grouping_value != 0:
+                errors._raise_err(
+                    errors.ERR_DUPLICATED_PARAMETER,
+                    deprecated_name="groupingValue",
+                    new_name="grouping_value",
+                )
+            grouping_value = groupingValue
+        if groupingType != oracledb.SUBSCR_GROUPING_TYPE_SUMMARY:
+            if grouping_type != oracledb.SUBSCR_GROUPING_TYPE_SUMMARY:
+                errors._raise_err(
+                    errors.ERR_DUPLICATED_PARAMETER,
+                    deprecated_name="groupingType",
+                    new_name="grouping_type",
+                )
+            grouping_type = groupingType
+        if clientInitiated:
+            if client_initiated:
+                errors._raise_err(
+                    errors.ERR_DUPLICATED_PARAMETER,
+                    deprecated_name="clientInitiated",
+                    new_name="client_initiated",
+                )
+            client_initiated = clientInitiated
+        impl = self._impl.create_subscr_impl(
+            self,
+            callback,
+            namespace,
+            name,
+            protocol,
+            ip_address,
+            port,
+            timeout,
+            operations,
+            qos,
+            grouping_class,
+            grouping_value,
+            grouping_type,
+            client_initiated,
+        )
+        subscr = Subscription._from_impl(impl)
+        yield from impl.subscribe(subscr, self._impl)
+        return subscr
+
+    def _suspend_sessionless_transaction(self) -> None:
+        """
+        Common logic for suspend_sessionless_transaction().
+        """
+        yield from self._impl.suspend_sessionless_transaction()
+
+    def _tpc_begin(
+        self, xid: Xid, flags: int = oracledb.TPC_BEGIN_NEW, timeout: int = 0
+    ) -> None:
+        """
+        Common logic for tpc_begin().
+        """
+        self._verify_xid(xid)
+        if flags not in (
+            oracledb.TPC_BEGIN_NEW,
+            oracledb.TPC_BEGIN_JOIN,
+            oracledb.TPC_BEGIN_RESUME,
+            oracledb.TPC_BEGIN_PROMOTE,
+        ):
+            errors._raise_err(errors.ERR_INVALID_TPC_BEGIN_FLAGS)
+        yield from self._impl.tpc_begin(xid, flags, timeout)
+
+    def _tpc_commit(
+        self, xid: Xid | None = None, one_phase: bool = False
+    ) -> None:
+        """
+        Common logic for tpc_commit().
+        """
+        if xid is not None:
+            self._verify_xid(xid)
+        yield from self._impl.tpc_commit(xid, one_phase)
+
+    def _tpc_end(
+        self, xid: Xid | None = None, flags: int = oracledb.TPC_END_NORMAL
+    ) -> None:
+        """
+        Common logic for tpc_end().
+        """
+        if xid is not None:
+            self._verify_xid(xid)
+        if flags not in (oracledb.TPC_END_NORMAL, oracledb.TPC_END_SUSPEND):
+            errors._raise_err(errors.ERR_INVALID_TPC_END_FLAGS)
+        yield from self._impl.tpc_end(xid, flags)
+
+    def _tpc_forget(self, xid: Xid) -> None:
+        """
+        Common logic for tpc_forget().
+        """
+        self._verify_xid(xid)
+        yield from self._impl.tpc_forget(xid)
+
+    def _tpc_prepare(self, xid: Xid | None = None) -> bool:
+        """
+        Common logic for tpc_prepare().
+        """
+        if xid is not None:
+            self._verify_xid(xid)
+        return (yield from self._impl.tpc_prepare(xid))
+
+    def _tpc_recover(self) -> list:
+        """
+        Common logic for tpc_recover().
+        """
+        with self.cursor() as cursor:
+            yield from cursor._execute("""
+                    select
+                        formatid,
+                        globalid,
+                        branchid
+                    from dba_pending_transactions""")
+            cursor.rowfactory = Xid
+            return (yield from cursor._fetchall())
+
+    def _tpc_rollback(self, xid: Xid | None = None) -> None:
+        """
+        Common logic for tpc_rollback().
+        """
+        if xid is not None:
+            self._verify_xid(xid)
+        yield from self._impl.tpc_rollback(xid)
+
+    def _unsubscribe(self, subscr: Subscription) -> None:
+        """
+        Common logic for unsubscribe().
+        """
+        if not isinstance(subscr, Subscription):
+            raise TypeError("expecting subscription")
+        if subscr._impl is None:
+            errors._raise_err(errors.ERR_NOT_SUBSCRIBED)
+        yield from subscr._impl.unsubscribe(self, self._impl)
+        subscr._impl = None
+
     def _verify_app_context_namespace(self, namespace: str) -> None:
         """
         Verifies that app context namespace is a non-empty string.
@@ -876,6 +1259,22 @@ class BaseConnection(metaclass=BaseMetaClass):
         return Xid(format_id, global_transaction_id, branch_qualifier)
 
 
+def sync_operation(f):
+    """
+    Decorator function which is used on all synchronous operations that
+    interact with the database. It checks to see that the connection is still
+    open before calling the actual method.
+    """
+
+    @functools.wraps(f)
+    def wrapped_f(self, *args, **kwargs):
+        self._verify_connected()
+        method = getattr(self, f"_{f.__name__}")
+        return self._impl.process_sync_operation(method(*args, **kwargs))
+
+    return wrapped_f
+
+
 class Connection(BaseConnection):
 
     def __init__(
@@ -1028,6 +1427,7 @@ class Connection(BaseConnection):
         if format_id != -1:
             self.tpc_begin(self.xid(format_id, transaction_id, branch_id))
 
+    @sync_operation
     def begin_sessionless_transaction(
         self,
         transaction_id: str | bytes | None = None,
@@ -1063,16 +1463,7 @@ class Connection(BaseConnection):
         immediately. If set to *True*, the request is included with the next
         database operation on the connection. The default value is *False*.
         """
-        self._verify_connected()
-        normalized_txnid = normalize_sessionless_transaction_id(transaction_id)
-
-        if not isinstance(timeout, int) or timeout <= 0:
-            raise TypeError("timeout must be a positive integer")
-
-        self._impl.begin_sessionless_transaction(
-            normalized_txnid, timeout, defer_round_trip
-        )
-        return normalized_txnid
+        pass
 
     @property
     def callTimeout(self) -> int:
@@ -1086,12 +1477,12 @@ class Connection(BaseConnection):
         self._verify_connected()
         self._impl.set_call_timeout(value)
 
+    @sync_operation
     def changepassword(self, old_password: str, new_password: str) -> None:
         """
         Changes the password for the user to which the connection is connected.
         """
-        self._verify_connected()
-        self._impl.change_password(old_password, new_password)
+        pass
 
     def close(self) -> None:
         """
@@ -1112,13 +1503,14 @@ class Connection(BaseConnection):
         self._verify_connected()
         self._close()
 
+    @sync_operation
     def commit(self) -> None:
         """
-        Commits any pending transactions to the database.
+        Commits any pending transaction to the database.
         """
-        self._verify_connected()
-        self._impl.commit()
+        pass
 
+    @sync_operation
     def createlob(
         self, lob_type: DbType, data: str | bytes | None = None
     ) -> LOB:
@@ -1131,18 +1523,7 @@ class Connection(BaseConnection):
         If data is supplied, it will be written to the temporary LOB before it
         is returned.
         """
-        self._verify_connected()
-        if lob_type not in (DB_TYPE_CLOB, DB_TYPE_NCLOB, DB_TYPE_BLOB):
-            message = (
-                "parameter should be one of oracledb.DB_TYPE_CLOB, "
-                "oracledb.DB_TYPE_BLOB or oracledb.DB_TYPE_NCLOB"
-            )
-            raise TypeError(message)
-        impl = self._impl.create_temp_lob_impl(lob_type)
-        lob = LOB._from_impl(impl)
-        if data:
-            lob.write(data)
-        return lob
+        pass
 
     def cursor(self, scrollable: bool = False, handle: Any = None) -> Cursor:
         """
@@ -1159,6 +1540,7 @@ class Connection(BaseConnection):
         self._verify_connected()
         return Cursor(self, scrollable, handle=handle)
 
+    @sync_operation
     def direct_path_load(
         self,
         schema_name: str,
@@ -1180,11 +1562,9 @@ class Connection(BaseConnection):
         smaller pieces for sending to the database. It is the number of records
         in each batch. This parameter can be used to tune performance.
         """
-        self._verify_connected()
-        self._impl.direct_path_load(
-            schema_name, table_name, column_names, data, batch_size
-        )
+        pass
 
+    @sync_operation
     def fetch_df_all(
         self,
         statement: str | None = None,
@@ -1228,29 +1608,7 @@ class Connection(BaseConnection):
 
         Any LOB fetched must be less than 1 GB.
         """
-        if not (statement is not None) ^ (handle is not None):
-            raise ValueError(
-                "One of the parameters 'statement' or 'handle' "
-                "is required but not both"
-            )
-        cursor = self.cursor(handle=handle)
-        cursor._impl.fetching_arrow = True
-        if requested_schema is not None:
-            cursor._impl.schema_impl = ArrowSchemaImpl.from_arrow_schema(
-                requested_schema
-            )
-        if arraysize is not None:
-            cursor.arraysize = arraysize
-        cursor.prefetchrows = cursor.arraysize
-        if statement is not None:
-            cursor.execute(
-                statement,
-                parameters,
-                fetch_decimals=fetch_decimals,
-            )
-        else:
-            cursor._verify_fetch()
-        return cursor._impl.fetch_df_all(cursor)
+        pass
 
     def fetch_df_batches(
         self,
@@ -1297,32 +1655,21 @@ class Connection(BaseConnection):
 
         Any LOB fetched must be less than 1 GB.
         """
-        if not (statement is not None) ^ (handle is not None):
-            raise ValueError(
-                "One of the parameters 'statement' or 'handle' "
-                "is required but not both"
-            )
-        cursor = self.cursor(handle=handle)
-        cursor._impl.fetching_arrow = True
-        if requested_schema is not None:
-            cursor._impl.schema_impl = ArrowSchemaImpl.from_arrow_schema(
-                requested_schema
-            )
-        if size is not None:
-            cursor.arraysize = size
-        cursor.prefetchrows = cursor.arraysize
-        if statement is not None:
-            cursor.execute(
+        batch, cursor = self._impl.process_sync_operation(
+            self._fetch_df_first_batch(
                 statement,
                 parameters,
-                fetch_decimals=fetch_decimals,
+                size,
+                fetch_decimals,
+                requested_schema,
+                handle,
             )
-        else:
-            cursor._verify_fetch()
-        if size is None:
-            yield cursor._impl.fetch_df_all(cursor)
-        else:
-            yield from cursor._impl.fetch_df_batches(cursor, batch_size=size)
+        )
+        while batch is not None:
+            yield batch
+            batch = self._impl.process_sync_operation(
+                cursor._impl.fetch_df_next_batch(cursor)
+            )
 
     def getSodaDatabase(self) -> SodaDatabase:
         """
@@ -1337,14 +1684,13 @@ class Connection(BaseConnection):
         db_impl = self._impl.create_soda_database_impl(self)
         return SodaDatabase._from_impl(self, db_impl)
 
+    @sync_operation
     def gettype(self, name: str) -> DbObjectType:
         """
         Returns a type object given its name. This can then be used to create
         objects which can be bound to cursors created by this connection.
         """
-        self._verify_connected()
-        obj_type_impl = self._impl.get_type(self, name)
-        return DbObjectType._from_impl(obj_type_impl)
+        pass
 
     @property
     def handle(self) -> int:
@@ -1366,6 +1712,7 @@ class Connection(BaseConnection):
         """
         return 4
 
+    @sync_operation
     def ping(self) -> None:
         """
         Pings the database to verify if the connection is valid. An exception
@@ -1380,8 +1727,7 @@ class Connection(BaseConnection):
 
         Also, see :meth:`is_healthy()` for a lightweight alternative.
         """
-        self._verify_connected()
-        self._impl.ping()
+        pass
 
     def prepare(self) -> bool:
         """
@@ -1391,6 +1737,7 @@ class Connection(BaseConnection):
         """
         return self.tpc_prepare()
 
+    @sync_operation
     def resume_sessionless_transaction(
         self,
         transaction_id: str | bytes,
@@ -1431,26 +1778,14 @@ class Connection(BaseConnection):
         immediately. If set to *True*, the request is included with the next
         database operation on the connection. The default value is *False*.
         """
-        self._verify_connected()
-        if transaction_id is None:
-            raise ValueError("transaction_id is required for resuming")
+        pass
 
-        normalized_txnid = normalize_sessionless_transaction_id(transaction_id)
-
-        if not (isinstance(timeout, int) and timeout >= 0):
-            raise TypeError("timeout must be a non-negative integer")
-
-        self._impl.resume_sessionless_transaction(
-            normalized_txnid, timeout, defer_round_trip
-        )
-        return normalized_txnid
-
+    @sync_operation
     def rollback(self) -> None:
         """
         Rolls back any pending transactions.
         """
-        self._verify_connected()
-        self._impl.rollback()
+        pass
 
     def shutdown(self, mode: int = 0) -> None:
         """
@@ -1482,6 +1817,7 @@ class Connection(BaseConnection):
         self._verify_connected()
         self._impl.startup(force, restrict, pfile)
 
+    @sync_operation
     def subscribe(
         self,
         namespace: int = oracledb.SUBSCR_NAMESPACE_DBCHANGE,
@@ -1578,67 +1914,9 @@ class Connection(BaseConnection):
         ``clientInitiated`` was renamed to ``client_initiated``. The old names
         will continue to work as keyword parameters for a period of time.
         """
-        self._verify_connected()
-        if ipAddress is not None:
-            if ip_address is not None:
-                errors._raise_err(
-                    errors.ERR_DUPLICATED_PARAMETER,
-                    deprecated_name="ipAddress",
-                    new_name="ip_address",
-                )
-            ip_address = ipAddress
-        if groupingClass != oracledb.SUBSCR_GROUPING_CLASS_NONE:
-            if grouping_class != oracledb.SUBSCR_GROUPING_CLASS_NONE:
-                errors._raise_err(
-                    errors.ERR_DUPLICATED_PARAMETER,
-                    deprecated_name="groupingClass",
-                    new_name="grouping_class",
-                )
-            grouping_class = groupingClass
-        if groupingValue != 0:
-            if grouping_value != 0:
-                errors._raise_err(
-                    errors.ERR_DUPLICATED_PARAMETER,
-                    deprecated_name="groupingValue",
-                    new_name="grouping_value",
-                )
-            grouping_value = groupingValue
-        if groupingType != oracledb.SUBSCR_GROUPING_TYPE_SUMMARY:
-            if grouping_type != oracledb.SUBSCR_GROUPING_TYPE_SUMMARY:
-                errors._raise_err(
-                    errors.ERR_DUPLICATED_PARAMETER,
-                    deprecated_name="groupingType",
-                    new_name="grouping_type",
-                )
-            grouping_type = groupingType
-        if clientInitiated:
-            if client_initiated:
-                errors._raise_err(
-                    errors.ERR_DUPLICATED_PARAMETER,
-                    deprecated_name="clientInitiated",
-                    new_name="client_initiated",
-                )
-            client_initiated = clientInitiated
-        impl = self._impl.create_subscr_impl(
-            self,
-            callback,
-            namespace,
-            name,
-            protocol,
-            ip_address,
-            port,
-            timeout,
-            operations,
-            qos,
-            grouping_class,
-            grouping_value,
-            grouping_type,
-            client_initiated,
-        )
-        subscr = Subscription._from_impl(impl)
-        impl.subscribe(subscr, self._impl)
-        return subscr
+        pass
 
+    @sync_operation
     def suspend_sessionless_transaction(self) -> None:
         """
         Suspends the currently active sessionless transaction immediately.
@@ -1650,9 +1928,9 @@ class Connection(BaseConnection):
         the transaction can stay suspended before it is automatically rolled
         back.
         """
-        self._verify_connected()
-        self._impl.suspend_sessionless_transaction()
+        pass
 
+    @sync_operation
     def tpc_begin(
         self, xid: Xid, flags: int = oracledb.TPC_BEGIN_NEW, timeout: int = 0
     ) -> None:
@@ -1679,17 +1957,9 @@ class Connection(BaseConnection):
         is detached with :meth:`tpc_end()` and the time it is resumed with
         :meth:`tpc_begin()`.The default is *0* seconds.
         """
-        self._verify_connected()
-        self._verify_xid(xid)
-        if flags not in (
-            oracledb.TPC_BEGIN_NEW,
-            oracledb.TPC_BEGIN_JOIN,
-            oracledb.TPC_BEGIN_RESUME,
-            oracledb.TPC_BEGIN_PROMOTE,
-        ):
-            errors._raise_err(errors.ERR_INVALID_TPC_BEGIN_FLAGS)
-        self._impl.tpc_begin(xid, flags, timeout)
+        pass
 
+    @sync_operation
     def tpc_commit(
         self, xid: Xid | None = None, one_phase: bool = False
     ) -> None:
@@ -1713,11 +1983,9 @@ class Connection(BaseConnection):
         :meth:`tpc_prepare()` was called for the transaction and whether a
         one-phase or two-phase commit is required.
         """
-        self._verify_connected()
-        if xid is not None:
-            self._verify_xid(xid)
-        self._impl.tpc_commit(xid, one_phase)
+        pass
 
+    @sync_operation
     def tpc_end(
         self, xid: Xid | None = None, flags: int = oracledb.TPC_END_NORMAL
     ) -> None:
@@ -1738,13 +2006,9 @@ class Connection(BaseConnection):
         may be resumed later by calling :meth:`tpc_begin()` with the flag
         :data:`oracledb.TPC_BEGIN_RESUME`.
         """
-        self._verify_connected()
-        if xid is not None:
-            self._verify_xid(xid)
-        if flags not in (oracledb.TPC_END_NORMAL, oracledb.TPC_END_SUSPEND):
-            errors._raise_err(errors.ERR_INVALID_TPC_END_FLAGS)
-        self._impl.tpc_end(xid, flags)
+        pass
 
+    @sync_operation
     def tpc_forget(self, xid: Xid) -> None:
         """
         Causes the database to forget a heuristically completed TPC
@@ -1754,10 +2018,9 @@ class Connection(BaseConnection):
         The ``xid`` parameter is mandatory and should be an object should be
         returned by the :meth:`xid()` function.
         """
-        self._verify_connected()
-        self._verify_xid(xid)
-        self._impl.tpc_forget(xid)
+        pass
 
+    @sync_operation
     def tpc_prepare(self, xid: Xid | None = None) -> bool:
         """
         Prepares a two-phase transaction for commit. After this function is
@@ -1773,11 +2036,9 @@ class Connection(BaseConnection):
         the transaction identifier used by the previous :meth:`tpc_begin()` is
         used.
         """
-        self._verify_connected()
-        if xid is not None:
-            self._verify_xid(xid)
-        return self._impl.tpc_prepare(xid)
+        pass
 
+    @sync_operation
     def tpc_recover(self) -> list:
         """
         Returns a list of pending transaction identifiers that require
@@ -1788,16 +2049,9 @@ class Connection(BaseConnection):
         This function queries the DBA_PENDING_TRANSACTIONS view and requires
         "SELECT" privilege on that view.
         """
-        with self.cursor() as cursor:
-            cursor.execute("""
-                    select
-                        formatid,
-                        globalid,
-                        branchid
-                    from dba_pending_transactions""")
-            cursor.rowfactory = Xid
-            return cursor.fetchall()
+        pass
 
+    @sync_operation
     def tpc_rollback(self, xid: Xid | None = None) -> None:
         """
         If an ``xid`` parameter is not passed, then it rolls back the
@@ -1809,11 +2063,9 @@ class Connection(BaseConnection):
         should be called outside of a transaction and is intended for use in
         recovery.
         """
-        self._verify_connected()
-        if xid is not None:
-            self._verify_xid(xid)
-        self._impl.tpc_rollback(xid)
+        pass
 
+    @sync_operation
     def unsubscribe(self, subscr: Subscription) -> None:
         """
         Unsubscribe from events in the database that were originally subscribed
@@ -1821,13 +2073,7 @@ class Connection(BaseConnection):
         be the same one used to create the subscription, or should access the
         same database and be connected as the same user name.
         """
-        self._verify_connected()
-        if not isinstance(subscr, Subscription):
-            raise TypeError("expecting subscription")
-        if subscr._impl is None:
-            errors._raise_err(errors.ERR_NOT_SUBSCRIBED)
-        subscr._impl.unsubscribe(self, self._impl)
-        subscr._impl = None
+        pass
 
 
 def _connection_factory(
@@ -2261,6 +2507,25 @@ def connect(
     pass
 
 
+def async_operation(f):
+    """
+    Decorator function which is used on all asynchronous operations that
+    interact with the database. It checks to see that the connection is still
+    open before calling the actual method. The actual method is shared between
+    sync and async operations and uses the same name with a leading underscore.
+    """
+
+    @functools.wraps(f)
+    async def wrapped_f(self, *args, **kwargs):
+        self._verify_connected()
+        method = getattr(self, f"_{f.__name__}")
+        return await self._impl.process_async_operation(
+            method(*args, **kwargs)
+        )
+
+    return wrapped_f
+
+
 class AsyncConnection(BaseConnection):
 
     def __init__(
@@ -2396,6 +2661,7 @@ class AsyncConnection(BaseConnection):
             errors._raise_err(errors.ERR_WRONG_EXECUTE_PARAMETERS_TYPE)
         return parameters
 
+    @async_operation
     async def begin_sessionless_transaction(
         self,
         transaction_id: str | bytes | None = None,
@@ -2431,16 +2697,7 @@ class AsyncConnection(BaseConnection):
         immediately. If set to *True*, the request is included with the next
         database operation on the connection. The default value is *False*.
         """
-        self._verify_connected()
-        normalized_txnid = normalize_sessionless_transaction_id(transaction_id)
-
-        if not isinstance(timeout, int) or timeout <= 0:
-            raise TypeError("timeout must be a positive integer")
-
-        await self._impl.begin_sessionless_transaction(
-            normalized_txnid, timeout, defer_round_trip
-        )
-        return normalized_txnid
+        pass
 
     async def callfunc(
         self,
@@ -2475,14 +2732,14 @@ class AsyncConnection(BaseConnection):
         with self.cursor() as cursor:
             return await cursor.callproc(name, parameters, keyword_parameters)
 
+    @async_operation
     async def changepassword(
         self, old_password: str, new_password: str
     ) -> None:
         """
         Changes the password for the user to which the connection is connected.
         """
-        self._verify_connected()
-        await self._impl.change_password(old_password, new_password)
+        pass
 
     async def close(self) -> None:
         """
@@ -2491,31 +2748,21 @@ class AsyncConnection(BaseConnection):
         self._verify_connected()
         await self._close()
 
+    @async_operation
     async def commit(self) -> None:
         """
         Commits any pending transaction to the database.
         """
-        self._verify_connected()
-        await self._impl.commit()
+        pass
 
+    @async_operation
     async def createlob(
         self, lob_type: DbType, data: str | bytes | None = None
     ) -> AsyncLOB:
         """
         Creates and returns a new temporary LOB of the specified type.
         """
-        self._verify_connected()
-        if lob_type not in (DB_TYPE_CLOB, DB_TYPE_NCLOB, DB_TYPE_BLOB):
-            message = (
-                "parameter should be one of oracledb.DB_TYPE_CLOB, "
-                "oracledb.DB_TYPE_BLOB or oracledb.DB_TYPE_NCLOB"
-            )
-            raise TypeError(message)
-        impl = await self._impl.create_temp_lob_impl(lob_type)
-        lob = AsyncLOB._from_impl(impl)
-        if data:
-            await lob.write(data)
-        return lob
+        pass
 
     def cursor(self, scrollable: bool = False) -> AsyncCursor:
         """
@@ -2524,6 +2771,30 @@ class AsyncConnection(BaseConnection):
         """
         self._verify_connected()
         return AsyncCursor(self, scrollable)
+
+    @async_operation
+    async def direct_path_load(
+        self,
+        schema_name: str,
+        table_name: str,
+        column_names: list[str],
+        data: Any,
+        *,
+        batch_size: int = 2**32 - 1,
+    ) -> None:
+        """
+        Load data into Oracle Database using the Direct Path Load interface.
+        It is available only in python-oracledb Thin mode.
+
+        The ``data`` parameter can be a list of sequences, a DataFrame, or a
+        third-party DataFrame instance that supports the Apache Arrow PyCapsule
+        Interface.
+
+        The ``batch_size`` parameter is used to split large data sets into
+        smaller pieces for sending to the database. It is the number of records
+        in each batch. This parameter can be used to tune performance.
+        """
+        pass
 
     async def execute(
         self,
@@ -2598,32 +2869,7 @@ class AsyncConnection(BaseConnection):
             cursor.rowfactory = rowfactory
             return await cursor.fetchall()
 
-    async def direct_path_load(
-        self,
-        schema_name: str,
-        table_name: str,
-        column_names: list[str],
-        data: Any,
-        *,
-        batch_size: int = 2**32 - 1,
-    ) -> None:
-        """
-        Load data into Oracle Database using the Direct Path Load interface.
-        It is available only in python-oracledb Thin mode.
-
-        The ``data`` parameter can be a list of sequences, a DataFrame, or a
-        third-party DataFrame instance that supports the Apache Arrow PyCapsule
-        Interface.
-
-        The ``batch_size`` parameter is used to split large data sets into
-        smaller pieces for sending to the database. It is the number of records
-        in each batch. This parameter can be used to tune performance.
-        """
-        self._verify_connected()
-        await self._impl.direct_path_load(
-            schema_name, table_name, column_names, data, batch_size
-        )
-
+    @async_operation
     async def fetch_df_all(
         self,
         statement: str,
@@ -2658,21 +2904,7 @@ class AsyncConnection(BaseConnection):
         the Apache Arrow PyCapsule schema interface. The DataFrame returned by
         ``fetch_df_all()`` will have the data types and names of the schema.
         """
-        cursor = self.cursor()
-        cursor._impl.fetching_arrow = True
-        if requested_schema is not None:
-            cursor._impl.schema_impl = ArrowSchemaImpl.from_arrow_schema(
-                requested_schema
-            )
-        if arraysize is not None:
-            cursor.arraysize = arraysize
-        cursor.prefetchrows = cursor.arraysize
-        await cursor.execute(
-            statement,
-            parameters,
-            fetch_decimals=fetch_decimals,
-        )
-        return await cursor._impl.fetch_df_all(cursor)
+        pass
 
     async def fetch_df_batches(
         self,
@@ -2711,25 +2943,20 @@ class AsyncConnection(BaseConnection):
         the Apache Arrow PyCapsule schema interface. The DataFrame returned by
         ``fetch_df_all()`` will have the data types and names of the schema.
         """
-        cursor = self.cursor()
-        cursor._impl.fetching_arrow = True
-        if requested_schema is not None:
-            cursor._impl.schema_impl = ArrowSchemaImpl.from_arrow_schema(
-                requested_schema
+        batch, cursor = await self._impl.process_async_operation(
+            self._fetch_df_first_batch(
+                statement,
+                parameters,
+                size,
+                fetch_decimals,
+                requested_schema,
             )
-        if size is not None:
-            cursor.arraysize = size
-        cursor.prefetchrows = cursor.arraysize
-        await cursor.execute(
-            statement,
-            parameters,
-            fetch_decimals=fetch_decimals,
         )
-        if size is None:
-            yield await cursor._impl.fetch_df_all(cursor)
-        else:
-            async for df in cursor._impl.fetch_df_batches(cursor, size):
-                yield df
+        while batch is not None:
+            yield batch
+            batch = await self._impl.process_async_operation(
+                cursor._impl.fetch_df_next_batch(cursor)
+            )
 
     async def fetchmany(
         self,
@@ -2808,22 +3035,22 @@ class AsyncConnection(BaseConnection):
             cursor.rowfactory = rowfactory
             return await cursor.fetchone()
 
+    @async_operation
     async def gettype(self, name: str) -> DbObjectType:
         """
         Returns a type object given its name. This can then be used to create
         objects which can be bound to cursors created by this connection.
         """
-        self._verify_connected()
-        obj_type_impl = await self._impl.get_type(self, name)
-        return DbObjectType._from_impl(obj_type_impl)
+        pass
 
+    @async_operation
     async def ping(self) -> None:
         """
         Pings the database to verify if the connection is valid.
         """
-        self._verify_connected()
-        await self._impl.ping()
+        pass
 
+    @async_operation
     async def resume_sessionless_transaction(
         self,
         transaction_id: str | bytes,
@@ -2864,27 +3091,16 @@ class AsyncConnection(BaseConnection):
         immediately. If set to *True*, the request is included with the next
         database operation on the connection. The default value is *False*.
         """
-        self._verify_connected()
-        if transaction_id is None:
-            raise ValueError("transaction_id is required for resuming")
+        pass
 
-        normalized_txnid = normalize_sessionless_transaction_id(transaction_id)
-
-        if not (isinstance(timeout, int) and timeout >= 0):
-            raise TypeError("timeout must be a non-negative integer")
-
-        await self._impl.resume_sessionless_transaction(
-            normalized_txnid, timeout, defer_round_trip
-        )
-        return normalized_txnid
-
+    @async_operation
     async def rollback(self) -> None:
         """
         Rolls back any pending transaction.
         """
-        self._verify_connected()
-        await self._impl.rollback()
+        pass
 
+    @async_operation
     async def run_pipeline(
         self,
         pipeline: Pipeline,
@@ -2904,18 +3120,9 @@ class AsyncConnection(BaseConnection):
         detected and all subsequent operations will be terminated. The default
         value is *False*.
         """
-        self._verify_connected()
-        results = [op._create_result() for op in pipeline.operations]
-        if self._impl.supports_pipelining() and len(results) > 1:
-            await self._impl.run_pipeline_with_pipelining(
-                self, results, continue_on_error
-            )
-        else:
-            await self._impl.run_pipeline_without_pipelining(
-                self, results, continue_on_error
-            )
-        return results
+        pass
 
+    @async_operation
     async def suspend_sessionless_transaction(self) -> None:
         """
         Suspends the currently active sessionless transaction immediately.
@@ -2927,9 +3134,9 @@ class AsyncConnection(BaseConnection):
         determines how long the transaction can stay suspended before it is
         automatically rolled back.
         """
-        self._verify_connected()
-        await self._impl.suspend_sessionless_transaction()
+        pass
 
+    @async_operation
     async def tpc_begin(
         self, xid: Xid, flags: int = oracledb.TPC_BEGIN_NEW, timeout: int = 0
     ) -> None:
@@ -2957,17 +3164,9 @@ class AsyncConnection(BaseConnection):
         resumed with :meth:`AsyncConnection.tpc_begin()`.The default is *0*
         seconds.
         """
-        self._verify_connected()
-        self._verify_xid(xid)
-        if flags not in (
-            oracledb.TPC_BEGIN_NEW,
-            oracledb.TPC_BEGIN_JOIN,
-            oracledb.TPC_BEGIN_RESUME,
-            oracledb.TPC_BEGIN_PROMOTE,
-        ):
-            errors._raise_err(errors.ERR_INVALID_TPC_BEGIN_FLAGS)
-        await self._impl.tpc_begin(xid, flags, timeout)
+        pass
 
+    @async_operation
     async def tpc_commit(
         self, xid: Xid | None = None, one_phase: bool = False
     ) -> None:
@@ -2992,11 +3191,9 @@ class AsyncConnection(BaseConnection):
         :meth:`tpc_prepare()` was called for the transaction and whether a
         one-phase or two-phase commit is required.
         """
-        self._verify_connected()
-        if xid is not None:
-            self._verify_xid(xid)
-        await self._impl.tpc_commit(xid, one_phase)
+        pass
 
+    @async_operation
     async def tpc_end(
         self, xid: Xid | None = None, flags: int = oracledb.TPC_END_NORMAL
     ) -> None:
@@ -3017,13 +3214,9 @@ class AsyncConnection(BaseConnection):
         may be resumed later by calling :meth:`AsyncConnection.tpc_begin()`
         with the flag :data:`oracledb.TPC_BEGIN_RESUME`.
         """
-        self._verify_connected()
-        if xid is not None:
-            self._verify_xid(xid)
-        if flags not in (oracledb.TPC_END_NORMAL, oracledb.TPC_END_SUSPEND):
-            errors._raise_err(errors.ERR_INVALID_TPC_END_FLAGS)
-        await self._impl.tpc_end(xid, flags)
+        pass
 
+    @async_operation
     async def tpc_forget(self, xid: Xid) -> None:
         """
         Causes the database to forget a heuristically completed TPC
@@ -3033,10 +3226,9 @@ class AsyncConnection(BaseConnection):
         The ``xid`` parameter is mandatory and should be an object should be
         returned by the :meth:`xid()` function.
         """
-        self._verify_connected()
-        self._verify_xid(xid)
-        await self._impl.tpc_forget(xid)
+        pass
 
+    @async_operation
     async def tpc_prepare(self, xid: Xid | None = None) -> bool:
         """
         Prepares a two-phase transaction for commit. After this function is
@@ -3052,11 +3244,9 @@ class AsyncConnection(BaseConnection):
         the transaction identifier used by the previous :meth:`tpc_begin()` is
         used.
         """
-        self._verify_connected()
-        if xid is not None:
-            self._verify_xid(xid)
-        return await self._impl.tpc_prepare(xid)
+        pass
 
+    @async_operation
     async def tpc_recover(self) -> list:
         """
         Returns a list of pending transaction identifiers that require
@@ -3067,16 +3257,9 @@ class AsyncConnection(BaseConnection):
         This function queries the view ``DBA_PENDING_TRANSACTIONS`` and
         requires ``SELECT`` privilege on that view.
         """
-        with self.cursor() as cursor:
-            await cursor.execute("""
-                    select
-                        formatid,
-                        globalid,
-                        branchid
-                    from dba_pending_transactions""")
-            cursor.rowfactory = Xid
-            return await cursor.fetchall()
+        pass
 
+    @async_operation
     async def tpc_rollback(self, xid: Xid | None = None) -> None:
         """
         Rolls back a global transaction.
@@ -3090,10 +3273,7 @@ class AsyncConnection(BaseConnection):
         This form should be called outside of a transaction and is intended for
         use in recovery.
         """
-        self._verify_connected()
-        if xid is not None:
-            self._verify_xid(xid)
-        await self._impl.tpc_rollback(xid)
+        pass
 
 
 def _async_connection_factory(

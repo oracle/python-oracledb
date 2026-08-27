@@ -29,30 +29,48 @@
 # thin_impl.pyx).
 #------------------------------------------------------------------------------
 
-cdef class BaseThinQueueImpl(BaseQueueImpl):
+cdef class ThinQueueImpl(BaseQueueImpl):
 
     cdef:
         BaseThinConnImpl _conn_impl
         bytes payload_toid
 
-    cdef AqArrayMessage _create_array_deq_message(self, uint32_t num_iters):
+    def deq_many(self, uint32_t max_num_messages):
         """
-        Create the message used for dequeuing multiple AQ messages
+        Internal method for dequeuing multiple messages from a queue.
         """
         cdef:
             AqArrayMessage message
             uint32_t i
         message = self._conn_impl._create_message(AqArrayMessage)
-        message.num_iters = num_iters
-        message.props_impls = [ThinMsgPropsImpl() for i in range(num_iters)]
+        message.num_iters = max_num_messages
+        message.props_impls = \
+                [ThinMsgPropsImpl() for i in range(max_num_messages)]
         message.queue_impl = self
         message.deq_options_impl = self.deq_options_impl
         message.operation = TNS_AQ_ARRAY_DEQ
-        return message
+        yield message
+        if message.no_msg_found:
+            return []
+        return message.props_impls[:message.num_iters]
 
-    cdef AqArrayMessage _create_array_enq_message(self, list props_impls):
+    def deq_one(self):
         """
-        Create the message used for enqueuing multiple AQ messages
+        Internal method for dequeuing a single message from a queue.
+        """
+        cdef AqDeqMessage message
+        props_impl = ThinMsgPropsImpl()
+        message = self._conn_impl._create_message(AqDeqMessage)
+        message.queue_impl = self
+        message.deq_options_impl = self.deq_options_impl
+        message.props_impl = ThinMsgPropsImpl()
+        yield message
+        if not message.no_msg_found:
+            return message.props_impl
+
+    def enq_many(self, list props_impls):
+        """
+        Internal method for enqueuing many messages into a queue.
         """
         cdef AqArrayMessage message
         message = self._conn_impl._create_message(AqArrayMessage)
@@ -61,32 +79,18 @@ cdef class BaseThinQueueImpl(BaseQueueImpl):
         message.props_impls = props_impls
         message.operation = TNS_AQ_ARRAY_ENQ
         message.num_iters = len(props_impls)
-        return message
+        yield message
 
-    cdef AqDeqMessage _create_deq_message(self):
+    def enq_one(self, ThinMsgPropsImpl props_impl):
         """
-        Create the message for dequeuing a payload.
-        """
-        cdef:
-            ThinMsgPropsImpl props_impl
-            AqDeqMessage message
-        props_impl = ThinMsgPropsImpl()
-        message = self._conn_impl._create_message(AqDeqMessage)
-        message.queue_impl = self
-        message.deq_options_impl = self.deq_options_impl
-        message.props_impl = props_impl
-        return message
-
-    cdef AqEnqMessage _create_enq_message(self, ThinMsgPropsImpl props_impl):
-        """
-        Create the message for enqueuing the provided payload.
+        Internal method for enqueuing a single message into a queue.
         """
         cdef AqEnqMessage message
         message = self._conn_impl._create_message(AqEnqMessage)
         message.queue_impl = self
         message.enq_options_impl = self.enq_options_impl
         message.props_impl = props_impl
-        return message
+        yield message
 
     def initialize(self, BaseThinConnImpl conn_impl, str name,
                    ThinDbObjectTypeImpl payload_type, bint is_json):
@@ -105,106 +109,6 @@ cdef class BaseThinQueueImpl(BaseQueueImpl):
         else:
             self.payload_toid = bytes([0]*15+[0x17])
         self.name = name
-
-
-cdef class ThinQueueImpl(BaseThinQueueImpl):
-
-    def deq_many(self, uint32_t max_num_messages):
-        """
-        Internal method for dequeuing multiple messages from a queue.
-        """
-        cdef:
-            Protocol protocol = <Protocol> self._conn_impl._protocol
-            AqArrayMessage message
-        message = self._create_array_deq_message(max_num_messages)
-        protocol._process_single_message(message)
-        if message.no_msg_found:
-            return []
-        return message.props_impls[:message.num_iters]
-
-    def deq_one(self):
-        """
-        Internal method for dequeuing a single message from a queue.
-        """
-        cdef:
-            Protocol protocol = <Protocol> self._conn_impl._protocol
-            AqDeqMessage message
-        message = self._create_deq_message()
-        protocol._process_single_message(message)
-        if not message.no_msg_found:
-            return message.props_impl
-
-    def enq_many(self, list props_impls):
-        """
-        Internal method for enqueuing many messages into a queue.
-        """
-        cdef :
-            Protocol protocol = <Protocol> self._conn_impl._protocol
-            AqArrayMessage message
-        message = self._create_array_enq_message(props_impls)
-        protocol._process_single_message(message)
-
-    def enq_one(self, ThinMsgPropsImpl props_impl):
-        """
-        Internal method for enqueuing a single message into a queue.
-        """
-        cdef:
-            Protocol protocol = <Protocol> self._conn_impl._protocol
-            AqEnqMessage message
-        message = self._create_enq_message(props_impl)
-        protocol._process_single_message(message)
-
-
-cdef class AsyncThinQueueImpl(BaseThinQueueImpl):
-
-    async def deq_many(self, uint32_t max_num_messages):
-        """
-        Internal method for dequeuing multiple messages from a queue.
-        """
-        cdef:
-            BaseAsyncProtocol protocol
-            AqArrayMessage message
-        protocol = <BaseAsyncProtocol> self._conn_impl._protocol
-        message = self._create_array_deq_message(max_num_messages)
-        await protocol._process_single_message(message)
-        if message.no_msg_found:
-            return []
-        return message.props_impls[:message.num_iters]
-
-    async def deq_one(self):
-        """
-        Internal method for dequeuing a single message from a queue.
-        """
-        cdef:
-            BaseAsyncProtocol protocol
-            AqDeqMessage message
-        protocol = <BaseAsyncProtocol> self._conn_impl._protocol
-        message = self._create_deq_message()
-        await protocol._process_single_message(message)
-        if not message.no_msg_found:
-            return message.props_impl
-
-    async def enq_many(self, list props_impls):
-        """
-        Internal method for enqueuing many messages into a queue.
-        """
-        cdef :
-            BaseAsyncProtocol protocol
-            AqArrayMessage message
-        protocol = <BaseAsyncProtocol> self._conn_impl._protocol
-        message = self._create_array_enq_message(props_impls)
-        await protocol._process_single_message(message)
-
-    async def enq_one(self, ThinMsgPropsImpl props_impl):
-        """
-        Internal method for enqueuing a single message into a queue.
-        """
-        cdef:
-            BaseAsyncProtocol protocol
-            AqEnqMessage message
-        protocol = <BaseAsyncProtocol> self._conn_impl._protocol
-        message = self._create_enq_message(props_impl)
-        await protocol._process_single_message(message)
 
 
 cdef class ThinDeqOptionsImpl(BaseDeqOptionsImpl):

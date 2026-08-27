@@ -228,6 +228,21 @@ cdef class ThickXid:
             self.xid_ptr = &self.xid_buf
 
 
+def sync_operation(f):
+    """
+    Wraps the function as a generator function so that the top-level code runs
+    as expected.
+    """
+
+    @functools.wraps(f)
+    def wrapped_f(*args, **kwargs):
+        result = f(*args, **kwargs)
+        yield
+        return result
+
+    return wrapped_f
+
+
 cdef class ThickConnImpl(BaseConnImpl):
     cdef:
         dpiConn *_handle
@@ -291,6 +306,7 @@ cdef class ThickConnImpl(BaseConnImpl):
         if func(self._handle, value_ptr, value_length) < 0:
             _raise_from_odpi()
 
+    @sync_operation
     def begin_sessionless_transaction(self, bytes transaction_id,
                                       uint32_t timeout, bint defer_round_trip):
         """
@@ -315,6 +331,7 @@ cdef class ThickConnImpl(BaseConnImpl):
         if status < 0:
             _raise_from_odpi()
 
+    @sync_operation
     def change_password(self, str old_password, str new_password):
         cdef:
             bytes username_bytes, old_password_bytes, new_password_bytes
@@ -385,6 +402,7 @@ cdef class ThickConnImpl(BaseConnImpl):
         if status < 0 and not in_del:
             _raise_from_odpi()
 
+    @sync_operation
     def commit(self):
         cdef int status
         with nogil:
@@ -636,6 +654,7 @@ cdef class ThickConnImpl(BaseConnImpl):
         impl.client_initiated = client_initiated
         return impl
 
+    @sync_operation
     def create_temp_lob_impl(self, DbType dbtype):
         return ThickLobImpl._create(self, dbtype, NULL)
 
@@ -766,6 +785,7 @@ cdef class ThickConnImpl(BaseConnImpl):
         if value is not NULL:
             return value[:value_length].decode()
 
+    @sync_operation
     def get_type(self, object conn, str name):
         cdef:
             dpiObjectType *handle
@@ -808,6 +828,7 @@ cdef class ThickConnImpl(BaseConnImpl):
     def set_transaction_priority(self, str value):
         self._set_text_attr(dpiConn_setTransactionPriority, value)
 
+    @sync_operation
     def ping(self):
         cdef int status
         with nogil:
@@ -815,6 +836,20 @@ cdef class ThickConnImpl(BaseConnImpl):
         if status < 0:
             _raise_from_odpi()
 
+    def process_sync_operation(self, object generator):
+        """
+        Processes a database operation synchronously. The generator is a dummy
+        that only ever returns one value. Its existence is solely to ensure
+        that one code path is used for thick mode and both thin modes (sync and
+        async).
+        """
+        while True:
+            try:
+                next(generator)
+            except StopIteration as e:
+                return e.value
+
+    @sync_operation
     def resume_sessionless_transaction(self, bytes transaction_id,
                                        uint32_t timeout,
                                        bint defer_round_trip):
@@ -833,6 +868,7 @@ cdef class ThickConnImpl(BaseConnImpl):
         if status < 0:
             _raise_from_odpi()
 
+    @sync_operation
     def rollback(self):
         cdef int status
         with nogil:
@@ -906,6 +942,7 @@ cdef class ThickConnImpl(BaseConnImpl):
         if status < 0:
             _raise_from_odpi()
 
+    @sync_operation
     def suspend_sessionless_transaction(self):
         """
         Suspend the currently active sessionless transaction.
@@ -916,6 +953,7 @@ cdef class ThickConnImpl(BaseConnImpl):
         if status < 0:
             _raise_from_odpi()
 
+    @sync_operation
     def tpc_begin(self, xid, uint32_t flags, uint32_t timeout):
         cdef:
             ThickXid thick_xid = ThickXid(xid)
@@ -926,6 +964,7 @@ cdef class ThickConnImpl(BaseConnImpl):
         if status < 0:
             _raise_from_odpi()
 
+    @sync_operation
     def tpc_commit(self, xid, bint one_phase):
         cdef:
             ThickXid thick_xid = ThickXid(xid)
@@ -936,6 +975,7 @@ cdef class ThickConnImpl(BaseConnImpl):
         if status < 0:
             _raise_from_odpi()
 
+    @sync_operation
     def tpc_end(self, xid, uint32_t flags):
         cdef:
             ThickXid thick_xid = ThickXid(xid)
@@ -945,6 +985,7 @@ cdef class ThickConnImpl(BaseConnImpl):
         if status < 0:
             _raise_from_odpi()
 
+    @sync_operation
     def tpc_forget(self, xid):
         cdef:
             ThickXid thick_xid = ThickXid(xid)
@@ -954,6 +995,7 @@ cdef class ThickConnImpl(BaseConnImpl):
         if status < 0:
             _raise_from_odpi()
 
+    @sync_operation
     def tpc_prepare(self, xid):
         cdef:
             ThickXid thick_xid = ThickXid(xid)
@@ -966,6 +1008,7 @@ cdef class ThickConnImpl(BaseConnImpl):
             _raise_from_odpi()
         return commit_needed
 
+    @sync_operation
     def tpc_rollback(self, xid):
         cdef:
             ThickXid thick_xid = ThickXid(xid)

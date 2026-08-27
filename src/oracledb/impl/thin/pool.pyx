@@ -606,7 +606,9 @@ cdef class ThinPoolImpl(BaseThinPoolImpl):
                 try:
                     orig_call_timeout = request.conn_impl._call_timeout
                     request.conn_impl.set_call_timeout(self._ping_timeout)
-                    request.conn_impl.ping()
+                    request.conn_impl.process_sync_operation(
+                        request.conn_impl.ping()
+                    )
                     request.conn_impl.set_call_timeout(orig_call_timeout)
                 except exceptions.Error:
                     request.conn_impl._protocol._disconnect()
@@ -798,7 +800,9 @@ cdef class AsyncThinPoolImpl(BaseThinPoolImpl):
                 try:
                     orig_call_timeout = request.conn_impl._call_timeout
                     request.conn_impl.set_call_timeout(self._ping_timeout)
-                    await request.conn_impl.ping()
+                    await request.conn_impl.process_async_operation(
+                        request.conn_impl.ping()
+                    )
                     request.conn_impl.set_call_timeout(orig_call_timeout)
                 except exceptions.Error:
                     request.conn_impl._protocol._disconnect()

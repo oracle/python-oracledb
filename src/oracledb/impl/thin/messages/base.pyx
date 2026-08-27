@@ -71,7 +71,7 @@ cdef class _PostProcessFn:
 cdef class Message:
     cdef:
         BaseThinConnImpl conn_impl
-        BaseThinDbObjectTypeCache type_cache
+        ThinDbObjectTypeCache type_cache
         PipelineOpResultImpl pipeline_result_impl
         _OracleErrorInfo error_info
         uint8_t message_type
@@ -895,7 +895,7 @@ cdef class Message:
 
 cdef class MessageWithData(Message):
     cdef:
-        BaseThinCursorImpl cursor_impl
+        ThinCursorImpl cursor_impl
         array.array bit_vector_buf
         const char_type *bit_vector
         bint arraydmlrowcounts
@@ -938,7 +938,7 @@ cdef class MessageWithData(Message):
 
     cdef object _create_cursor_from_describe(self, ReadBuffer buf,
                                              object cursor=None):
-        cdef BaseThinCursorImpl cursor_impl
+        cdef ThinCursorImpl cursor_impl
         if cursor is None:
             cursor = self.cursor.connection.cursor()
         cursor_impl = cursor._impl
@@ -1003,7 +1003,9 @@ cdef class MessageWithData(Message):
                 else:
                     num_elements = self.row_index
 
-                # perform post conversion to user-facing objects, if applicable
+                # perform post conversion to user-facing objects, if
+                # applicable; also, include transformation back to string/bytes
+                # from CLOB/BLOB for PL/SQL binds that exceeded 32,767 bytes
                 if self.in_fetch:
                     metadata = var_impl._fetch_metadata
                 else:
@@ -1016,6 +1018,12 @@ cdef class MessageWithData(Message):
                     fn = _PostProcessFn.from_info(cls._from_impl, num_elements,
                                                   var_impl._values)
                     fns.append(fn)
+                    if var_impl._plsql_lob_transformation:
+                        fn = _PostProcessFn.from_info(cls.read, num_elements,
+                                                      var_impl._values,
+                                                      convert_nulls=False,
+                                                      check_awaitable=True)
+                        fns.append(fn)
 
                 # perform post conversion via user out converter, if applicable
                 if var_impl.outconverter is None:
@@ -1066,7 +1074,7 @@ cdef class MessageWithData(Message):
         Actions that takes place before query data is processed.
         """
         cdef:
-            BaseThinCursorImpl cursor_impl = self.cursor_impl
+            ThinCursorImpl cursor_impl = self.cursor_impl
             Statement statement = cursor_impl._statement
             object type_handler, conn
             ThinVarImpl var_impl
@@ -1119,7 +1127,7 @@ cdef class MessageWithData(Message):
         cdef:
             uint8_t num_bytes, ora_type_num, csfrm
             ThinDbObjectTypeImpl typ_impl
-            BaseThinCursorImpl cursor_impl
+            ThinCursorImpl cursor_impl
             const char *encoding = NULL
             object column_value = None
             ThinDbObjectImpl obj_impl
@@ -1229,7 +1237,7 @@ cdef class MessageWithData(Message):
 
     cdef int _process_describe_info(self, ReadBuffer buf,
                                     object cursor,
-                                    BaseThinCursorImpl cursor_impl) except -1:
+                                    ThinCursorImpl cursor_impl) except -1:
         cdef:
             Statement stmt = cursor_impl._statement
             list prev_fetch_var_impls
@@ -1274,7 +1282,7 @@ cdef class MessageWithData(Message):
 
     cdef int _process_error_info(self, ReadBuffer buf) except -1:
         cdef:
-            BaseThinCursorImpl cursor_impl = self.cursor_impl
+            ThinCursorImpl cursor_impl = self.cursor_impl
             BaseThinConnImpl conn_impl = self.conn_impl
             object exc_type
         Message._process_error_info(self, buf)
@@ -1310,7 +1318,7 @@ cdef class MessageWithData(Message):
 
     cdef int _process_implicit_result(self, ReadBuffer buf) except -1:
         cdef:
-            BaseThinCursorImpl child_cursor_impl
+            ThinCursorImpl child_cursor_impl
             uint32_t i, num_results
             object child_cursor
             uint8_t num_bytes
@@ -1531,10 +1539,10 @@ cdef class MessageWithData(Message):
                                        uint32_t offset) except -1:
         cdef:
             ThinDbObjectTypeImpl typ_impl
-            BaseThinCursorImpl cursor_impl
+            ThinCursorImpl cursor_impl
             const char* encoding = NULL
-            BaseThinLobImpl lob_impl
             OracleMetadata metadata
+            ThinLobImpl lob_impl
             uint8_t ora_type_num
             uint32_t num_bytes
             bytes temp_bytes

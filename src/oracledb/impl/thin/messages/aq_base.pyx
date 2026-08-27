@@ -32,7 +32,7 @@
 
 cdef class AqBaseMessage(Message):
     cdef:
-        BaseThinQueueImpl queue_impl
+        ThinQueueImpl queue_impl
         ThinDeqOptionsImpl deq_options_impl
         ThinEnqOptionsImpl enq_options_impl
         bint no_msg_found

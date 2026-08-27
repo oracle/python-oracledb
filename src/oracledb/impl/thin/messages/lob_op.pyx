@@ -34,7 +34,7 @@
 cdef class LobOpMessage(Message):
     cdef:
         uint32_t operation
-        BaseThinLobImpl source_lob_impl
+        ThinLobImpl source_lob_impl
         uint64_t source_offset
         uint64_t dest_offset
         uint32_t dest_length

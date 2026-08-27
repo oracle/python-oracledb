@@ -30,10 +30,27 @@
 # events are detected.
 # -----------------------------------------------------------------------------
 
+import functools
 from typing import Callable
 
 from .base import BaseMetaClass
 from . import base_impl, connection, errors
+
+
+def sync_operation(f):
+    """
+    Decorator function which is used on all synchronous operations that
+    interact with the database.
+    """
+
+    @functools.wraps(f)
+    def wrapped_f(self, *args, **kwargs):
+        method = getattr(self, f"_{f.__name__}")
+        return self._impl.connection._impl.process_sync_operation(
+            method(*args, **kwargs)
+        )
+
+    return wrapped_f
 
 
 class Subscription(metaclass=BaseMetaClass):
@@ -45,6 +62,18 @@ class Subscription(metaclass=BaseMetaClass):
         subscr = cls.__new__(cls)
         subscr._impl = impl
         return subscr
+
+    def _registerquery(
+        self, statement: str, args: list | dict | None = None
+    ) -> int:
+        """
+        Common logic for registerquery().
+        """
+        if args is not None and not isinstance(args, (list, dict)):
+            raise TypeError("expecting args to be a dictionary or list")
+        if self._impl.namespace == base_impl.SUBSCR_NAMESPACE_AQ:
+            errors._raise_err(errors.ERR_REGISTER_QUERY_ON_AQ_SUBSCR)
+        yield from self._impl.register_query(statement, args)
 
     @property
     def callback(self) -> Callable:
@@ -138,6 +167,7 @@ class Subscription(metaclass=BaseMetaClass):
         """
         return self._impl.qos
 
+    @sync_operation
     def registerquery(
         self, statement: str, args: list | dict | None = None
     ) -> int:
@@ -151,11 +181,7 @@ class Subscription(metaclass=BaseMetaClass):
         then the ID for the registered query is returned; otherwise, *None* is
         returned.
         """
-        if args is not None and not isinstance(args, (list, dict)):
-            raise TypeError("expecting args to be a dictionary or list")
-        if self._impl.namespace == base_impl.SUBSCR_NAMESPACE_AQ:
-            errors._raise_err(errors.ERR_REGISTER_QUERY_ON_AQ_SUBSCR)
-        return self._impl.register_query(statement, args)
+        pass
 
     @property
     def timeout(self) -> int:

@@ -144,7 +144,7 @@ cdef class ThinDbObjectTypeSuperCache:
         self.lock = threading.Lock()
 
 
-cdef class BaseThinDbObjectTypeCache:
+cdef class ThinDbObjectTypeCache:
 
     cdef:
         object meta_cursor, columns_cursor, attrs_ref_cursor_var, version_var
@@ -283,10 +283,6 @@ cdef class BaseThinDbObjectTypeCache:
             buf.skip_to(pos)
             typ_impl.element_metadata = self._parse_tds_attr(buf)
             typ_impl.element_metadata._finalize_init()
-            if typ_impl.element_metadata.dbtype is DB_TYPE_CLOB:
-                return self._get_element_type_clob(typ_impl)
-            elif typ_impl.element_metadata.dbtype is DB_TYPE_OBJECT:
-                return self._get_element_type_obj(typ_impl)
 
         # handle objects with attributes
         else:
@@ -433,8 +429,83 @@ cdef class BaseThinDbObjectTypeCache:
         typ_impl.attrs.append(attr_impl)
         typ_impl.attrs_by_name[name] = attr_impl
 
-    cdef object _populate_type_info(self, str name, object attrs,
-                                    ThinDbObjectTypeImpl typ_impl):
+    def _get_element_type_clob(self, ThinDbObjectTypeImpl typ_impl):
+        """
+        Determine if the element type refers to an NCLOB or CLOB value. This
+        must be fetched from the data dictionary since it is not included in
+        the TDS.
+        """
+        cursor = self.meta_cursor.connection.cursor()
+        if typ_impl.package_name is not None:
+            yield from cursor._execute(
+                DBO_CACHE_SQL_GET_ELEM_TYPE_WITH_PACKAGE,
+                owner=typ_impl.schema,
+                package_name=typ_impl.package_name,
+                name=typ_impl.name
+            )
+        else:
+            yield from cursor._execute(
+                DBO_CACHE_SQL_GET_ELEM_TYPE_NO_PACKAGE,
+                owner=typ_impl.schema,
+                name=typ_impl.name
+            )
+        type_name, = yield from cursor._fetchone()
+        if type_name == "NCLOB":
+            typ_impl.element_metadata.dbtype = DB_TYPE_NCLOB
+
+    def _get_element_type_obj(self, ThinDbObjectTypeImpl typ_impl):
+        """
+        Determine the element type's object type. This is needed when
+        processing collections with object as the element type since this
+        information is not available in the TDS.
+        """
+        cdef:
+            str schema, name, package_name = None
+            object cursor
+        cursor = self.meta_cursor.connection.cursor()
+        if typ_impl.package_name is not None:
+            yield from cursor._execute(
+                DBO_CACHE_SQL_GET_ELEM_OBJTYPE_WITH_PACKAGE,
+                owner=typ_impl.schema,
+                package_name=typ_impl.package_name,
+                name=typ_impl.name
+            )
+            schema, package_name, name = yield from cursor._fetchone()
+        else:
+            yield from cursor._execute(
+                DBO_CACHE_SQL_GET_ELEM_OBJTYPE_NO_PACKAGE,
+                owner=typ_impl.schema,
+                name=typ_impl.name
+            )
+            schema, name = yield from cursor._fetchone()
+        typ_impl.element_metadata.objtype = \
+                self.get_type_for_info(None, schema, package_name, name)
+
+    def _lookup_type(self, object conn, str name,
+                     ThinDbObjectTypeImpl typ_impl):
+        """
+        Lookup the type given its name and return the list of attributes for
+        further processing. The metadata cursor execution will populate the
+        variables.
+        """
+        if self.meta_cursor is None:
+            self._init_meta_cursor(conn)
+        self.full_name_var.setvalue(0, name)
+        yield from self.meta_cursor._execute(None)
+        if self.return_value_var.getvalue() != 0:
+            errors._raise_err(errors.ERR_INVALID_OBJECT_TYPE_NAME, name=name)
+        if name.endswith("%ROWTYPE"):
+            typ_impl.is_row_type = True
+            if self.columns_cursor is None:
+                self._init_columns_cursor(conn)
+            yield from self.columns_cursor._execute(None)
+            return (yield from self.columns_cursor._fetchall())
+        else:
+            attrs_rc = self.attrs_ref_cursor_var.getvalue()
+            return (yield from attrs_rc._fetchall())
+
+    def _populate_type_info(self, str name, object attrs,
+                            ThinDbObjectTypeImpl typ_impl):
         """
         Populate the type information given the name of the type.
         """
@@ -479,10 +550,16 @@ cdef class BaseThinDbObjectTypeCache:
                 self._create_attr(typ_impl, attr_name, attr_type_name,
                                   attr_type_owner, attr_type_package,
                                   attr_type_oid)
-            return self._parse_tds(typ_impl, self.tds_var.getvalue())
+            self._parse_tds(typ_impl, self.tds_var.getvalue())
+            if typ_impl.is_collection:
+                if typ_impl.element_metadata.dbtype is DB_TYPE_CLOB:
+                    yield from self._get_element_type_clob(typ_impl)
+                elif typ_impl.element_metadata.dbtype is DB_TYPE_OBJECT:
+                    yield from self._get_element_type_obj(typ_impl)
 
-    cdef ThinDbObjectTypeImpl get_type_for_info(self, bytes oid, str schema,
-                                                str package_name, str name):
+    cdef ThinDbObjectTypeImpl get_type_for_info(
+        self, bytes oid, str schema, str package_name, str name
+    ):
         """
         Returns a type for the specified fetch info, if one has already been
         cached. If not, a new type object is created and cached. It is also
@@ -514,94 +591,22 @@ cdef class BaseThinDbObjectTypeCache:
             self.partial_types.append(typ_impl)
         return typ_impl
 
-
-cdef class ThinDbObjectTypeCache(BaseThinDbObjectTypeCache):
-
-    def _get_element_type_clob(self, ThinDbObjectTypeImpl typ_impl):
-        """
-        Determine if the element type refers to an NCLOB or CLOB value. This
-        must be fetched from the data dictionary since it is not included in
-        the TDS.
-        """
-        cursor = self.meta_cursor.connection.cursor()
-        if typ_impl.package_name is not None:
-            cursor.execute(DBO_CACHE_SQL_GET_ELEM_TYPE_WITH_PACKAGE,
-                    owner=typ_impl.schema,
-                    package_name=typ_impl.package_name,
-                    name=typ_impl.name)
-        else:
-            cursor.execute(DBO_CACHE_SQL_GET_ELEM_TYPE_NO_PACKAGE,
-                    owner=typ_impl.schema,
-                    name=typ_impl.name)
-        type_name, = cursor.fetchone()
-        if type_name == "NCLOB":
-            typ_impl.element_metadata.dbtype = DB_TYPE_NCLOB
-
-    def _get_element_type_obj(self, ThinDbObjectTypeImpl typ_impl):
-        """
-        Determine the element type's object type. This is needed when
-        processing collections with object as the element type since this
-        information is not available in the TDS.
-        """
-        cdef:
-            str schema, name, package_name = None
-            object cursor
-        cursor = self.meta_cursor.connection.cursor()
-        if typ_impl.package_name is not None:
-            cursor.execute(DBO_CACHE_SQL_GET_ELEM_OBJTYPE_WITH_PACKAGE,
-                    owner=typ_impl.schema,
-                    package_name=typ_impl.package_name,
-                    name=typ_impl.name)
-            schema, package_name, name = cursor.fetchone()
-        else:
-            cursor.execute(DBO_CACHE_SQL_GET_ELEM_OBJTYPE_NO_PACKAGE,
-                    owner=typ_impl.schema,
-                    name=typ_impl.name)
-            schema, name = cursor.fetchone()
-        typ_impl.element_metadata.objtype = \
-                self.get_type_for_info(None, schema, package_name, name)
-
-    cdef list _lookup_type(self, object conn, str name,
-                           ThinDbObjectTypeImpl typ_impl):
-        """
-        Lookup the type given its name and return the list of attributes for
-        further processing. The metadata cursor execution will populate the
-        variables.
-        """
-        if self.meta_cursor is None:
-            self._init_meta_cursor(conn)
-        self.full_name_var.setvalue(0, name)
-        self.meta_cursor.execute(None)
-        if self.return_value_var.getvalue() != 0:
-            errors._raise_err(errors.ERR_INVALID_OBJECT_TYPE_NAME, name=name)
-        if name.endswith("%ROWTYPE"):
-            typ_impl.is_row_type = True
-            if self.columns_cursor is None:
-                self._init_columns_cursor(conn)
-            self.columns_cursor.execute(None)
-            return self.columns_cursor.fetchall()
-        else:
-            attrs_rc = self.attrs_ref_cursor_var.getvalue()
-            return attrs_rc.fetchall()
-
-    cdef ThinDbObjectTypeImpl get_type(self, object conn, str name):
+    def get_type(self, object conn, str name):
         """
         Returns the database object type given its name. The cache is first
         searched and if it is not found, the database is searched and the
         result stored in the cache.
         """
-        cdef:
-            ThinDbObjectTypeImpl typ_impl
-            bint is_rowtype
+        cdef ThinDbObjectTypeImpl typ_impl
         typ_impl = self.types_by_name.get(name)
         if typ_impl is None:
             typ_impl = ThinDbObjectTypeImpl.__new__(ThinDbObjectTypeImpl)
             typ_impl._conn_impl = self.conn_impl
-            attrs = self._lookup_type(conn, name, typ_impl)
-            self._populate_type_info(name, attrs, typ_impl)
+            attrs = yield from self._lookup_type(conn, name, typ_impl)
+            yield from self._populate_type_info(name, attrs, typ_impl)
             self.types_by_oid[typ_impl.oid] = typ_impl
             self.types_by_name[name] = typ_impl
-            self.populate_partial_types(conn)
+            yield from self.populate_partial_types(conn)
         return typ_impl
 
     def populate_partial_types(self, object conn):
@@ -618,117 +623,8 @@ cdef class ThinDbObjectTypeCache(BaseThinDbObjectTypeCache):
         while self.partial_types:
             typ_impl = self.partial_types.pop()
             full_name = self._get_full_name(typ_impl)
-            attrs = self._lookup_type(conn, full_name, typ_impl)
-            self._populate_type_info(full_name, attrs, typ_impl)
-
-
-cdef class AsyncThinDbObjectTypeCache(BaseThinDbObjectTypeCache):
-
-    async def _get_element_type_clob(self, ThinDbObjectTypeImpl typ_impl):
-        """
-        Determine if the element type refers to an NCLOB or CLOB value. This
-        must be fetched from the data dictionary since it is not included in
-        the TDS.
-        """
-        cursor = self.meta_cursor.connection.cursor()
-        if typ_impl.package_name is not None:
-            await cursor.execute(DBO_CACHE_SQL_GET_ELEM_TYPE_WITH_PACKAGE,
-                    owner=typ_impl.schema,
-                    package_name=typ_impl.package_name,
-                    name=typ_impl.name)
-        else:
-            await cursor.execute(DBO_CACHE_SQL_GET_ELEM_TYPE_NO_PACKAGE,
-                    owner=typ_impl.schema,
-                    name=typ_impl.name)
-        type_name, = await cursor.fetchone()
-        if type_name == "NCLOB":
-            typ_impl.element_metadata.dbtype = DB_TYPE_NCLOB
-
-    async def _get_element_type_obj(self, ThinDbObjectTypeImpl typ_impl):
-        """
-        Determine the element type's object type. This is needed when
-        processing collections with object as the element type since this
-        information is not available in the TDS.
-        """
-        cdef:
-            str schema, name, package_name = None
-            object cursor
-        cursor = self.meta_cursor.connection.cursor()
-        if typ_impl.package_name is not None:
-            await cursor.execute(DBO_CACHE_SQL_GET_ELEM_OBJTYPE_WITH_PACKAGE,
-                    owner=typ_impl.schema,
-                    package_name=typ_impl.package_name,
-                    name=typ_impl.name)
-            schema, package_name, name = await cursor.fetchone()
-        else:
-            await cursor.execute(DBO_CACHE_SQL_GET_ELEM_OBJTYPE_NO_PACKAGE,
-                    owner=typ_impl.schema,
-                    name=typ_impl.name)
-            schema, name = await cursor.fetchone()
-        typ_impl.element_metadata.objtype = \
-                self.get_type_for_info(None, schema, package_name, name)
-
-    async def _lookup_type(self, object conn, str name,
-                           ThinDbObjectTypeImpl typ_impl):
-        """
-        Lookup the type given its name and return the list of attributes for
-        further processing. The metadata cursor execution will populate the
-        variables.
-        """
-        if self.meta_cursor is None:
-            self._init_meta_cursor(conn)
-        self.full_name_var.setvalue(0, name)
-        await self.meta_cursor.execute(None)
-        if self.return_value_var.getvalue() != 0:
-            errors._raise_err(errors.ERR_INVALID_OBJECT_TYPE_NAME, name=name)
-        if name.endswith("%ROWTYPE"):
-            typ_impl.is_row_type = True
-            if self.columns_cursor is None:
-                self._init_columns_cursor(conn)
-            await self.columns_cursor.execute(None)
-            return await self.columns_cursor.fetchall()
-        else:
-            attrs_rc = self.attrs_ref_cursor_var.getvalue()
-            return await attrs_rc.fetchall()
-
-    async def get_type(self, object conn, str name):
-        """
-        Returns the database object type given its name. The cache is first
-        searched and if it is not found, the database is searched and the
-        result stored in the cache.
-        """
-        cdef ThinDbObjectTypeImpl typ_impl
-        typ_impl = self.types_by_name.get(name)
-        if typ_impl is None:
-            typ_impl = ThinDbObjectTypeImpl.__new__(ThinDbObjectTypeImpl)
-            typ_impl._conn_impl = self.conn_impl
-            attrs = await self._lookup_type(conn, name, typ_impl)
-            coroutine = self._populate_type_info(name, attrs, typ_impl)
-            if coroutine is not None:
-                await coroutine
-            self.types_by_oid[typ_impl.oid] = typ_impl
-            self.types_by_name[name] = typ_impl
-            await self.populate_partial_types(conn)
-        return typ_impl
-
-    async def populate_partial_types(self, object conn):
-        """
-        Populate any partial types that were discovered earlier. Since
-        populating an object type might result in additional object types being
-        discovered, object types are popped from the partial types list until
-        the list is empty.
-        """
-        cdef:
-            ThinDbObjectTypeImpl typ_impl
-            str full_name
-            list attrs
-        while self.partial_types:
-            typ_impl = self.partial_types.pop()
-            full_name = self._get_full_name(typ_impl)
-            attrs = await self._lookup_type(conn, full_name, typ_impl)
-            coroutine = self._populate_type_info(full_name, attrs, typ_impl)
-            if coroutine is not None:
-                await coroutine
+            attrs = yield from self._lookup_type(conn, full_name, typ_impl)
+            yield from self._populate_type_info(full_name, attrs, typ_impl)
 
 
 # global cache of database object types
@@ -744,21 +640,18 @@ cdef int create_new_dbobject_type_cache(BaseThinConnImpl conn_impl) except -1:
     Creates a new database object type cache and returns its identifier.
     """
     cdef:
-        BaseThinDbObjectTypeCache cache
-        bint is_async
+        ThinDbObjectTypeCache cache
         int cache_num
     with DB_OBJECT_TYPE_SUPER_CACHE.lock:
         DB_OBJECT_TYPE_SUPER_CACHE.cache_num += 1
         cache_num = DB_OBJECT_TYPE_SUPER_CACHE.cache_num
-    is_async = conn_impl._protocol._transport._is_async
-    cls = AsyncThinDbObjectTypeCache if is_async else ThinDbObjectTypeCache
-    cache = cls.__new__(cls)
+    cache = ThinDbObjectTypeCache.__new__(ThinDbObjectTypeCache)
     cache._initialize(conn_impl)
     DB_OBJECT_TYPE_SUPER_CACHE.caches[cache_num] = cache
     return cache_num
 
 
-cdef BaseThinDbObjectTypeCache get_dbobject_type_cache(int cache_num):
+cdef ThinDbObjectTypeCache get_dbobject_type_cache(int cache_num):
     """
     Returns the database object type cache given its identifier.
     """

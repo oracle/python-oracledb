@@ -129,12 +129,13 @@ cdef class ThickSubscrImpl(BaseSubscrImpl):
             _raise_from_odpi()
         if args is not None:
             cursor_impl.bind_one(cursor, args)
-        cursor_impl.execute(cursor)
+        yield from cursor_impl.execute(cursor)
         if self.qos & DPI_SUBSCR_QOS_QUERY:
             if dpiStmt_getSubscrQueryId(cursor_impl._handle, &query_id) < 0:
                 _raise_from_odpi()
             return query_id
 
+    @sync_operation
     def subscribe(self, object subscr, ThickConnImpl conn_impl):
         """
         Internal method for creating the subscription.
@@ -172,6 +173,7 @@ cdef class ThickSubscrImpl(BaseSubscrImpl):
             _raise_from_odpi()
         self.id = params.outRegId
 
+    @sync_operation
     def unsubscribe(self, object subscr, ThickConnImpl conn_impl):
         """
         Internal method for destroying the subscription.
