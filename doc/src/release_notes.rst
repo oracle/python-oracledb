@@ -21,6 +21,7 @@ Thin Mode Changes
 
 #)  Added support for :ref:`Oracle Deep Data Security <deepdatasecurity>` using
     :ref:`asyncio <concurrentprogramming>`.
+#)  Added support for external authentication using :ref:`TLS <tlsextauth>`.
 #)  Added read-only connection attributes :attr:`Connection.host`,
     :attr:`Connection.port`, :attr:`Connection.protocol`, and
     :attr:`Connection.db_unique_name` (and async variants) to expose the

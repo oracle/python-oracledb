@@ -281,7 +281,9 @@ cdef class Protocol(BaseProtocol):
                 connect_message = conn_impl._create_message(ConnectMessage)
                 connect_message.host = host
                 connect_message.port = port
+                connect_message.params = params
                 connect_message.description = description
+                connect_message.address = address
                 connect_message.connect_string_bytes = connect_string.encode()
                 connect_message.connect_string_len = \
                         <uint16_t> len(connect_message.connect_string_bytes)
@@ -322,7 +324,7 @@ cdef class Protocol(BaseProtocol):
                     self._transport.renegotiate_tls(address, description)
 
     cdef int _connect_phase_two(self, ThinConnImpl conn_impl,
-                                Description description,
+                                Description description, Address address,
                                 ConnectParamsImpl params) except -1:
         """"
         Method for perfoming the required steps for establishing a connection
@@ -330,17 +332,29 @@ cdef class Protocol(BaseProtocol):
         an exception will be raised.
         """
         cdef:
+            NetworkServicesMessage services_message
             DataTypesMessage data_types_message
             FastAuthMessage fast_auth_message
             ProtocolMessage protocol_message
             bint supports_end_of_response
             AuthMessage auth_message
 
+        # force the end of response to be disabled for the first packets
+        supports_end_of_response = self._caps.supports_end_of_response
+        self._caps.supports_end_of_response = False
+
         # if we can use OOB, send an urgent message now followed by a reset
         # marker to see if the server understands it
         if self._caps.supports_oob and self._caps.supports_oob_check:
             self._transport.send_oob_break()
             self._send_marker(self._write_buf, TNS_MARKER_TYPE_RESET)
+
+        # send the network services message, if applicable
+        if params.externalauth and address.protocol == "tcps" \
+                and description.wallet_location is not None:
+            services_message = \
+                    conn_impl._create_message(NetworkServicesMessage)
+            self._process_message(services_message)
 
         # create the messages that need to be sent to the server
         protocol_message = conn_impl._create_message(ProtocolMessage)
@@ -351,6 +365,7 @@ cdef class Protocol(BaseProtocol):
         # starting in Oracle Database version 23, fast authentication is
         # possible; see if the server supports it
         if self._caps.supports_fast_auth:
+            self._caps.supports_end_of_response = supports_end_of_response
             fast_auth_message = conn_impl._create_message(FastAuthMessage)
             fast_auth_message.protocol_message = protocol_message
             fast_auth_message.data_types_message = data_types_message
@@ -361,8 +376,6 @@ cdef class Protocol(BaseProtocol):
         # the first two messages as the server does not send an end of response
         # for these messages
         else:
-            supports_end_of_response = self._caps.supports_end_of_response
-            self._caps.supports_end_of_response = False
             self._process_message(protocol_message)
             self._process_message(data_types_message)
             self._caps.supports_end_of_response = supports_end_of_response
@@ -687,7 +700,7 @@ cdef class BaseAsyncProtocol(BaseProtocol):
                                                               description)
 
     async def _connect_phase_two(self, AsyncThinConnImpl conn_impl,
-                                 Description description,
+                                 Description description, Address address,
                                  ConnectParamsImpl params):
         """"
         Method for perfoming the required steps for establishing a connection

@@ -406,6 +406,7 @@ ERR_NOT_IMPLEMENTED = 5012
 ERR_INTERNAL_CREATION_REQUIRED = 5013
 ERR_UNKNOWN_TRANSACTION_SYNC_VERSION = 5014
 ERR_NUMBER_TOO_LARGE = 5015
+ERR_ANO_STATUS_FAILURE = 5016
 
 # error numbers that result in OperationalError
 ERR_LISTENER_REFUSED_CONNECTION = 6000
@@ -580,6 +581,9 @@ ERR_TROUBLESHOOTING_AVAILABLE = set(
 ERR_MESSAGE_FORMATS = {
     ERR_ACCESS_TOKEN_REQUIRES_TCPS: (
         "access_token requires use of the tcps protocol"
+    ),
+    ERR_ANO_STATUS_FAILURE: (
+        "ANO {service_name} service received a status failure"
     ),
     ERR_ARGS_AND_KEYWORD_ARGS: (
         "expecting positional arguments or keyword arguments, not both"

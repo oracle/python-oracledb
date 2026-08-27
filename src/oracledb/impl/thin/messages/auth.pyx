@@ -272,13 +272,16 @@ cdef class AuthMessage(Message):
         else:
             self.purity = description.purity
 
-        # set token parameters; adjust processing so that only phase two is
-        # sent
+        # set token parameters
         if params._token is not None \
                 or params.access_token_callback is not None:
             self.token = params._get_token()
             if params._private_key is not None:
                 self.private_key = params._get_private_key()
+
+        # when using external authentication (token authentication and TLS
+        # certificate authentication), only phase two is used
+        if params.externalauth:
             self.function_code = TNS_FUNC_AUTH_PHASE_TWO
             self.resend = False
 
@@ -330,7 +333,7 @@ cdef class AuthMessage(Message):
                 num_pairs += 1
 
             # normal user/password authentication
-            else:
+            elif not self.conn_impl._connect_params.externalauth:
                 num_pairs += 2
                 self.auth_mode |= TNS_AUTH_MODE_WITH_PASSWORD
                 if self.verifier_type == TNS_VERIFIER_TYPE_12C:
@@ -387,7 +390,8 @@ cdef class AuthMessage(Message):
                                       self.proxy_user)
             if self.token is not None:
                 self._write_key_value(buf, "AUTH_TOKEN", self.token)
-            elif not self.change_password:
+            elif not self.change_password \
+                    and not self.conn_impl._connect_params.externalauth:
                 self._write_key_value(buf, "AUTH_SESSKEY", self.session_key, 1)
                 if self.verifier_type == TNS_VERIFIER_TYPE_12C:
                     self._write_key_value(buf, "AUTH_PBKDF2_SPEEDY_KEY",

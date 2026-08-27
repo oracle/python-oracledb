@@ -137,8 +137,8 @@ environment variables, database access can be authenticated by an outside
 system.  External Authentication allows applications to validate user access
 with an external password store (such as an
 :ref:`Oracle Wallet <extauthwithwallet>`), with the
-:ref:`operating system <opsysauth>`, or with an external authentication
-service.
+:ref:`operating system <opsysauth>`, with :ref:`TLS <tlsextauth>`, or with an
+external authentication service.
 
 .. note::
 
@@ -361,6 +361,73 @@ See `Oracle AI Database Security Guide
 <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&
 id=GUID-37BECE32-58D5-43BF-A098-97936D66968F>`__ for more information about
 Operating System Authentication.
+
+.. _tlsextauth:
+
+External Authentication Using TLS
+---------------------------------
+
+External authentication with Transport Layer Security (TLS) uses a Public Key
+Infrastructure (PKI) client certificate to authenticate a database user. The
+database maps the distinguished name (DN) in the client certificate to an
+externally identified database user. See `Configuring Public Key Infrastructure
+(PKI) certificates <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=
+GUID-6AD89576-526F-4D6B-A539-ADF4B840819F>`__ for more information. This
+authentication method can be used in both python-oracledb Thin and Thick modes.
+
+To use TLS external authentication, set the ``externalauth`` parameter to
+*True* in :meth:`oracledb.connect()` or :meth:`oracledb.create_pool()`. TLS
+external authentication can only be done for connections that are configured to
+use the *TCPS* protocol. The client certificate must also be specified, for
+example by using the ``wallet_location`` parameter in python-oracledb Thin
+mode, or by configuring a wallet in Thick mode.
+
+For Thin mode, the client certificate can be supplied from a PEM wallet by
+using ``wallet_location`` and ``wallet_password``. For example:
+
+.. code-block:: python
+
+    connection = oracledb.connect(
+        dsn="tcps://localhost/orclpdb1",
+        externalauth=True,
+        wallet_location="/path/to/wallet",
+        wallet_password=wallet_password
+    )
+
+For python-oracledb Thin mode, a connection pool can be created similarly:
+
+.. code-block:: python
+
+    pool = oracledb.create_pool(
+        dsn="tcps://localhost/orclpdb1",
+        externalauth=True,
+        homogeneous=False,
+        wallet_location="/path/to/wallet",
+        wallet_password=wallet_password
+    )
+
+In python-oracledb Thick mode, ensure that the `SQLNET.AUTHENTICATION_SERVICES
+<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-FFDBCCFD-87EF
+-43B8-84DA-113720FCC095>`__ parameter contains *TCPS* as a value in the
+:ref:`sqlnet.ora <optnetfiles>` file. Note that *TCPS* is the default value of
+this parameter.
+
+Additional server side configuration is also required to enable external
+authentication using TLS:
+
+1. Create a user corresponding to the distinguished name (DN) in the
+   certificate using:
+
+   .. code-block:: sql
+
+      CREATE USER user_name IDENTIFIED EXTERNALLY AS 'user DN on certificate';
+
+2. Set the ``SSL_CLIENT_AUTHENTICATION`` parameter to *TRUE* in the server-side
+   :ref:`sqlnet.ora <optnetfiles>` file.
+
+Note that TLS external authentication will not be enabled if you are using
+token-based authentication (that is, the ``access_token`` parameter is set in
+:meth:`oracledb.connect()` or :meth:`oracledb.create_pool()`).
 
 .. _tokenauth:
 

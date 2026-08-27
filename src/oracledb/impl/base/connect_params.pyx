@@ -187,8 +187,7 @@ cdef class ConnectParamsImpl:
         Check to see that credentials have been supplied: either a password or
         an access token.
         """
-        if self._password is None and self._token is None \
-                and self.access_token_callback is None:
+        if self._password is None and not self.externalauth:
             errors._raise_err(errors.ERR_NO_CREDENTIALS)
 
     cdef int _copy(self, ConnectParamsImpl other_params) except -1:
@@ -399,6 +398,7 @@ cdef class ConnectParamsImpl:
         Sets the access token parameter.
         """
         if val is not None:
+            self.externalauth = True
             if callable(val):
                 self.access_token_callback = val
             else:

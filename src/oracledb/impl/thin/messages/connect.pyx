@@ -36,9 +36,11 @@ cdef class ConnectMessage(Message):
         bytes connect_string_bytes
         uint16_t connect_string_len, redirect_data_len
         bint read_redirect_data_len
+        ConnectParamsImpl params
         Description description
         uint8_t packet_flags
         str redirect_data
+        Address address
         str host
         int port
 
@@ -106,8 +108,12 @@ cdef class ConnectMessage(Message):
         cdef:
             uint16_t service_options = TNS_GSO_DONT_CARE
             uint32_t connect_flags_1 = 0, connect_flags_2 = 0
-            uint8_t nsi_flags = \
-                    TNS_NSI_SUPPORT_SECURITY_RENEG | TNS_NSI_DISABLE_NA
+            uint8_t nsi_flags
+        nsi_flags = TNS_NSI_SUPPORT_SECURITY_RENEG
+        if not self.params.externalauth \
+                or self.address.protocol != "tcps" \
+                or self.description.wallet_location is None:
+            nsi_flags |= TNS_NSI_NA_DISABLED
         if buf._caps.supports_oob:
             service_options |= TNS_GSO_CAN_RECV_ATTENTION
             connect_flags_2 |= TNS_CHECK_OOB

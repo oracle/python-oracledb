@@ -96,6 +96,7 @@ cdef class BaseThinConnImpl(BaseConnImpl):
         str _cclass
         int _dbobject_type_cache_num
         bytes _combo_key
+        bytes _connection_id_bytes
         str _connection_id
         bint _is_pooled
         bytes _pool_id
@@ -264,7 +265,9 @@ cdef class BaseThinConnImpl(BaseConnImpl):
         Called before the connection is established to perform common tasks.
         """
         params._check_credentials()
-        self._connection_id = base64.b64encode(secrets.token_bytes(16)).decode()
+        self._connection_id_bytes = secrets.token_bytes(16)
+        self._connection_id = \
+                base64.b64encode(self._connection_id_bytes).decode()
 
     cdef int _return_statement(self, Statement statement) except -1:
         """
@@ -481,7 +484,7 @@ cdef class ThinConnImpl(BaseThinConnImpl):
             errors._raise_err(errors.ERR_CONNECTION_FAILED, cause=e,
                               connection_id=description.connection_id)
         self._post_connect_phase_one(description, params)
-        protocol._connect_phase_two(self, description, params)
+        protocol._connect_phase_two(self, description, address, params)
 
     cdef int _connect_with_description(self, Description description,
                                        ConnectParamsImpl params,
@@ -915,7 +918,8 @@ cdef class AsyncThinConnImpl(BaseThinConnImpl):
             errors._raise_err(errors.ERR_CONNECTION_FAILED, cause=e,
                               connection_id=description.connection_id)
         self._post_connect_phase_one(description, params)
-        await self._protocol._connect_phase_two(self, description, params)
+        await self._protocol._connect_phase_two(self, description, address,
+                                                params)
 
     async def _connect_with_description(self, Description description,
                                         ConnectParamsImpl params,
