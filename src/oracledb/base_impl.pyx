@@ -134,6 +134,7 @@ cdef type PY_TYPE_VAR
 cdef object ENUM_AUTH_MODE
 cdef object ENUM_POOL_GET_MODE
 cdef object ENUM_PURITY
+cdef object ENUM_TRANSACTION_PRIORITY
 
 cdef const char* DRIVER_NAME = "python-oracledb"
 cdef const char* DRIVER_VERSION

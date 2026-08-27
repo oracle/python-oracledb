@@ -729,6 +729,7 @@ def test_4539():
         ("extra_auth_params", dict(extra1="A", extra2="B")),
         ("pool_name", "my_pool"),
         ("on_connect_callback", lambda conn: None),
+        ("transaction_priority", oracledb.TransactionPriority.LOW),
     ]
     params = oracledb.ConnectParams(**dict(values))
     parts = [f"{name}={value!r}" for name, value in values]
@@ -786,6 +787,7 @@ def test_4539():
         ("extra_auth_params", dict(extra1="X", extra2="Y")),
         ("pool_name", "my_second_pool"),
         ("on_connect_callback", lambda conn: None),
+        ("transaction_priority", oracledb.TransactionPriority.HIGH),
     ]
     params.set(**dict(new_values))
     parts = [f"{name}={value!r}" for name, value in new_values]
@@ -1811,6 +1813,7 @@ def test_4583():
         ("extra_auth_params", dict(extra1="A", extra2="B")),
         ("pool_name", "my_pool"),
         ("on_connect_callback", lambda conn: None),
+        ("transaction_priority", oracledb.TransactionPriority.MEDIUM),
     ],
 )
 def test_4584(attr_name, value):

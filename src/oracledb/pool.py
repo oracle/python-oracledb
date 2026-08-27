@@ -700,6 +700,7 @@ def create_pool(
     extra_auth_params: dict | None = None,
     pool_name: str | None = None,
     on_connect_callback: Callable | None = None,
+    transaction_priority: oracledb.TransactionPriority | None = None,
     handle: int | None = None,
 ) -> ConnectionPool:
     """
@@ -1071,6 +1072,11 @@ def create_pool(
       object for DeepSec support
       (default: None)
 
+    - ``transaction_priority``: a member of the oracledb.TransactionPriority
+      enumeration that specifies the priority of any transaction that is
+      created by the connection
+      (default: None)
+
     - ``handle``: an integer representing a pointer to a valid service context
       handle. This value is only used in python-oracledb Thick mode. It should
       be used with extreme caution
@@ -1303,6 +1309,7 @@ def create_pool_async(
     extra_auth_params: dict | None = None,
     pool_name: str | None = None,
     on_connect_callback: Callable | None = None,
+    transaction_priority: oracledb.TransactionPriority | None = None,
     handle: int | None = None,
 ) -> AsyncConnectionPool:
     """
@@ -1672,6 +1679,11 @@ def create_pool_async(
       connection pool, but before it is returned to the caller. A common use of
       this callback is for creating and setting an end user security context
       object for DeepSec support
+      (default: None)
+
+    - ``transaction_priority``: a member of the oracledb.TransactionPriority
+      enumeration that specifies the priority of any transaction that is
+      created by the connection
       (default: None)
 
     - ``handle``: an integer representing a pointer to a valid service context

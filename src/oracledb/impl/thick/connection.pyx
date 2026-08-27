@@ -43,6 +43,7 @@ cdef class ConnectionParams:
         bytes token
         bytes private_key
         bytes driver_name
+        bytes transaction_priority
 
         const char *connect_string_ptr
         const char *username_ptr
@@ -54,6 +55,7 @@ cdef class ConnectionParams:
         const char *token_ptr
         const char *private_key_ptr
         const char *driver_name_ptr
+        const char *transaction_priority_ptr
 
         uint32_t connect_string_len
         uint32_t username_len
@@ -65,6 +67,7 @@ cdef class ConnectionParams:
         uint32_t token_len
         uint32_t private_key_len
         uint32_t driver_name_len
+        uint32_t transaction_priority_len
 
         uint32_t num_app_context
         list bytes_references
@@ -477,6 +480,12 @@ cdef class ThickConnImpl(BaseConnImpl):
             params.driver_name = user_params.driver_name.encode()[:30]
             params.driver_name_ptr = params.driver_name
             params.driver_name_len = <uint32_t> len(params.driver_name)
+        if user_params.transaction_priority is not None:
+            params.transaction_priority = \
+                    user_params.transaction_priority.encode()
+            params.transaction_priority_ptr = params.transaction_priority
+            params.transaction_priority_len = \
+                    <uint32_t> len(params.transaction_priority)
 
         # set up common creation parameters
         if dpiContext_initCommonCreateParams(driver_info.context,
@@ -497,6 +506,10 @@ cdef class ThickConnImpl(BaseConnImpl):
         if user_params.driver_name is not None:
             common_params.driverName = params.driver_name_ptr
             common_params.driverNameLength = params.driver_name_len
+        if user_params.transaction_priority is not None:
+            common_params.transactionPriority = params.transaction_priority_ptr
+            common_params.transactionPriorityLength = \
+                    params.transaction_priority_len
 
         # set up connection specific creation parameters
         if dpiContext_initConnCreateParams(driver_info.context,
@@ -747,6 +760,16 @@ cdef class ThickConnImpl(BaseConnImpl):
             _raise_from_odpi()
         return value
 
+    def get_transaction_priority(self):
+        cdef:
+            uint32_t value_length
+            const char *value
+        if dpiConn_getTransactionPriority(self._handle, &value,
+                                          &value_length) < 0:
+            _raise_from_odpi()
+        if value is not NULL:
+            return value[:value_length].decode()
+
     def get_type(self, object conn, str name):
         cdef:
             dpiObjectType *handle
@@ -785,6 +808,9 @@ cdef class ThickConnImpl(BaseConnImpl):
 
     def set_dbop(self, str value):
         self._set_text_attr(dpiConn_setDbOp, value)
+
+    def set_transaction_priority(self, str value):
+        self._set_text_attr(dpiConn_setTransactionPriority, value)
 
     def ping(self):
         cdef int status

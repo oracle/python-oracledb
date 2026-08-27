@@ -346,6 +346,7 @@ ERR_CANNOT_CONVERT_FROM_ARROW_TYPE = 3039
 ERR_DB_CS_NOT_SUPPORTED = 3040
 ERR_UNSUPPORTED_DEEP_DATA_SECURITY_FEATURE = 3041
 ERR_ARROW_UNSUPPORTED_INTERVAL = 3042
+ERR_UNSUPPORTED_TXN_PRIORITY = 3043
 
 # error numbers that result in DatabaseError
 ERR_TNS_ENTRY_NOT_FOUND = 4000
@@ -1029,6 +1030,9 @@ ERR_MESSAGE_FORMATS = {
     ERR_UNSUPPORTED_PYTHON_TYPE_FOR_DB_TYPE: (
         "unsupported Python type {py_type_name} for database type "
         "{db_type_name}"
+    ),
+    ERR_UNSUPPORTED_TXN_PRIORITY: (
+        "database does not support transaction priority"
     ),
     ERR_UNSUPPORTED_TYPE_SET: "type {db_type_name} does not support being set",
     ERR_UNSUPPORTED_VERIFIER_TYPE: (

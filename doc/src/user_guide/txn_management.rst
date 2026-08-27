@@ -80,6 +80,103 @@ records:
     cursor.execute("INSERT INTO sales_table VALUES (:bvid, 'pens', 3000)",
             bvid=id_val)
 
+.. _txnpriority:
+
+Transaction Priority
+====================
+
+Transaction priority is set at the database session level and applies to
+transactions in that session. When a higher-priority transaction is blocked by
+a lower-priority transaction, Oracle Database can automatically roll back the
+lower-priority transaction, allowing the higher-priority transaction to
+proceed. Transaction Priority is available starting with Oracle Database 26ai.
+For more information on transaction priority, see `Priority Transactions
+<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-8B71D725-24E9-
+4AE1-B9FA-BAC291923EAC>`__.
+
+In python-oracledb, the transaction priority can be set on connections. The
+transaction priority must be set when the connection has no active
+transactions. Applications that use low or medium priority transactions must
+be prepared for the database to roll back a transaction that blocks a
+higher-priority transaction.
+
+You can set the transaction priority when creating standalone connections by
+using the ``transaction_priority`` parameter in :meth:`oracledb.connect()`, for
+example:
+
+.. code-block:: python
+
+    connection = oracledb.connect(
+        user="hr",
+        password=userpwd,
+        dsn="dbhost.example.com/orclpdb",
+        transaction_priority=oracledb.TransactionPriority.HIGH
+    )
+
+The possible values of ``transaction_priority`` are:
+
+- :attr:`~oracledb.TransactionPriority.DEFAULT` which sets the transaction
+  priority to the database default value on the next round-trip.
+
+- :attr:`~oracledb.TransactionPriority.LOW` which sets the transaction priority
+  to LOW on the next round-trip.
+
+- :attr:`~oracledb.TransactionPriority.MEDIUM` which sets the transaction
+  priority to MEDIUM on the next round-trip.
+
+- :attr:`~oracledb.TransactionPriority.HIGH` which sets the transaction
+  priority to HIGH on the next round-trip.
+
+The above values are members of the :class:`oracledb.TransactionPriority`
+enumeration.
+
+In python-oracledb Thin mode, you can set the ``transaction_priority`` value
+when creating a connection pool. For example:
+
+.. code-block:: python
+
+    pool = oracledb.create_pool(
+        user="hr",
+        password=userpwd,
+        dsn="dbhost.example.com/orclpdb",
+        transaction_priority=oracledb.TransactionPriority.HIGH
+        min=1, max=5, increment=1
+    )
+
+    connection = pool.acquire()
+
+In Thick mode, setting the transaction priority when creating a pool is
+currently not supported.
+
+In both Thin and Thick modes, you can use the
+:attr:`Connection.transaction_priority` attribute to set the transaction
+priority on a connection before starting a transaction. This attribute can
+also be used to change the transaction priority on an existing connection.
+For example:
+
+.. code-block:: python
+
+    connection.transaction_priority = oracledb.TransactionPriority.LOW
+
+After setting this property, the new value is sent to the database on the
+next :ref:`round-trip <roundtrips>`. Until then, this property continues
+to return the current value known to the database.
+
+When a pooled connection is released to the pool and later acquired again, it
+retains the priority already associated with that connection. To change or
+reset the priority of that connection, you can set the
+:attr:`Connection.transaction_priority` property after acquiring the
+connection. The new value takes effect on the next
+:ref:`round-trip <roundtrips>`.
+
+To reset the priority to the database default, set
+:attr:`Connection.transaction_priority`, or the ``transaction_priority``
+parameter in :meth:`oracledb.connect()` or :meth:`oracledb.create_pool()` to
+:attr:`oracledb.TransactionPriority.DEFAULT`. For example:
+
+.. code-block:: python
+
+    connection.transaction_priority = oracledb.TransactionPriority.DEFAULT
 
 Explicit Transactions
 =====================

@@ -51,6 +51,7 @@ cdef class ThickPoolImpl(BasePoolImpl):
             const char *connect_string_ptr = NULL
             dpiCommonCreateParams common_params
             dpiPoolCreateParams create_params
+            bytes transaction_priority_bytes
             const char *password_ptr = NULL
             const char *user_ptr = NULL
             uint32_t token_len = 0, private_key_len = 0
@@ -103,6 +104,11 @@ cdef class ThickPoolImpl(BasePoolImpl):
             driver_name_bytes = params.driver_name.encode()[:30]
             common_params.driverName = driver_name_bytes
             common_params.driverNameLength = <uint32_t> len(driver_name_bytes)
+        if params.transaction_priority is not None:
+            transaction_priority_bytes = params.transaction_priority.encode()
+            common_params.transactionPriority = transaction_priority_bytes
+            common_params.transactionPriorityLength = \
+                    <uint32_t> len(transaction_priority_bytes)
 
         # set up pool creation parameters
         if dpiContext_initPoolCreateParams(driver_info.context,

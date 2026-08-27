@@ -1015,3 +1015,17 @@ def test_1164(conn, cursor):
     conn.clear_app_context(namespace)
     cursor.execute(None, namespace=namespace)
     assert cursor.fetchone() == (None, None)
+
+
+def test_1165(skip_unless_transaction_priority_supported, test_env):
+    "1165 - test getting and setting transaction priority"
+    with test_env.get_connection() as conn:
+        default_priority = conn.transaction_priority
+    with test_env.get_connection(transaction_priority="medium") as conn:
+        assert conn.transaction_priority == oracledb.TransactionPriority.MEDIUM
+        conn.transaction_priority = "low"
+        conn.ping()
+        assert conn.transaction_priority == "low"
+        conn.transaction_priority = ""
+        conn.ping()
+        assert conn.transaction_priority == default_priority

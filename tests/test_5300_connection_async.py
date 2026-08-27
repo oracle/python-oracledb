@@ -763,3 +763,19 @@ async def test_5361(async_conn, async_cursor):
     async_conn.clear_app_context(namespace)
     await async_cursor.execute(None, namespace=namespace)
     assert await async_cursor.fetchone() == (None, None)
+
+
+async def test_5362(skip_unless_transaction_priority_supported, test_env):
+    "5362 - test getting and setting transaction priority"
+    async with test_env.get_connection_async() as conn:
+        default_priority = conn.transaction_priority
+    async with test_env.get_connection_async(
+        transaction_priority="medium"
+    ) as conn:
+        assert conn.transaction_priority == oracledb.TransactionPriority.MEDIUM
+        conn.transaction_priority = "low"
+        await conn.ping()
+        assert conn.transaction_priority == "low"
+        conn.transaction_priority = ""
+        await conn.ping()
+        assert conn.transaction_priority == default_priority

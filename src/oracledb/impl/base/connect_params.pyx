@@ -99,6 +99,8 @@ cdef class ConnectParamsImpl:
                 and other_impl.terminal == self.terminal \
                 and other_impl.osuser == self.osuser \
                 and other_impl.driver_name == self.driver_name \
+                and other_impl.transaction_priority == \
+                        self.transaction_priority \
                 and other_impl.extra_auth_params == \
                         self.extra_auth_params \
                 and other_impl.thick_mode_dsn_passthrough == \
@@ -141,6 +143,8 @@ cdef class ConnectParamsImpl:
         _set_str_param(args, "machine", self, check_network_character_set=True)
         _set_str_param(args, "osuser", self, check_network_character_set=True)
         _set_str_param(args, "driver_name", self)
+        _set_str_enum_param(args, "transaction_priority",
+                            ENUM_TRANSACTION_PRIORITY, self)
         _set_obj_param(args, "extra_auth_params", self)
         _set_bool_param(args, "thick_mode_dsn_passthrough",
                         &self.thick_mode_dsn_passthrough)
@@ -226,6 +230,7 @@ cdef class ConnectParamsImpl:
         self.machine = other_params.machine
         self.osuser = other_params.osuser
         self.driver_name = other_params.driver_name
+        self.transaction_priority = other_params.transaction_priority
         self.extra_auth_params = other_params.extra_auth_params
         self.thick_mode_dsn_passthrough = \
                 other_params.thick_mode_dsn_passthrough

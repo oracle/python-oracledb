@@ -212,6 +212,24 @@ cdef int _set_ssl_version_param(dict args, str name, object target) except -1:
         setattr(target, name, in_val)
 
 
+cdef int _set_str_enum_param(dict args, str name, object enum_obj,
+                             object target) except -1:
+    """
+    Sets a string parameter to the value provided in the dictionary. If a
+    value from the enumeration is not provided, it is looked up first.
+    """
+    in_val = args.get(name)
+    if in_val is not None:
+        if isinstance(in_val, enum_obj):
+            enum_val = in_val
+        else:
+            enum_val = getattr(enum_obj, in_val.upper(), None)
+            if enum_val is None:
+                errors._raise_err(errors.ERR_INVALID_ENUM_VALUE,
+                                  name=enum_obj.__name__, value=in_val)
+        setattr(target, name, enum_val.value)
+
+
 cdef int _set_str_param(dict args, str name, object target, bint check_network_character_set = False) except -1:
     """
     Sets a string parameter to the value provided in the dictionary. If a value
@@ -277,6 +295,7 @@ def init_base_impl(package):
         ENUM_AUTH_MODE, \
         ENUM_POOL_GET_MODE, \
         ENUM_PURITY, \
+        ENUM_TRANSACTION_PRIORITY, \
         PY_TYPE_ARROW_ARRAY, \
         PY_TYPE_ASYNC_CURSOR, \
         PY_TYPE_ASYNC_LOB, \
@@ -304,6 +323,7 @@ def init_base_impl(package):
     ENUM_AUTH_MODE = package.AuthMode
     ENUM_PURITY = package.Purity
     ENUM_POOL_GET_MODE = package.PoolGetMode
+    ENUM_TRANSACTION_PRIORITY = package.TransactionPriority
     PY_TYPE_ARROW_ARRAY = <type> package.ArrowArray
     PY_TYPE_ASYNC_CURSOR = <type> package.AsyncCursor
     PY_TYPE_ASYNC_LOB = <type> package.AsyncLOB

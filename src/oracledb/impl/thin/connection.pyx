@@ -76,6 +76,8 @@ cdef class BaseThinConnImpl(BaseConnImpl):
         bytes _ltxid
         str _current_schema
         bint _current_schema_modified
+        str _txn_priority
+        bint _txn_priority_modified
         uint8_t _max_identifier_length
         uint32_t _max_open_cursors
         str _db_domain
@@ -380,6 +382,11 @@ cdef class BaseThinConnImpl(BaseConnImpl):
     def get_transaction_in_progress(self):
         return self._protocol._txn_in_progress
 
+    def get_transaction_priority(self):
+        if not self._protocol._caps.supports_txn_priority:
+            errors._raise_err(errors.ERR_UNSUPPORTED_TXN_PRIORITY)
+        return self._txn_priority
+
     def get_type(self, object conn, str name):
         cdef ThinDbObjectTypeCache cache = \
                 get_dbobject_type_cache(self._dbobject_type_cache_num)
@@ -447,6 +454,12 @@ cdef class BaseThinConnImpl(BaseConnImpl):
 
     def set_stmt_cache_size(self, uint32_t value):
         self._statement_cache.resize(value)
+
+    def set_transaction_priority(self, value):
+        if not self._protocol._caps.supports_txn_priority:
+            errors._raise_err(errors.ERR_UNSUPPORTED_TXN_PRIORITY)
+        self._txn_priority = value
+        self._txn_priority_modified = True
 
 
 cdef class ThinConnImpl(BaseThinConnImpl):

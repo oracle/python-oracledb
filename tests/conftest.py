@@ -293,7 +293,7 @@ class TestEnv:
         if self.use_thick_mode:
             if oracledb.is_thin_mode():
                 oracledb.init_oracle_client(lib_dir=self.oracle_client_path)
-            self.client_version = oracledb.clientversion()[:2]
+            self.client_version = oracledb.clientversion()[:3]
 
         # import any requested plugins
         if self.plugins is not None:
@@ -304,7 +304,7 @@ class TestEnv:
         # establish a connection to determine the remaining information
         params = self.get_connect_params()
         with oracledb.connect(dsn=self.connect_string, params=params) as conn:
-            version_parts = conn.version.split(".")[:2]
+            version_parts = conn.version.split(".")[:3]
             self.server_version = tuple(int(s) for s in version_parts)
             self.is_drcp = self._is_drcp()
             self.is_implicit_pooling = self._is_implicit_pooling()
@@ -642,18 +642,26 @@ class TestEnv:
                 """)
             return cursor.fetchone()
 
-    def has_client_and_server_version(self, major_version, minor_version=0):
+    def has_client_and_server_version(
+        self, major_version, minor_version=0, patch_version=0
+    ):
         """
         Returns a boolean indicating if the test environment is using a client
         version and a database with the specified version or later.
         """
-        if not self.has_client_version(major_version, minor_version):
+        if not self.has_client_version(
+            major_version, minor_version, patch_version
+        ):
             return False
-        if not self.has_server_version(major_version, minor_version):
+        if not self.has_server_version(
+            major_version, minor_version, patch_version
+        ):
             return False
         return True
 
-    def has_client_version(self, major_version, minor_version=0):
+    def has_client_version(
+        self, major_version, minor_version=0, patch_version=0
+    ):
         """
         Returns a boolean indicating if the test environment is using a client
         version with the specified version or later.
@@ -661,15 +669,25 @@ class TestEnv:
         self._initialize()
         if oracledb.is_thin_mode():
             return True
-        return self.client_version >= (major_version, minor_version)
+        return self.client_version >= (
+            major_version,
+            minor_version,
+            patch_version,
+        )
 
-    def has_server_version(self, major_version, minor_version=0):
+    def has_server_version(
+        self, major_version, minor_version=0, patch_version=0
+    ):
         """
         Returns a boolean indicating if the test environment is using a server
         version with the specified version or later.
         """
         self._initialize()
-        return self.server_version >= (major_version, minor_version)
+        return self.server_version >= (
+            major_version,
+            minor_version,
+            patch_version,
+        )
 
     def run_sql_script(self, conn, script_name, **kwargs):
         """
@@ -1025,6 +1043,15 @@ def skip_unless_thin_mode(test_env):
     """
     if test_env.use_thick_mode:
         pytest.skip("requires thin mode")
+
+
+@pytest.fixture(scope="session")
+def skip_unless_transaction_priority_supported(test_env):
+    """
+    Skips the test if setting transaction priority is not supported.
+    """
+    if not test_env.has_client_and_server_version(23, 26, 2):
+        pytest.skip("no transaction priority support")
 
 
 @pytest.fixture(scope="session")

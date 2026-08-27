@@ -347,6 +347,80 @@ used to explicitly commit or roll back a transaction. For example:
             await connection2.resume_sessionless_transaction(transaction_id=txn_id)
             await connection2.commit()
 
+.. _txnpriorityasync:
+
+Setting Transaction Priority Using Asynchronous Methods
++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+This section covers setting transaction priority using the asynchronous
+programming model. For discussion of synchronous programming, see
+:ref:`txnpriority`.
+
+You can set the transaction priority when creating asynchronous standalone
+connections by using the ``transaction_priority`` parameter in
+:meth:`oracledb.connect_async()`, for example:
+
+.. code-block:: python
+
+    connection = oracledb.connect_async(
+        user="hr",
+        password=userpwd,
+        dsn="dbhost.example.com/orclpdb",
+        transaction_priority=oracledb.TransactionPriority.HIGH
+    )
+
+The possible values of ``transaction_priority`` are
+:attr:`~oracledb.TransactionPriority.DEFAULT`,
+:attr:`~oracledb.TransactionPriority.LOW`,
+:attr:`~oracledb.TransactionPriority.MEDIUM`, and
+:attr:`~oracledb.TransactionPriority.HIGH`. See
+:class:`oracledb.TransactionPriority` for more information on these values.
+
+You can also set the ``transaction_priority`` value when creating an
+asynchronous connection pool. For example:
+
+.. code-block:: python
+
+    pool = oracledb.create_pool_async(
+        user="hr",
+        password=userpwd,
+        dsn="dbhost.example.com/orclpdb",
+        transaction_priority=oracledb.TransactionPriority.HIGH
+        min=1, max=5, increment=1
+    )
+
+    connection = pool.acquire()
+
+To set the transaction priority on a connection before starting a transaction,
+use the :attr:`AsyncConnection.transaction_priority` attribute. This attribute
+can also be used to change the transaction priority on an existing connection.
+For example:
+
+.. code-block:: python
+
+    connection.transaction_priority = oracledb.TransactionPriority.LOW
+
+After setting this property, the new value is sent to the database on the
+next :ref:`round-trip <roundtrips>`. Until then, this property continues
+to return the current value known to the database.
+
+When a pooled connection is released to the pool and later acquired again, it
+retains the priority already associated with that connection. To change or
+reset the priority of that connection, you can set the
+:attr:`AsyncConnection.transaction_priority` attribute after acquiring the
+connection. The new value takes effect on the next
+:ref:`round-trip <roundtrips>`.
+
+To reset the priority to the database default, set
+:attr:`AsyncConnection.transaction_priority`, or the ``transaction_priority``
+parameter in :meth:`oracledb.connect_async()` or
+:meth:`oracledb.create_pool_async()` to
+:attr:`oracledb.TransactionPriority.DEFAULT`. For example:
+
+.. code-block:: python
+
+    connection.transaction_priority = oracledb.TransactionPriority.DEFAULT
+
 .. _pipelining:
 
 Pipelining Database Operations

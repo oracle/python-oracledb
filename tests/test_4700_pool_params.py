@@ -135,6 +135,7 @@ def test_4701(test_env):
         ("extra_auth_params", dict(extra1="A", extra2="B")),
         ("pool_name", "my_pool"),
         ("on_connect_callback", lambda conn: None),
+        ("transaction_priority", oracledb.TransactionPriority.HIGH),
     ]
     params = oracledb.PoolParams(**dict(values))
     parts = [f"{name}={value!r}" for name, value in values]
@@ -248,6 +249,7 @@ class DummyConnection(oracledb.Connection):
         ("extra_auth_params", dict(extra1="A", extra2="B")),
         ("pool_name", "my_pool"),
         ("on_connect_callback", lambda conn: None),
+        ("transaction_priority", oracledb.TransactionPriority.LOW),
     ],
 )
 def test_4703(attr_name, value):

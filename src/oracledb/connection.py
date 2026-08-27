@@ -761,6 +761,41 @@ class BaseConnection(metaclass=BaseMetaClass):
         return self._impl.get_transaction_in_progress()
 
     @property
+    def transaction_priority(self) -> oracledb.TransactionPriority:
+        """
+        This read-write attribute sets the transaction priority associated with
+        the connection. It should be one of the transaction priority constants.
+
+        After setting this property, the new value is sent to the database on
+        next round trip.
+
+        After a connection is created, the initial value of this property is
+        the value returned by the database.
+        """
+        self._verify_connected()
+        value = self._impl.get_transaction_priority()
+        if value:
+            return getattr(oracledb.TransactionPriority, value.upper())
+
+    @transaction_priority.setter
+    def transaction_priority(
+        self, value: str | oracledb.TransactionPriority
+    ) -> None:
+        self._verify_connected()
+        if isinstance(value, str):
+            if not value:
+                value = oracledb.TransactionPriority.DEFAULT
+            else:
+                value = getattr(oracledb.TransactionPriority, value.upper())
+        elif not isinstance(value, oracledb.TransactionPriority):
+            msg = (
+                "value must be from the enumeration "
+                "oracledb.TransactionPriority"
+            )
+            raise TypeError(msg)
+        self._impl.set_transaction_priority(value.value)
+
+    @property
     def username(self) -> str:
         """
         This read-only attribute returns the name of the user which established
@@ -1909,6 +1944,7 @@ def connect(
     extra_auth_params: dict | None = None,
     pool_name: str | None = None,
     on_connect_callback: Callable | None = None,
+    transaction_priority: oracledb.TransactionPriority | None = None,
     handle: int | None = None,
 ) -> Connection:
     """
@@ -2210,6 +2246,11 @@ def connect(
       connection pool, but before it is returned to the caller. A common use of
       this callback is for creating and setting an end user security context
       object for DeepSec support
+      (default: None)
+
+    - ``transaction_priority``: a member of the oracledb.TransactionPriority
+      enumeration that specifies the priority of any transaction that is
+      created by the connection
       (default: None)
 
     - ``handle``: an integer representing a pointer to a valid service context
@@ -3177,6 +3218,7 @@ def connect_async(
     extra_auth_params: dict | None = None,
     pool_name: str | None = None,
     on_connect_callback: Callable | None = None,
+    transaction_priority: oracledb.TransactionPriority | None = None,
     handle: int | None = None,
 ) -> AsyncConnection:
     """
@@ -3478,6 +3520,11 @@ def connect_async(
       connection pool, but before it is returned to the caller. A common use of
       this callback is for creating and setting an end user security context
       object for DeepSec support
+      (default: None)
+
+    - ``transaction_priority``: a member of the oracledb.TransactionPriority
+      enumeration that specifies the priority of any transaction that is
+      created by the connection
       (default: None)
 
     - ``handle``: an integer representing a pointer to a valid service context

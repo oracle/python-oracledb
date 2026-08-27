@@ -205,6 +205,7 @@ cdef enum:
     TNS_KEYWORD_NUM_CURRENT_SCHEMA = 168
     TNS_KEYWORD_NUM_EDITION = 172
     TNS_KEYWORD_NUM_TRANSACTION_ID = 201
+    TNS_KEYWORD_NUM_TXN_PRIORITY = 204
 
 # bind flags
 cdef enum:
@@ -409,6 +410,7 @@ cdef enum:
 
 # TTC functions
 cdef enum:
+    TNS_FUNC_ALTER_SESSION = 204
     TNS_FUNC_AQ_ENQ = 121
     TNS_FUNC_AQ_DEQ = 122
     TNS_FUNC_ARRAY_AQ = 145
@@ -560,6 +562,7 @@ cdef enum:
     TNS_CCAP_OCI3_OCSSYNC = 0x20
     TNS_CCAP_TTC6_HA_READINESS = 0x04
     TNS_CCAP_END_USER_SEC_CTX_PIGGYBACK = 0x02
+    TNS_CCAP_TXN_PRIORITY = 0x01
 
 # runtime capability indices
 cdef enum:

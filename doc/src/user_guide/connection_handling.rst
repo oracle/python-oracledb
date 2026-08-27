@@ -142,6 +142,9 @@ individual parameters, and ``params`` object values. The precedence is that
 values in a ``dsn`` parameter override values passed as individual parameters,
 which themselves override values set in the ``params`` object.
 
+You can also set the transaction priority when creating a standalone
+connection. See :ref:`txnpriority` for more information.
+
 Closing Connections
 +++++++++++++++++++
 
@@ -3598,6 +3601,9 @@ immediately.
     pool = oracledb.create_pool(user="hr", password=userpwd, dsn="dbhost.example.com/orclpdb",
                                 min=2, max=5, increment=1,
                                 getmode=oracledb.POOL_GETMODE_NOWAIT)
+
+You can also set the transaction priority when creating a connection pool or
+after acquiring a pool. See :ref:`txnpriority` for more information.
 
 Returning Connections to a Pool
 +++++++++++++++++++++++++++++++

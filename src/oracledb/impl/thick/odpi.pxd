@@ -314,6 +314,8 @@ cdef extern from "impl/thick/odpi/embed/dpi.c":
         bint sodaMetadataCache
         uint32_t stmtCacheSize
         dpiAccessToken *accessToken
+        const char *transactionPriority
+        uint32_t transactionPriorityLength
 
     ctypedef struct dpiConnCreateParams:
         uint32_t authMode
@@ -685,6 +687,9 @@ cdef extern from "impl/thick/odpi/embed/dpi.c":
     int dpiConn_getTransactionInProgress(dpiConn *conn,
             bint *txnInProgress) nogil
 
+    int dpiConn_getTransactionPriority(dpiConn *conn, const char **value,
+            uint32_t *valueLength) nogil
+
     int dpiConn_getCallTimeout(dpiConn *conn, uint32_t *value) nogil
 
     int dpiConn_newMsgProps(dpiConn *conn, dpiMsgProps **props) nogil
@@ -758,6 +763,9 @@ cdef extern from "impl/thick/odpi/embed/dpi.c":
             uint32_t attribute, void *value, uint32_t valueLength) nogil
 
     int dpiConn_setStmtCacheSize(dpiConn *conn, uint32_t cacheSize) nogil
+
+    int dpiConn_setTransactionPriority(dpiConn *conn, const char *value,
+            uint32_t valueLength) nogil
 
     int dpiConn_shutdownDatabase(dpiConn *conn, uint32_t mode) nogil
 

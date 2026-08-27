@@ -759,6 +759,41 @@ class BaseConnection(metaclass=BaseMetaClass):
         return self._impl.get_transaction_in_progress()
 
     @property
+    def transaction_priority(self) -> oracledb.TransactionPriority:
+        """
+        This read-write attribute sets the transaction priority associated with
+        the connection. It should be one of the transaction priority constants.
+
+        After setting this property, the new value is sent to the database on
+        next round trip.
+
+        After a connection is created, the initial value of this property is
+        the value returned by the database.
+        """
+        self._verify_connected()
+        value = self._impl.get_transaction_priority()
+        if value:
+            return getattr(oracledb.TransactionPriority, value.upper())
+
+    @transaction_priority.setter
+    def transaction_priority(
+        self, value: str | oracledb.TransactionPriority
+    ) -> None:
+        self._verify_connected()
+        if isinstance(value, str):
+            if not value:
+                value = oracledb.TransactionPriority.DEFAULT
+            else:
+                value = getattr(oracledb.TransactionPriority, value.upper())
+        elif not isinstance(value, oracledb.TransactionPriority):
+            msg = (
+                "value must be from the enumeration "
+                "oracledb.TransactionPriority"
+            )
+            raise TypeError(msg)
+        self._impl.set_transaction_priority(value.value)
+
+    @property
     def username(self) -> str:
         """
         This read-only attribute returns the name of the user which established

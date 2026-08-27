@@ -52,6 +52,7 @@ from .enums import (
     PipelineOpType as PipelineOpType,
     PoolGetMode as PoolGetMode,
     Purity as Purity,
+    TransactionPriority as TransactionPriority,
     VectorFormat as VectorFormat,
 )
 

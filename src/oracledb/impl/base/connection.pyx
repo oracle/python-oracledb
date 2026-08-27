@@ -324,6 +324,9 @@ cdef class BaseConnImpl:
     def get_transaction_in_progress(self):
         errors._raise_not_supported("getting if a transaction is in progress")
 
+    def get_transaction_priority(self):
+        errors._raise_not_supported("getting the transaction priority")
+
     def get_type(self, object conn, str name):
         errors._raise_not_supported("getting an object type")
 
@@ -368,6 +371,9 @@ cdef class BaseConnImpl:
 
     def set_stmt_cache_size(self, value):
         errors._raise_not_supported("setting the statement cache size")
+
+    def set_transaction_priority(self, value):
+        errors._raise_not_supported("setting the transaction priority")
 
     def shutdown(self, uint32_t mode):
         errors._raise_not_supported("shutting down the database")

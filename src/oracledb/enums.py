@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2024, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2024, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -67,6 +67,29 @@ class Purity(enum.IntEnum):
     DEFAULT = base_impl.PURITY_DEFAULT
     NEW = base_impl.PURITY_NEW
     SELF = base_impl.PURITY_SELF
+
+
+class TransactionPriority(str, enum.Enum):
+    DEFAULT = ""
+    """
+    Sets the transaction priority to the database default value on the next
+    round-trip.
+    """
+
+    LOW = "low"
+    """
+    Sets the transaction priority to LOW on the next round-trip.
+    """
+
+    MEDIUM = "medium"
+    """
+    Sets the transaction priority to MEDIUM on the next round-trip.
+    """
+
+    HIGH = "high"
+    """
+    Sets the transaction priority to HIGH on the next round-trip.
+    """
 
 
 class VectorFormat(enum.IntEnum):

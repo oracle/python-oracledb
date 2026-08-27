@@ -794,6 +794,13 @@ these values can be OR'ed together.
 .. autodata:: SUBSCR_QOS_ROWIDS
 
 
+Transaction Priority
+--------------------
+
+.. autoclass:: TransactionPriority
+    :members:
+
+
 .. _types:
 
 DB API Types

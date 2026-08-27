@@ -498,6 +498,12 @@ Connection Attributes
 
     .. versionadded:: 2.0.0
 
+.. autoproperty:: Connection.transaction_priority
+
+    .. dbapiattributeextension::
+
+    .. versionadded:: 4.1.0
+
 .. autoproperty:: Connection.username
 
     This read-only attribute returns the name of the user which established the

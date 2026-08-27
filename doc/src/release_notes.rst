@@ -67,6 +67,9 @@ Common Changes
     :ref:`AWS Simple Storage Service (S3) <awss3provider>` and
     :ref:`AWS Secrets Manager <awssecretsmanagerprovider>` with
     the :ref:`oracledb.plugins.aws_config_provider <configawsplugin>` plugin.
+#)  Added support for setting the transaction priority with new property
+    :attr:`Connection.transaction_priority`. This feature requires Oracle
+    Database version 23.26.2 or higher.
 #)  Added support for the ``oci_profile`` and ``oci_profile_path`` parameters
     when using the
     the :ref:`oracledb.plugins.oci_config_provider <configociplugin>` plugin.

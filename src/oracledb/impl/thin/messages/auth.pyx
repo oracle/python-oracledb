@@ -56,6 +56,7 @@ cdef class AuthMessage(Message):
         str machine
         str osuser
         str driver_name
+        str transaction_priority
         str edition
         list appcontext
         str connect_string
@@ -152,14 +153,17 @@ cdef class AuthMessage(Message):
             # use of AES encryption
             self.encoded_jdwp_data = encrypted_jdwp_data.hex().upper() + "01"
 
-    cdef str _get_alter_timezone_statement(self):
+    cdef str _get_alter_session_statement(self):
         """
-        Returns the statement required to change the session time zone to match
-        the time zone in use by the Python interpreter.
+        Returns the alter session statement that is sent during the initial
+        connection to the database. This includes the directive to change the
+        session time zone to match the time zone in use by the Python
+        interpreter. It also includes the directive to change the transaction
+        priority if that has been specified.
         """
         cdef:
             int tz_hour, tz_minute, timezone
-            str sign, tz_repr
+            str sign, tz_repr, stmt
         tz_repr = os.environ.get("ORA_SDTZ")
         if tz_repr is not None:
             if tz_repr.upper() not in ("LOCAL", "DBTIMEZONE"):
@@ -174,7 +178,12 @@ cdef class AuthMessage(Message):
             else:
                 sign = "+"
             tz_repr = f"'{sign}{tz_hour:02}:{tz_minute:02}'"
-        return f"ALTER SESSION SET TIME_ZONE={tz_repr}\x00"
+        stmt = f"ALTER SESSION SET TIME_ZONE={tz_repr}"
+        if self.transaction_priority is not None:
+            if not self.conn_impl._protocol._caps.supports_txn_priority:
+                errors._raise_err(errors.ERR_UNSUPPORTED_TXN_PRIORITY)
+            stmt += f" TXN_PRIORITY='{self.transaction_priority}'"
+        return f"{stmt}\x00"
 
     cdef tuple _get_version_tuple(self, ReadBuffer buf):
         """
@@ -259,6 +268,7 @@ cdef class AuthMessage(Message):
         self.edition = params.edition
         self.appcontext = params.appcontext
         self.connect_string = params._get_connect_string()
+        self.transaction_priority = params.transaction_priority
 
         # if drcp is used, use purity = NEW as the default purity for
         # standalone connections and purity = SELF for connections that belong
@@ -409,7 +419,7 @@ cdef class AuthMessage(Message):
                 self._write_key_value(buf, "SESSION_CLIENT_VERSION",
                                     str(_connect_constants.full_version_num))
                 self._write_key_value(buf, "AUTH_ALTER_SESSION",
-                                      self._get_alter_timezone_statement(), 1)
+                                      self._get_alter_session_statement(), 1)
             if self.conn_impl._cclass is not None:
                 self._write_key_value(buf, "AUTH_KPPL_CONN_CLASS",
                                       self.conn_impl._cclass)

@@ -364,6 +364,10 @@ AsyncConnection Attributes
 
 .. autoproperty:: AsyncConnection.transaction_in_progress
 
+.. autoproperty:: AsyncConnection.transaction_priority
+
+    .. versionadded:: 4.1.0
+
 .. autoproperty:: AsyncConnection.username
 
 .. autoproperty:: AsyncConnection.version

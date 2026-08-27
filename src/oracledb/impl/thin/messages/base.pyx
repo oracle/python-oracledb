@@ -277,6 +277,8 @@ cdef class Message:
             elif keyword_num == TNS_KEYWORD_NUM_TRANSACTION_ID:
                 if binary_value is not None:
                     self._update_sessionless_txn_state(binary_value)
+            elif keyword_num == TNS_KEYWORD_NUM_TXN_PRIORITY:
+                self.conn_impl._txn_priority = text_value
 
     cdef int _process_message(self, ReadBuffer buf,
                               uint8_t message_type) except -1:
@@ -475,6 +477,24 @@ cdef class Message:
         buf.write_bytes_with_two_lengths(key)
         buf.write_bytes_with_two_lengths(text)
         buf.write_bytes_with_two_lengths(value_bytes)
+
+    cdef int _write_alter_session_piggyback(self, WriteBuffer buf) except -1:
+        """
+        Writes the piggyback that informs the server that session is being
+        altered. Currently the only session data that is altered is the
+        transaction priority.
+        """
+        cdef uint32_t flags = 0
+        if not self.conn_impl._txn_priority:
+            flags = 1
+        self._write_piggyback_code(buf, TNS_FUNC_ALTER_SESSION)
+        buf.write_ub4(0)                    # flags
+        buf.write_uint8(1)                  # pointer
+        buf.write_ub4(1)                    # number of key/value pairs
+        buf.write_bytes_with_two_lengths(b"TXN_PRIORITY")
+        buf.write_bytes_with_two_lengths(self.conn_impl._txn_priority.encode())
+        buf.write_ub4(flags)
+        self.conn_impl._txn_priority_modified = False
 
     cdef int _write_begin_pipeline_piggyback(self, WriteBuffer buf) except -1:
         """
@@ -813,6 +833,8 @@ cdef class Message:
             self._write_sessionless_piggyback(buf)
         if self.conn_impl._send_ha_readiness:
             self._write_ha_readiness_piggyback(buf)
+        if self.conn_impl._txn_priority_modified:
+            self._write_alter_session_piggyback(buf)
 
     cdef int _write_sessionless_piggyback(self, WriteBuffer buf):
         """
