@@ -89,6 +89,10 @@ cdef class ConnectParamsImpl:
                         self.access_token_callback \
                 and other_impl.on_connect_callback is \
                         self.on_connect_callback \
+                and other_impl.operation_callback is \
+                        self.operation_callback \
+                and other_impl.round_trip_callback is \
+                        self.round_trip_callback \
                 and other_impl._password == self._password \
                 and other_impl._new_password == self._new_password \
                 and other_impl._wallet_password == self._wallet_password \
@@ -149,7 +153,9 @@ cdef class ConnectParamsImpl:
         _set_bool_param(args, "thick_mode_dsn_passthrough",
                         &self.thick_mode_dsn_passthrough)
         self._set_access_token_param(args.get("access_token"))
-        self._set_on_connect_param(args.get("on_connect_callback"))
+        self._set_callback_param(args, "on_connect_callback", self)
+        self._set_callback_param(args, "operation_callback", self)
+        self._set_callback_param(args, "round_trip_callback", self)
 
         # set parameters found on Description instances
         self._default_description.set_from_args(args)
@@ -217,6 +223,8 @@ cdef class ConnectParamsImpl:
         self.description_list = other_params.description_list
         self.access_token_callback = other_params.access_token_callback
         self.on_connect_callback = other_params.on_connect_callback
+        self.operation_callback = other_params.operation_callback
+        self.round_trip_callback = other_params.round_trip_callback
         self._external_handle = other_params._external_handle
         self._default_description = other_params._default_description
         self._default_address = other_params._default_address
@@ -410,6 +418,19 @@ cdef class ConnectParamsImpl:
                 self._set_access_token(val,
                                        errors.ERR_INVALID_ACCESS_TOKEN_PARAM)
 
+    cdef int _set_callback_param(
+        self, dict args, str name, object target
+    ) except -1:
+        """
+        Sets a callback parameter after validating it.
+        """
+        cdef object value
+        if name in args:
+            value = args[name]
+            if value is not None and not callable(value):
+                errors._raise_err(errors.ERR_INVALID_CALLABLE_FUN)
+            setattr(target, name, value)
+
     cdef int _set_new_password(self, object password_in) except -1:
         """
         Sets the new password on the instance after first obfuscating it.
@@ -418,15 +439,6 @@ cdef class ConnectParamsImpl:
         if password_in is not None:
             password = self._transform_password(password_in)
             self._new_password = SecretValueImpl(password)
-
-    cdef int _set_on_connect_param(self, object val) except -1:
-        """
-        Sets the on_connect_callback parameter.
-        """
-        if val is not None:
-            if not callable(val):
-                errors._raise_err(errors.ERR_INVALID_CALLABLE_FUN)
-            self.on_connect_callback = val
 
     cdef int _set_password(self, object password_in) except -1:
         """

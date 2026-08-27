@@ -83,6 +83,8 @@ class BaseConnectionPool(metaclass=BaseMetaClass):
                 else:
                     impl = thick_impl.ThickPoolImpl(dsn, params_impl)
                 self._impl = impl
+                self._operation_callback = params_impl.operation_callback
+                self._round_trip_callback = params_impl.round_trip_callback
                 self.session_callback = params_impl.session_callback
                 self.on_connect_callback = params_impl.on_connect_callback
             except:
@@ -434,6 +436,8 @@ class ConnectionPool(BaseConnectionPool):
             shardingkey=shardingkey,
             supershardingkey=supershardingkey,
             on_connect_callback=self.on_connect_callback,
+            operation_callback=self._operation_callback,
+            round_trip_callback=self._round_trip_callback,
             pool=self,
         )
 
@@ -725,6 +729,8 @@ class AsyncConnectionPool(BaseConnectionPool):
             shardingkey=shardingkey,
             supershardingkey=supershardingkey,
             on_connect_callback=self.on_connect_callback,
+            operation_callback=self._operation_callback,
+            round_trip_callback=self._round_trip_callback,
             pool=self,
         )
 

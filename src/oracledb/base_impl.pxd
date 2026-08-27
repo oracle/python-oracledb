@@ -641,6 +641,8 @@ cdef class ConnectParamsImpl:
         public str debug_jdwp
         object access_token_callback
         public object on_connect_callback
+        public object operation_callback
+        public object round_trip_callback
         Description _default_description
         Address _default_address
         SecretValueImpl _password
@@ -672,7 +674,9 @@ cdef class ConnectParamsImpl:
     cdef int _parse_connect_string(self, str connect_string) except -1
     cdef int _set_access_token(self, object val, int error_num) except -1
     cdef int _set_access_token_param(self, object val) except -1
-    cdef int _set_on_connect_param(self, object val) except -1
+    cdef int _set_callback_param(
+        self, dict args, str name, object target
+    ) except -1
     cdef int _set_new_password(self, object password) except -1
     cdef int _set_password(self, object password) except -1
     cdef int _set_wallet_password(self, object password) except -1
@@ -702,7 +706,9 @@ cdef class BaseConnImpl:
         readonly bint thin
         readonly str dsn
         public object inputtypehandler
+        public object operation_callback
         public object outputtypehandler
+        public object round_trip_callback
         public object warning
         public bint autocommit
         public bint invoke_session_callback
@@ -715,6 +721,9 @@ cdef class BaseConnImpl:
     cdef object _check_value(self, OracleMetadata type_info, object value,
                              bint* is_ok)
     cdef BaseCursorImpl _create_cursor_impl(self)
+    cdef object _invoke_operation_callback(self, object method_owner,
+                                           str name, object args,
+                                           object kwargs)
     cdef int _process_sync_operation_sub_op(self, object sub_op) except -1
 
 

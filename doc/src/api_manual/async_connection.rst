@@ -332,6 +332,12 @@ AsyncConnection Attributes
 
 .. autoproperty:: AsyncConnection.module
 
+.. autoproperty:: AsyncConnection.operation_callback
+
+    See :ref:`dboperationcallbacks`.
+
+    .. versionadded:: 26.0.0
+
 .. autoproperty:: AsyncConnection.outputtypehandler
 
     See :ref:`outputtypehandlers`.
@@ -341,6 +347,12 @@ AsyncConnection Attributes
     .. versionadded:: 26.0.0
 
 .. autoproperty:: AsyncConnection.protocol
+
+    .. versionadded:: 26.0.0
+
+.. autoproperty:: AsyncConnection.round_trip_callback
+
+    See :ref:`dboperationcallbacks`.
 
     .. versionadded:: 26.0.0
 

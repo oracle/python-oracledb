@@ -111,6 +111,7 @@ cdef type PY_TYPE_ARROW_ARRAY
 cdef type PY_TYPE_ASYNC_CURSOR
 cdef type PY_TYPE_ASYNC_LOB
 cdef type PY_TYPE_BOOL = bool
+cdef type PY_TYPE_CONNECT_PARAMS
 cdef type PY_TYPE_CURSOR
 cdef type PY_TYPE_DATAFRAME
 cdef type PY_TYPE_DATE = datetime.date

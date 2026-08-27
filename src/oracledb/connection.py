@@ -125,22 +125,12 @@ class BaseConnection(metaclass=BaseMetaClass):
     def _connect(
         self,
         impl: base_impl.BaseConnImpl,
-        dsn: str | None,
         pool: pool_module.BaseConnectionPool | None,
-        params: ConnectParams,
-        kwargs: dict,
     ) -> None:
         """
         Common logic for connecting to the database.
         """
-        if params is None:
-            params_impl = base_impl.ConnectParamsImpl()
-        elif not isinstance(params, ConnectParams):
-            errors._raise_err(errors.ERR_INVALID_CONNECT_PARAMS)
-        else:
-            params_impl = params._impl.copy()
-        dsn = params_impl.process_args(dsn, kwargs, impl.thin)
-        self._impl = yield from impl.connect(dsn, params_impl, pool)
+        self._impl = yield from impl.connect(pool)
         yield from self._impl.invoke_on_connect_callbacks(self, pool)
         return self
 
@@ -1013,6 +1003,22 @@ class BaseConnection(metaclass=BaseMetaClass):
         return self._create_queue(impl)
 
     @property
+    def operation_callback(self) -> Callable | None:
+        """
+        This read-write attribute specifies a callback invoked before each
+        database operation.
+        """
+        self._verify_connected()
+        return self._impl.operation_callback
+
+    @operation_callback.setter
+    def operation_callback(self, value: Callable | None) -> None:
+        self._verify_connected()
+        if value is not None and not callable(value):
+            errors._raise_err(errors.ERR_INVALID_CALLABLE_FUN)
+        self._impl.operation_callback = value
+
+    @property
     def outputtypehandler(self) -> Callable:
         """
         This read-write attribute specifies a method called for each column
@@ -1039,6 +1045,22 @@ class BaseConnection(metaclass=BaseMetaClass):
         """
         self._verify_connected()
         return self._impl.connect_params.proxy_user
+
+    @property
+    def round_trip_callback(self) -> Callable | None:
+        """
+        This read-write attribute specifies a callback invoked before each
+        Thin mode round trip.
+        """
+        self._verify_connected()
+        return self._impl.round_trip_callback
+
+    @round_trip_callback.setter
+    def round_trip_callback(self, value: Callable | None) -> None:
+        self._verify_connected()
+        if value is not None and not callable(value):
+            errors._raise_err(errors.ERR_INVALID_CALLABLE_FUN)
+        self._impl.round_trip_callback = value
 
     @property
     def sdu(self) -> int:
@@ -1344,9 +1366,8 @@ class Connection(BaseConnection):
                 else thick_impl.ThickConnImpl
             )
             impl = cls()
-            impl.process_sync_operation(
-                self, "connect", (impl, dsn, pool, params, kwargs), {}
-            )
+            impl.prepare_connect_args(dsn, pool, params, kwargs)
+            impl.process_sync_operation(self, "connect", (impl, pool), {})
 
     def __del__(self):
         if self._impl is not None:
@@ -2175,6 +2196,8 @@ def connect(
     extra_auth_params: dict | None = None,
     pool_name: str | None = None,
     on_connect_callback: Callable | None = None,
+    operation_callback: Callable | None = None,
+    round_trip_callback: Callable | None = None,
     transaction_priority: oracledb.TransactionPriority | None = None,
     handle: int | None = None,
 ) -> Connection:
@@ -2477,6 +2500,18 @@ def connect(
       connection pool, but before it is returned to the caller. A common use of
       this callback is for creating and setting an end user security context
       object for DeepSec support
+      (default: None)
+
+    - ``operation_callback``: a callable invoked before each database
+      operation. It receives the operation name followed by a mapping of the
+      operation arguments. It may return a completion callable, which receives
+      the result or raised exception
+      (default: None)
+
+    - ``round_trip_callback``: a callable invoked before each Thin mode round
+      trip. It receives the round trip name and may return a completion
+      callable, which receives the raised exception or *None* when the round
+      trip succeeds
       (default: None)
 
     - ``transaction_priority``: a member of the oracledb.TransactionPriority
@@ -3227,8 +3262,9 @@ def async_create_connection(
         conn = conn_class()
         conn._pool = pool
         impl = thin_impl.ThinConnImpl(is_async=True)
+        impl.prepare_connect_args(dsn, pool, params, kwargs)
         conn._connect_coroutine = impl.process_async_operation(
-            conn, "connect", (impl, dsn, pool, params, kwargs), {}
+            conn, "connect", (impl, pool), {}
         )
         return conn
 
@@ -3296,6 +3332,8 @@ def connect_async(
     extra_auth_params: dict | None = None,
     pool_name: str | None = None,
     on_connect_callback: Callable | None = None,
+    operation_callback: Callable | None = None,
+    round_trip_callback: Callable | None = None,
     transaction_priority: oracledb.TransactionPriority | None = None,
     handle: int | None = None,
 ) -> AsyncConnection:
@@ -3598,6 +3636,18 @@ def connect_async(
       connection pool, but before it is returned to the caller. A common use of
       this callback is for creating and setting an end user security context
       object for DeepSec support
+      (default: None)
+
+    - ``operation_callback``: a callable invoked before each database
+      operation. It receives the operation name followed by a mapping of the
+      operation arguments. It may return a completion callable, which receives
+      the result or raised exception
+      (default: None)
+
+    - ``round_trip_callback``: a callable invoked before each Thin mode round
+      trip. It receives the round trip name and may return a completion
+      callable, which receives the raised exception or *None* when the round
+      trip succeeds
       (default: None)
 
     - ``transaction_priority``: a member of the oracledb.TransactionPriority

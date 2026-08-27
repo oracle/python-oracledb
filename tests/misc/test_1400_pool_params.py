@@ -135,6 +135,8 @@ def test_1401(test_env):
         ("extra_auth_params", dict(extra1="A", extra2="B")),
         ("pool_name", "my_pool"),
         ("on_connect_callback", lambda conn: None),
+        ("operation_callback", lambda name, arguments: None),
+        ("round_trip_callback", lambda name: None),
         ("transaction_priority", oracledb.TransactionPriority.HIGH),
     ]
     params = oracledb.PoolParams(**dict(values))
@@ -249,6 +251,8 @@ class DummyConnection(oracledb.Connection):
         ("extra_auth_params", dict(extra1="A", extra2="B")),
         ("pool_name", "my_pool"),
         ("on_connect_callback", lambda conn: None),
+        ("operation_callback", lambda name, arguments: None),
+        ("round_trip_callback", lambda name: None),
         ("transaction_priority", oracledb.TransactionPriority.LOW),
     ],
 )
@@ -263,3 +267,40 @@ def test_1403(attr_name, value):
     assert other_params != params
     params.set(**dict_args)
     assert other_params == params
+
+
+def test_4704():
+    "4704 - test callback parameters"
+
+    def on_connect_callback(connection):
+        pass
+
+    def operation_callback(name, arguments):
+        pass
+
+    def round_trip_callback(name):
+        pass
+
+    params = oracledb.PoolParams()
+    assert params.on_connect_callback is None
+    assert params.operation_callback is None
+    assert params.round_trip_callback is None
+    params.set(
+        on_connect_callback=on_connect_callback,
+        operation_callback=operation_callback,
+        round_trip_callback=round_trip_callback,
+    )
+    copied_params = params.copy()
+    assert copied_params.on_connect_callback is on_connect_callback
+    assert copied_params.operation_callback is operation_callback
+    assert copied_params.round_trip_callback is round_trip_callback
+    for name in (
+        "on_connect_callback",
+        "operation_callback",
+        "round_trip_callback",
+    ):
+        params.set(**{name: None})
+        assert getattr(params, name) is None
+        with pytest.raises(oracledb.ProgrammingError) as exc_info:
+            oracledb.PoolParams(**{name: 1})
+        assert exc_info.value.args[0].full_code == "DPY-2070"

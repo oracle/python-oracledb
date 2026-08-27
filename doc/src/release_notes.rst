@@ -100,6 +100,15 @@ Common Changes
 #)  The class :class:`oracledb.EndUserSecurityContext` was added for
     completeness in typing hints. Objects of this class should be created
     using :func:`oracledb.create_end_user_security_context()`.
+#)  Added :attr:`ConnectParams.operation_callback` for observing database
+    operations in Thin and Thick modes, and
+    :attr:`ConnectParams.round_trip_callback` for observing individual
+    protocol round trips in Thin mode. These callbacks are also available with
+    :class:`PoolParams` and can be changed on live connections using
+    :attr:`Connection.operation_callback`,
+    :attr:`Connection.round_trip_callback`,
+    :attr:`AsyncConnection.operation_callback`, and
+    :attr:`AsyncConnection.round_trip_callback`.
 #)  A failure to close a connection now marks the connection as unusable
     instead of leaving it in an unknown state.
 #)  Fixed bug where the OSON encoder did not set the correct flags.

@@ -36,6 +36,10 @@ There are multiple approaches for application tracing and monitoring:
   and in Oracle Database traces and logs, can be used to resolve connectivity
   errors. See :ref:`connectionid`.
 
+- Applications that need to observe python-oracledb operation start,
+  completion, or failure events can use database operation callbacks. See
+  :ref:`dboperationcallbacks`.
+
 .. _endtoendtracing:
 
 Oracle Database End-to-End Tracing
@@ -354,6 +358,359 @@ parameters, or set the ``driver_name`` parameter in
     * - OSUSER
       - "myusername"
       - "myusername"
+
+.. _dboperationcallbacks:
+
+Database Operation Callbacks
+============================
+
+Python-oracledb provides callbacks that allow applications and integrations to
+observe database activity without changing how connection, cursor, or pool
+objects are used. The two callback types supported by python-oracledb are
+:ref:`operation callbacks <operationcallback>` and
+:ref:`round-trip callbacks <roundtripcallback>`. Operation callbacks observe
+python-oracledb API operations, while round-trip callbacks observe lower-level
+protocol exchanges.
+
+.. warning::
+
+    Callbacks must not perform database operations using the connection whose
+    operation or round-trip is currently being processed.
+
+.. _operationcallback:
+
+Operation Callbacks
+-------------------
+
+Operation callbacks observe public python-oracledb operations such as statement
+execution, fetching, commits, rollbacks, LOB access, AQ operations, and
+connection management calls. They are useful for tracing, metrics collection,
+profiling, diagnostic logging, and other integrations that need to record
+operation timing or failures without wrapping python-oracledb objects. This
+callback type is supported in both python-oracledb Thin and Thick modes.
+
+Before each supported operation starts, python-oracledb invokes the operation
+callback. An operation callback should have the following signature:
+
+.. code-block:: text
+
+    operation_callback(name: str, arguments: dict) -> Callable | None
+
+The ``name`` parameter is the operation callback name, such as *"execute"*,
+*"fetchone"*, *"commit"*, or *"rollback"*. See the
+:ref:`_operation_callback_names` table for the list of supported operation
+callback names. The ``arguments`` parameter is a mapping containing the
+arguments passed to the operation. The available arguments depend on the
+operation. For example, an "execute" operation may include the SQL statement
+and bind parameters. The argument mapping can contain sensitive values such as
+passwords. The callback should access only the specific argument values needed,
+and should not log, record, or export the complete mapping.
+
+The operation callback can optionally return a completion function. If a
+completion function is returned, python-oracledb invokes it after the operation
+succeeds or fails. The completion function receives the operation result when
+the operation succeeds, or the exception object when the operation fails. If
+the callback returns *None*, no completion function is invoked. Returning any
+other non-callable value raises the ``DPY-2070`` error before database
+communication starts. The optional completion function should have this
+signature:
+
+.. code-block:: text
+
+    completion(result_or_exception) -> None
+
+Operation callbacks and their completion functions are synchronous when used
+with both synchronous :class:`Connection` and asynchronous
+:class:`AsyncConnection` operations. They must be regular callables and must
+not be defined with ``async def``.
+
+In the following example, ``before_operation()`` prints the operation name
+before it starts. Since it returns ``after_operation()``, the completion
+function is invoked after the operation completes:
+
+.. code-block:: python
+
+    def before_operation(name, arguments):
+        print("starting", name)
+
+        def after_operation(result_or_exception):
+            print("completed", result_or_exception)
+
+        return after_operation
+
+An exception raised by an operation callback before an operation starts
+prevents that operation from starting. If a completion function raises an
+exception after a successful operation, that exception is propagated. If both
+the operation and its completion function fail, the completion function
+exception is propagated. The original operation exception is available from
+the completion exception's ``__context__`` attribute.
+
+You can specify an operation callback with the ``operation_callback`` parameter
+when creating a standalone connection or pooled connection with
+:meth:`oracledb.connect()`, :meth:`oracledb.create_pool()`,
+:meth:`oracledb.connect_async()`, or :meth:`oracledb.create_pool_async()`. For
+example:
+
+.. code-block:: python
+
+    connection = oracledb.connect(
+        user=user,
+        password=password,
+        dsn=dsn,
+        operation_callback=before_operation,
+    )
+
+An operation callback can also be set or changed on an existing connection
+with the :attr:`Connection.operation_callback` or
+:attr:`AsyncConnection.operation_callback` attributes. This change takes
+effect on the next operation. For example:
+
+.. code-block:: python
+
+    connection.operation_callback = before_operation
+
+To disable an operation callback on an existing connection, set
+:attr:`Connection.operation_callback` or
+:attr:`AsyncConnection.operation_callback` to *None*. For example:
+
+.. code-block:: python
+
+    connection.operation_callback = None
+
+Also, you can specify an operation callback with
+:attr:`ConnectParams.operation_callback` or with the ``operation_callback`` in
+:meth:`oracledb.PoolParams`. An operation callback set using
+:meth:`oracledb.PoolParams` becomes the default for connections acquired from
+that pool. The pool defaults are restored on every acquisition, so callback
+changes made to an acquired connection do not affect the next time that
+connection is acquired from the pool.
+
+The following table lists the operation names that can be passed to an
+operation callback and the python-oracledb methods that use each name:
+
+.. list-table-with-summary:: Operation Callback Names
+    :header-rows: 1
+    :class: wy-table-responsive
+    :width: 100%
+    :name: _operation_callback_names
+    :summary: The first column displays the operation name. The second column displays the corresponding python-oracledb method that uses the operation name.
+
+    * - Operation name
+      - python-oracledb Methods
+    * - ``begin_sessionless_transaction``
+      - :meth:`Connection.begin_sessionless_transaction()` and
+        :meth:`AsyncConnection.begin_sessionless_transaction()`
+    * - ``callfunc``
+      - :meth:`Cursor.callfunc()` and :meth:`AsyncCursor.callfunc()`
+    * - ``callproc``
+      - :meth:`Cursor.callproc()` and :meth:`AsyncCursor.callproc()`
+    * - ``changepassword``
+      - :meth:`Connection.changepassword()` and
+        :meth:`AsyncConnection.changepassword()`
+    * - ``close``
+      - :meth:`Connection.close()`, :meth:`AsyncConnection.close()`,
+        :meth:`LOB.close()`, and :meth:`AsyncLOB.close()`
+    * - ``commit``
+      - :meth:`Connection.commit()` and :meth:`AsyncConnection.commit()`
+    * - ``createlob``
+      - :meth:`Connection.createlob()` and :meth:`AsyncConnection.createlob()`
+    * - ``deqmany``
+      - :meth:`Queue.deqmany()` and :meth:`AsyncQueue.deqmany()`
+    * - ``deqone``
+      - :meth:`Queue.deqone()` and :meth:`AsyncQueue.deqone()`
+    * - ``direct_path_load``
+      - :meth:`Connection.direct_path_load()` and
+        :meth:`AsyncConnection.direct_path_load()`
+    * - ``enqmany``
+      - :meth:`Queue.enqmany()` and :meth:`AsyncQueue.enqmany()`
+    * - ``enqone``
+      - :meth:`Queue.enqone()` and :meth:`AsyncQueue.enqone()`
+    * - ``execute``
+      - :meth:`Cursor.execute()` and :meth:`AsyncCursor.execute()`
+    * - ``executemany``
+      - :meth:`Cursor.executemany()` and :meth:`AsyncCursor.executemany()`
+    * - ``fetch_df_all``
+      - :meth:`Connection.fetch_df_all()` and
+        :meth:`AsyncConnection.fetch_df_all()`
+    * - ``fetchall``
+      - :meth:`Cursor.fetchall()` and :meth:`AsyncCursor.fetchall()`
+    * - ``fetchmany``
+      - :meth:`Cursor.fetchmany()` and :meth:`AsyncCursor.fetchmany()`
+    * - ``fetchone``
+      - :meth:`Cursor.fetchone()` and :meth:`AsyncCursor.fetchone()`
+    * - ``fileexists``
+      - :meth:`LOB.fileexists()` and :meth:`AsyncLOB.fileexists()`
+    * - ``getchunksize``
+      - :meth:`LOB.getchunksize()` and :meth:`AsyncLOB.getchunksize()`
+    * - ``gettype``
+      - :meth:`Connection.gettype()` and :meth:`AsyncConnection.gettype()`
+    * - ``isopen``
+      - :meth:`LOB.isopen()` and :meth:`AsyncLOB.isopen()`
+    * - ``open``
+      - :meth:`LOB.open()` and :meth:`AsyncLOB.open()`
+    * - ``parse``
+      - :meth:`Cursor.parse()` and :meth:`AsyncCursor.parse()`
+    * - ``ping``
+      - :meth:`Connection.ping()` and :meth:`AsyncConnection.ping()`
+    * - ``read``
+      - :meth:`LOB.read()` and :meth:`AsyncLOB.read()`
+    * - ``registerquery``
+      - :meth:`Subscription.registerquery()`
+    * - ``resume_sessionless_transaction``
+      - :meth:`Connection.resume_sessionless_transaction()` and
+        :meth:`AsyncConnection.resume_sessionless_transaction()`
+    * - ``rollback``
+      - :meth:`Connection.rollback()` and :meth:`AsyncConnection.rollback()`
+    * - ``run_pipeline``
+      - :meth:`AsyncConnection.run_pipeline()`
+    * - ``scroll``
+      - :meth:`Cursor.scroll()` and :meth:`AsyncCursor.scroll()`
+    * - ``size``
+      - :meth:`LOB.size()` and :meth:`AsyncLOB.size()`
+    * - ``subscribe``
+      - :meth:`Connection.subscribe()`
+    * - ``suspend_sessionless_transaction``
+      - :meth:`Connection.suspend_sessionless_transaction()` and
+        :meth:`AsyncConnection.suspend_sessionless_transaction()`
+    * - ``tpc_begin``
+      - :meth:`Connection.tpc_begin()` and :meth:`AsyncConnection.tpc_begin()`
+    * - ``tpc_commit``
+      - :meth:`Connection.tpc_commit()` and
+        :meth:`AsyncConnection.tpc_commit()`
+    * - ``tpc_end``
+      - :meth:`Connection.tpc_end()` and :meth:`AsyncConnection.tpc_end()`
+    * - ``tpc_forget``
+      - :meth:`Connection.tpc_forget()` and
+        :meth:`AsyncConnection.tpc_forget()`
+    * - ``tpc_prepare``
+      - :meth:`Connection.tpc_prepare()` and
+        :meth:`AsyncConnection.tpc_prepare()`
+    * - ``tpc_recover``
+      - :meth:`Connection.tpc_recover()` and
+        :meth:`AsyncConnection.tpc_recover()`
+    * - ``tpc_rollback``
+      - :meth:`Connection.tpc_rollback()` and
+        :meth:`AsyncConnection.tpc_rollback()`
+    * - ``trim``
+      - :meth:`LOB.trim()` and :meth:`AsyncLOB.trim()`
+    * - ``unsubscribe``
+      - :meth:`Connection.unsubscribe()`
+    * - ``write``
+      - :meth:`LOB.write()` and :meth:`AsyncLOB.write()`
+
+Some python-oracledb methods are not included in the table. Pool management
+methods do not invoke operation callbacks because the pool performs database
+communication in its background worker. Convenience methods that call another
+callback-enabled method do not invoke a separate callback.
+
+Running a pipeline is treated as a single operation, even though it can perform
+one or more round-trips. SODA, database startup, and database shutdown
+operations are not currently covered by operation callbacks.
+
+.. _roundtripcallback:
+
+Round-trip Callbacks
+--------------------
+
+Round-trip callbacks observe the lower-level protocol round-trips made by
+python-oracledb Thin mode connections to Oracle Database. An operation can
+perform zero, one, or multiple round-trips, so round-trip callbacks provide a
+finer level of detail than operation callbacks. They are useful for tracing,
+metrics collection, profiling, and diagnostic logging that needs visibility
+into individual database protocol exchanges. For example, they can be used to
+measure individual round-trip timings, identify operations that perform
+multiple round-trips, and help diagnose latency caused by network or database
+response time.
+
+Round-trip callbacks are only supported in python-oracledb Thin mode. A
+round-trip callback should have the following signature:
+
+.. code-block:: text
+
+    round_trip_callback(name: str) -> Callable | None
+
+The ``name`` parameter is the protocol operation name, such as *"execute"* or
+*"fetch"*. The round-trip callback can optionally return a completion function.
+If the callback returns *None*, no completion function is invoked. Returning
+any other non-callable value raises the ``DPY-2070`` error before database
+communication starts. The optional completion function should have this
+signature:
+
+.. code-block:: text
+
+    completion(exception_or_none) -> None
+
+Round-trip callbacks and their completion functions are synchronous when used
+with both synchronous :class:`Connection` and asynchronous
+:class:`AsyncConnection` operations. They must be regular callables and must
+not be defined with ``async def``.
+
+The round-trip completion function receives *None* on success or the raised
+exception on failure. A callback pair is invoked for each named protocol
+exchange processed by the connection.
+
+In the following example, ``before_round_trip()`` prints the protocol operation
+name before the round-trip starts. Since it returns ``after_round_trip()``, the
+completion function is invoked after the round-trip completes:
+
+.. code-block:: python
+
+    def before_round_trip(name):
+        print("starting", name)
+
+        def after_round_trip(exception):
+            print("completed", exception)
+
+        return after_round_trip
+
+An exception raised by a round-trip callback before a round-trip starts
+prevents that round-trip from starting. If a completion function raises an
+exception after a successful round-trip, that exception is propagated. If both
+the operation and its completion function fail, the completion function
+exception is propagated. The original operation exception is available from
+the completion exception's ``__context__`` attribute.
+
+You can specify a round-trip callback with the ``round_trip_callback``
+parameter when creating a standalone connection or pooled connection with
+:meth:`oracledb.connect()`, :meth:`oracledb.create_pool()`,
+:meth:`oracledb.connect_async()`, or :meth:`oracledb.create_pool_async()`. For
+example:
+
+.. code-block:: python
+
+    connection = oracledb.connect(
+        user=user,
+        password=password,
+        dsn=dsn,
+        round_trip_callback=before_round_trip,
+    )
+
+A round-trip callback can also be set or changed on an existing connection
+with the :attr:`Connection.round_trip_callback` or
+:attr:`AsyncConnection.round_trip_callback` attributes. This change takes
+effect on the next round-trip. For example:
+
+.. code-block:: python
+
+    connection.round_trip_callback = before_round_trip
+
+To disable a round-trip callback on an existing connection, set
+:attr:`Connection.round_trip_callback` or
+:attr:`AsyncConnection.round_trip_callback` to *None*. For example:
+
+.. code-block:: python
+
+    connection.round_trip_callback = None
+
+Also, you can specify a round-trip callback with
+:attr:`ConnectParams.round_trip_callback` or with the ``round_trip_callback``
+parameter in :meth:`oracledb.PoolParams`. When a round-trip callback is
+configured in :class:`ConnectParams`, it can also observe python-oracledb Thin
+mode round-trips made while a standalone connection is being established. A
+round-trip callback set using :meth:`oracledb.PoolParams` becomes the default
+for connections acquired from that pool. The pool defaults are restored on
+every acquisition, so callback changes made to an acquired connection do not
+affect the next time that connection is acquired from the pool.
 
 .. _opentelemetry:
 

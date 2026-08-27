@@ -791,14 +791,14 @@ cdef class ThinConnImpl(BaseConnImpl):
         """
         yield self._create_message(CommitMessage, "commit")
 
-    def connect(self, str dsn, ConnectParamsImpl params, object pool):
+    def connect(self, object pool = None):
         """
         Establishes a connection to the database.
         """
 
         # thin mode does not currently support sharding
-        if params.shardingkey is not None \
-                or params.supershardingkey is not None:
+        if self.connect_params.shardingkey is not None \
+                or self.connect_params.supershardingkey is not None:
             errors._raise_err(
                 errors.ERR_FEATURE_NOT_SUPPORTED,
                 feature="sharding",
@@ -808,16 +808,14 @@ cdef class ThinConnImpl(BaseConnImpl):
         # if a pool is being used, acquire the connection from it and discard
         # the temporary implementation object that was created
         if pool is not None:
-            return (yield from pool._impl.acquire(params))
+            return (yield from pool._impl.acquire(self.connect_params))
 
         # initial setup before attempting to connect
         _check_cryptography()
-        params._check_credentials()
-        self.dsn = dsn
+        self.connect_params._check_credentials()
         self._connection_id_bytes = secrets.token_bytes(16)
         self._connection_id = \
                 base64.b64encode(self._connection_id_bytes).decode()
-        self.connect_params = params
 
         # if connection fails, discard the connection
         try:
@@ -828,7 +826,7 @@ cdef class ThinConnImpl(BaseConnImpl):
 
         # final setup before returning connection
         self._statement_cache = StatementCache.__new__(StatementCache)
-        self._statement_cache.initialize(params.stmtcachesize,
+        self._statement_cache.initialize(self.connect_params.stmtcachesize,
                                          self._max_open_cursors)
         self._dbobject_type_cache_num = create_new_dbobject_type_cache(self)
         if self._protocol._caps.supports_ha_readiness:

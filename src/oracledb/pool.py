@@ -85,6 +85,8 @@ class BaseConnectionPool(metaclass=BaseMetaClass):
                 else:
                     impl = thick_impl.ThickPoolImpl(dsn, params_impl)
                 self._impl = impl
+                self._operation_callback = params_impl.operation_callback
+                self._round_trip_callback = params_impl.round_trip_callback
                 self.session_callback = params_impl.session_callback
                 self.on_connect_callback = params_impl.on_connect_callback
             except:
@@ -436,6 +438,8 @@ class ConnectionPool(BaseConnectionPool):
             shardingkey=shardingkey,
             supershardingkey=supershardingkey,
             on_connect_callback=self.on_connect_callback,
+            operation_callback=self._operation_callback,
+            round_trip_callback=self._round_trip_callback,
             pool=self,
         )
 
@@ -698,6 +702,8 @@ def create_pool(
     extra_auth_params: dict | None = None,
     pool_name: str | None = None,
     on_connect_callback: Callable | None = None,
+    operation_callback: Callable | None = None,
+    round_trip_callback: Callable | None = None,
     transaction_priority: oracledb.TransactionPriority | None = None,
     handle: int | None = None,
 ) -> ConnectionPool:
@@ -1070,6 +1076,18 @@ def create_pool(
       object for DeepSec support
       (default: None)
 
+    - ``operation_callback``: a callable invoked before each database
+      operation. It receives the operation name followed by a mapping of the
+      operation arguments. It may return a completion callable, which receives
+      the result or raised exception
+      (default: None)
+
+    - ``round_trip_callback``: a callable invoked before each Thin mode round
+      trip. It receives the round trip name and may return a completion
+      callable, which receives the raised exception or *None* when the round
+      trip succeeds
+      (default: None)
+
     - ``transaction_priority``: a member of the oracledb.TransactionPriority
       enumeration that specifies the priority of any transaction that is
       created by the connection
@@ -1138,6 +1156,8 @@ class AsyncConnectionPool(BaseConnectionPool):
             shardingkey=shardingkey,
             supershardingkey=supershardingkey,
             on_connect_callback=self.on_connect_callback,
+            operation_callback=self._operation_callback,
+            round_trip_callback=self._round_trip_callback,
             pool=self,
         )
 
@@ -1305,6 +1325,8 @@ def create_pool_async(
     extra_auth_params: dict | None = None,
     pool_name: str | None = None,
     on_connect_callback: Callable | None = None,
+    operation_callback: Callable | None = None,
+    round_trip_callback: Callable | None = None,
     transaction_priority: oracledb.TransactionPriority | None = None,
     handle: int | None = None,
 ) -> AsyncConnectionPool:
@@ -1675,6 +1697,18 @@ def create_pool_async(
       connection pool, but before it is returned to the caller. A common use of
       this callback is for creating and setting an end user security context
       object for DeepSec support
+      (default: None)
+
+    - ``operation_callback``: a callable invoked before each database
+      operation. It receives the operation name followed by a mapping of the
+      operation arguments. It may return a completion callable, which receives
+      the result or raised exception
+      (default: None)
+
+    - ``round_trip_callback``: a callable invoked before each Thin mode round
+      trip. It receives the round trip name and may return a completion
+      callable, which receives the raised exception or *None* when the round
+      trip succeeds
       (default: None)
 
     - ``transaction_priority``: a member of the oracledb.TransactionPriority

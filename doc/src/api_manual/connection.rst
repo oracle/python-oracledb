@@ -422,6 +422,12 @@ Connection Attributes
 
     .. dbapiattributeextension::
 
+.. autoproperty:: Connection.operation_callback
+
+    See :ref:`dboperationcallbacks`.
+
+    .. versionadded:: 26.0.0
+
 .. autoproperty:: Connection.outputtypehandler
 
     See :ref:`outputtypehandlers`.
@@ -451,6 +457,12 @@ Connection Attributes
     .. dbapiattributeextension::
 
     .. versionadded:: 2.0.0
+
+.. autoproperty:: Connection.round_trip_callback
+
+    See :ref:`dboperationcallbacks`.
+
+    .. versionadded:: 26.0.0
 
 .. autoproperty:: Connection.sdu
 

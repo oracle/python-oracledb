@@ -122,6 +122,8 @@ class PoolParams(ConnectParams):
         extra_auth_params: dict | None = None,
         pool_name: str | None = None,
         on_connect_callback: Callable | None = None,
+        operation_callback: Callable | None = None,
+        round_trip_callback: Callable | None = None,
         transaction_priority: oracledb.TransactionPriority | None = None,
         handle: int | None = None,
     ):
@@ -477,6 +479,18 @@ class PoolParams(ConnectParams):
           context object for DeepSec support
           (default: None)
 
+        - ``operation_callback``: a callable invoked before each database
+          operation. It receives the operation name followed by a mapping of
+          the operation arguments. It may return a completion callable, which
+          receives the result or raised exception
+          (default: None)
+
+        - ``round_trip_callback``: a callable invoked before each Thin mode
+          round trip. It receives the round trip name and may return a
+          completion callable, which receives the raised exception or *None*
+          when the round trip succeeds
+          (default: None)
+
         - ``transaction_priority``: a member of the
           oracledb.TransactionPriority enumeration that specifies the priority
           of any transaction that is created by the connection
@@ -560,6 +574,8 @@ class PoolParams(ConnectParams):
             f"extra_auth_params={self.extra_auth_params!r}, "
             f"pool_name={self.pool_name!r}, "
             f"on_connect_callback={self.on_connect_callback!r}, "
+            f"operation_callback={self.operation_callback!r}, "
+            f"round_trip_callback={self.round_trip_callback!r}, "
             f"transaction_priority={self.transaction_priority!r}"
             ")"
         )
@@ -765,6 +781,8 @@ class PoolParams(ConnectParams):
         extra_auth_params: dict | None = None,
         pool_name: str | None = None,
         on_connect_callback: Callable | None = None,
+        operation_callback: Callable | None = None,
+        round_trip_callback: Callable | None = None,
         transaction_priority: oracledb.TransactionPriority | None = None,
         handle: int | None = None,
     ):
@@ -1044,6 +1062,16 @@ class PoolParams(ConnectParams):
           connection pool, but before it is returned to the caller. A common
           use of this callback is for creating and setting an end user security
           context object for DeepSec support
+
+        - ``operation_callback``: a callable invoked before each database
+          operation. It receives the operation name followed by a mapping of
+          the operation arguments. It may return a completion callable, which
+          receives the result or raised exception
+
+        - ``round_trip_callback``: a callable invoked before each Thin mode
+          round trip. It receives the round trip name and may return a
+          completion callable, which receives the raised exception or *None*
+          when the round trip succeeds
 
         - ``transaction_priority``: a member of the
           oracledb.TransactionPriority enumeration that specifies the priority

@@ -65,7 +65,7 @@ cdef class ThinSubscrImpl(BaseSubscrImpl):
         self._conn_impl = ThinConnImpl()
         try:
             self._conn_impl.process_sync_operation(
-                self, "create_connection", (conn_impl,), {}
+                self, "create_connection", (conn_impl,), {},
             )
             protocol = <Protocol> self._conn_impl._protocol
             message = self._conn_impl._create_message(NotifyMessage, "notify")
@@ -91,9 +91,13 @@ cdef class ThinSubscrImpl(BaseSubscrImpl):
             ConnectParamsImpl params
             Description description
         params = conn_impl.connect_params.copy()
+        params.operation_callback = None
+        params.round_trip_callback = None
         for description in params.description_list.children:
             description.server_type = "emon"
-        yield from self._conn_impl.connect(conn_impl.dsn, params, None)
+        self._conn_impl.dsn = conn_impl.dsn
+        self._conn_impl.connect_params = params
+        yield from self._conn_impl.connect()
 
     def register_query(self, str sql, object args):
         """

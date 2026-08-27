@@ -18,6 +18,11 @@ PoolParams Class
 
     See :ref:`usingpoolparams` for more information.
 
+    .. versionchanged:: 26.0.0
+
+        The ``operation_callback`` and ``round_trip_callback`` parameters were
+        added.
+
     .. versionchanged:: 4.0.0
 
         The ``on_connect_callback`` parameter was added.
@@ -69,6 +74,11 @@ PoolParams Methods
 .. automethod:: PoolParams.parse_connect_string
 
 .. automethod:: PoolParams.set
+
+    .. versionchanged:: 26.0.0
+
+        The ``operation_callback`` and ``round_trip_callback`` parameters were
+        added.
 
     .. versionchanged:: 4.0.0
 

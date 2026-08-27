@@ -197,7 +197,8 @@ cdef class BaseThinPoolImpl(BasePoolImpl):
         conn_impl._pool_id = self._pool_id
         conn_impl._time_created = time.monotonic()
         conn_impl._time_returned = conn_impl._time_created
-        yield from conn_impl.connect(self.dsn, self.connect_params, None)
+        conn_impl.dsn = self.dsn
+        yield from conn_impl.connect()
         conn_impl.invoke_session_callback = True
 
     cdef int _drop_conn_impl(self, ThinConnImpl conn_impl) except -1:
@@ -257,6 +258,8 @@ cdef class BaseThinPoolImpl(BasePoolImpl):
         if conn_impl._protocol._caps.supports_request_boundaries:
             conn_impl._session_state_desired = TNS_SESSION_STATE_REQUEST_BEGIN
             conn_impl._in_request = True
+        conn_impl.operation_callback = self.connect_params.operation_callback
+        conn_impl.round_trip_callback = self.connect_params.round_trip_callback
 
     cdef int _post_create_conn_impl(self, ThinConnImpl conn_impl) except -1:
         """
@@ -347,6 +350,8 @@ cdef class BaseThinPoolImpl(BasePoolImpl):
                     is_open = False
         if is_open:
             conn_impl.security_context = None
+            conn_impl.operation_callback = None
+            conn_impl.round_trip_callback = None
             self._check_satisfy_request(conn_impl, is_new=False)
         self._check_timeout()
 
@@ -622,8 +627,11 @@ cdef class ThinPoolImpl(BaseThinPoolImpl):
         as when the pool is full and POOL_GETMODE_FORCEGET is being used).
         """
         cdef ThinConnImpl conn_impl = ThinConnImpl()
+        conn_impl.connect_params = self.connect_params.copy()
+        conn_impl.connect_params.operation_callback = None
+        conn_impl.connect_params.round_trip_callback = None
         conn_impl.process_sync_operation(
-            self, "create_connection", (conn_impl, params), {}
+            self, "create_connection", (conn_impl, params), {},
         )
         return conn_impl
 
@@ -642,7 +650,7 @@ cdef class ThinPoolImpl(BaseThinPoolImpl):
             if request.requires_ping:
                 try:
                     request.conn_impl.process_sync_operation(
-                        self, "ping_connection", (request.conn_impl,), {}
+                        self, "ping_connection", (request.conn_impl,), {},
                     )
                 except exceptions.Error:
                     request.conn_impl._protocol._disconnect()
@@ -769,6 +777,9 @@ cdef class AsyncThinPoolImpl(BaseThinPoolImpl):
         as when the pool is full and POOL_GETMODE_FORCEGET is being used).
         """
         cdef ThinConnImpl conn_impl = ThinConnImpl(is_async=True)
+        conn_impl.connect_params = self.connect_params.copy()
+        conn_impl.connect_params.operation_callback = None
+        conn_impl.connect_params.round_trip_callback = None
         await conn_impl.process_async_operation(
             self, "create_connection", (conn_impl, params), {}
         )

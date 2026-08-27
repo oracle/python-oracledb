@@ -410,7 +410,7 @@ cdef class ThickConnImpl(BaseConnImpl):
             _raise_from_odpi()
 
     @sync_operation
-    def connect(self, str dsn, ConnectParamsImpl user_params, object pool):
+    def connect(self, object pool):
         cdef:
             str full_user, cclass, token, private_key, connect_string
             bytes password_bytes, new_password_bytes
@@ -426,7 +426,6 @@ cdef class ThickConnImpl(BaseConnImpl):
 
         # if the connection is part of the pool, get the pool creation params
         if pool is None:
-            self.dsn = dsn
             pool_impl = None
         else:
             pool_impl = <ThickPoolImpl> pool._impl
@@ -435,9 +434,9 @@ cdef class ThickConnImpl(BaseConnImpl):
 
         # set up connection parameters
         params = ConnectionParams()
-        password_bytes = user_params._get_password()
-        new_password_bytes = user_params._get_new_password()
-        full_user = user_params.get_full_user()
+        password_bytes = self.connect_params._get_password()
+        new_password_bytes = self.connect_params._get_new_password()
+        full_user = self.connect_params.get_full_user()
         if full_user is not None:
             params.username = full_user.encode()
             params.username_ptr = params.username
@@ -447,18 +446,18 @@ cdef class ThickConnImpl(BaseConnImpl):
             params.password_ptr = params.password
             params.password_len = <uint32_t> len(params.password)
         if pool_impl is None:
-            if user_params.thick_mode_dsn_passthrough:
+            if self.connect_params.thick_mode_dsn_passthrough:
                 connect_string = self.dsn
             else:
-                connect_string = user_params._get_connect_string()
+                connect_string = self.connect_params._get_connect_string()
             if connect_string is not None:
                 params.connect_string = connect_string.encode()
                 params.connect_string_ptr = params.connect_string
                 params.connect_string_len = \
                         <uint32_t> len(params.connect_string)
         if pool_impl is None \
-                or user_params._default_description.cclass is not None:
-            cclass = user_params._default_description.cclass
+                or self.connect_params._default_description.cclass is not None:
+            cclass = self.connect_params._default_description.cclass
         else:
             cclass = pool_params._default_description.cclass
         if cclass is not None:
@@ -469,24 +468,26 @@ cdef class ThickConnImpl(BaseConnImpl):
             params.new_password = new_password_bytes
             params.new_password_ptr = params.new_password
             params.new_password_len = <uint32_t> len(params.new_password)
-        if user_params.edition is not None:
-            params.edition = user_params.edition.encode()
+        if self.connect_params.edition is not None:
+            params.edition = self.connect_params.edition.encode()
             params.edition_ptr = params.edition
             params.edition_len = <uint32_t> len(params.edition)
-        if user_params.tag is not None:
-            params.tag = user_params.tag.encode()
+        if self.connect_params.tag is not None:
+            params.tag = self.connect_params.tag.encode()
             params.tag_ptr = params.tag
             params.tag_len = <uint32_t> len(params.tag)
-        if user_params.appcontext:
-            params.process_appcontext(user_params.appcontext)
-        if user_params.shardingkey:
-            params.process_sharding_key(user_params.shardingkey, False)
-        if user_params.supershardingkey:
-            params.process_sharding_key(user_params.supershardingkey, True)
-        if user_params._token is not None \
-                or user_params.access_token_callback is not None:
-            token = user_params._get_token()
-            private_key = user_params._get_private_key()
+        if self.connect_params.appcontext:
+            params.process_appcontext(self.connect_params.appcontext)
+        if self.connect_params.shardingkey:
+            params.process_sharding_key(self.connect_params.shardingkey, False)
+        if self.connect_params.supershardingkey:
+            params.process_sharding_key(
+                self.connect_params.supershardingkey, True
+            )
+        if self.connect_params._token is not None \
+                or self.connect_params.access_token_callback is not None:
+            token = self.connect_params._get_token()
+            private_key = self.connect_params._get_private_key()
             params.token = token.encode()
             params.token_ptr = params.token
             params.token_len = <uint32_t> len(params.token)
@@ -494,13 +495,13 @@ cdef class ThickConnImpl(BaseConnImpl):
                 params.private_key = private_key.encode()
                 params.private_key_ptr = params.private_key
                 params.private_key_len = <uint32_t> len(params.private_key)
-        if user_params.driver_name is not None:
-            params.driver_name = user_params.driver_name.encode()[:30]
+        if self.connect_params.driver_name is not None:
+            params.driver_name = self.connect_params.driver_name.encode()[:30]
             params.driver_name_ptr = params.driver_name
             params.driver_name_len = <uint32_t> len(params.driver_name)
-        if user_params.transaction_priority is not None:
+        if self.connect_params.transaction_priority is not None:
             params.transaction_priority = \
-                    user_params.transaction_priority.encode()
+                    self.connect_params.transaction_priority.encode()
             params.transaction_priority_ptr = params.transaction_priority
             params.transaction_priority_len = \
                     <uint32_t> len(params.transaction_priority)
@@ -510,9 +511,9 @@ cdef class ThickConnImpl(BaseConnImpl):
                                              &common_params) < 0:
             _raise_from_odpi()
         common_params.createMode |= DPI_MODE_CREATE_THREADED
-        if user_params.events:
+        if self.connect_params.events:
             common_params.createMode |= DPI_MODE_CREATE_EVENTS
-        if user_params.edition is not None:
+        if self.connect_params.edition is not None:
             common_params.edition = params.edition_ptr
             common_params.editionLength = params.edition_len
         if params.token is not None:
@@ -521,10 +522,10 @@ cdef class ThickConnImpl(BaseConnImpl):
             access_token.privateKey = params.private_key_ptr
             access_token.privateKeyLength = params.private_key_len
             common_params.accessToken = &access_token
-        if user_params.driver_name is not None:
+        if self.connect_params.driver_name is not None:
             common_params.driverName = params.driver_name_ptr
             common_params.driverNameLength = params.driver_name_len
-        if user_params.transaction_priority is not None:
+        if self.connect_params.transaction_priority is not None:
             common_params.transactionPriority = params.transaction_priority_ptr
             common_params.transactionPriorityLength = \
                     params.transaction_priority_len
@@ -536,37 +537,38 @@ cdef class ThickConnImpl(BaseConnImpl):
         if params.username_len == 0 and params.password_len == 0:
             conn_params.externalAuth = 1
         else:
-            conn_params.externalAuth = user_params.externalauth
+            conn_params.externalAuth = self.connect_params.externalauth
         if params.cclass is not None:
             conn_params.connectionClass = params.cclass_ptr
             conn_params.connectionClassLength = params.cclass_len
         if new_password_bytes is not None:
             conn_params.newPassword = params.new_password_ptr
             conn_params.newPasswordLength = params.new_password_len
-        if user_params.appcontext:
+        if self.connect_params.appcontext:
             conn_params.appContext = params.app_context
             conn_params.numAppContext = params.num_app_context
-        if user_params.shardingkey:
+        if self.connect_params.shardingkey:
             conn_params.shardingKeyColumns = params.sharding_key_columns
             conn_params.numShardingKeyColumns = params.num_sharding_key_columns
-        if user_params.supershardingkey:
+        if self.connect_params.supershardingkey:
             conn_params.superShardingKeyColumns = \
                     params.super_sharding_key_columns
             conn_params.numSuperShardingKeyColumns = \
                     params.num_super_sharding_key_columns
-        if user_params.tag is not None:
+        if self.connect_params.tag is not None:
             conn_params.tag = params.tag_ptr
             conn_params.tagLength = params.tag_len
-        if user_params._external_handle != 0:
-            conn_params.externalHandle = <void*> user_params._external_handle
+        if self.connect_params._external_handle != 0:
+            conn_params.externalHandle = \
+                    <void*> self.connect_params._external_handle
             self._is_external = True
         if pool_impl is not None:
             conn_params.pool = pool_impl._handle
-        common_params.stmtCacheSize = user_params.stmtcachesize
-        conn_params.authMode = user_params.mode
-        conn_params.matchAnyTag = user_params.matchanytag
-        if user_params._default_description.purity != PURITY_DEFAULT:
-            conn_params.purity = user_params._default_description.purity
+        common_params.stmtCacheSize = self.connect_params.stmtcachesize
+        conn_params.authMode = self.connect_params.mode
+        conn_params.matchAnyTag = self.connect_params.matchanytag
+        if self.connect_params._default_description.purity != PURITY_DEFAULT:
+            conn_params.purity = self.connect_params._default_description.purity
         elif pool_impl is not None:
             conn_params.purity = pool_params._default_description.purity
 
@@ -616,7 +618,6 @@ cdef class ThickConnImpl(BaseConnImpl):
         if conn_params.outTagLength > 0:
             self.tag = conn_params.outTag[:conn_params.outTagLength].decode()
 
-        self.connect_params = user_params
         return self
 
     def create_msg_props_impl(self):

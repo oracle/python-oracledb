@@ -15,6 +15,11 @@ ConnectParams Class
 
     .. dbapiobjectextension::
 
+    .. versionchanged:: 26.0.0
+
+        The ``operation_callback`` and ``round_trip_callback`` parameters were
+        added.
+
     .. versionchanged:: 4.0.0
 
         The ``on_connect_callback`` parameter was added.
@@ -72,6 +77,11 @@ ConnectParams Methods
     .. versionadded:: 1.3.0
 
 .. automethod:: ConnectParams.set
+
+    .. versionchanged:: 26.0.0
+
+        The ``operation_callback`` and ``round_trip_callback`` parameters were
+        added.
 
     .. versionchanged:: 4.0.0
 
@@ -223,6 +233,12 @@ All properties are read only.
 
     .. versionadded:: 4.0.0
 
+.. autoproperty:: ConnectParams.operation_callback
+
+    See :ref:`dboperationcallbacks`.
+
+    .. versionadded:: 26.0.0
+
 .. autoproperty:: ConnectParams.osuser
 
     This is an arbitrary value set by the user in the
@@ -304,6 +320,12 @@ All properties are read only.
 
         The default value of this attribute was changed from *0* seconds to *1*
         second.
+
+.. autoproperty:: ConnectParams.round_trip_callback
+
+    See :ref:`dboperationcallbacks`.
+
+    .. versionadded:: 26.0.0
 
 .. autoproperty:: ConnectParams.sdu
 

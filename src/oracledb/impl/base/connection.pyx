@@ -163,6 +163,22 @@ cdef class BaseConnImpl:
                       uint32_t attr_type):
         errors._raise_not_supported("getting a connection OCI attribute")
 
+    cdef object _invoke_operation_callback(self, object method,
+                                           str name, object args,
+                                           object kwargs):
+        """
+        Invoke the callback for an operation and return its completion.
+        """
+        cdef object bound_args, completion
+        bound_args = inspect.signature(method.__func__).bind(
+            method.__self__, *args, **kwargs
+        )
+        bound_args.apply_defaults()
+        completion = self.operation_callback(name, bound_args.arguments)
+        if completion is not None and not callable(completion):
+            errors._raise_err(errors.ERR_INVALID_CALLABLE_FUN)
+        return completion
+
     cdef int _process_sync_operation_sub_op(self, object sub_op) except -1:
         """
         Processes a sub operation of a synchronous operation. These may either
@@ -351,6 +367,23 @@ cdef class BaseConnImpl:
     def ping(self):
         errors._raise_not_supported("pinging the database")
 
+    def prepare_connect_args(self, str dsn, object pool, object params,
+                             dict kwargs):
+        """
+        Prepares arguments for establishing a connection to the database. This
+        needs to be done prior to the connect operation taking place so that
+        the callbacks will be invoked, if applicable.
+        """
+        if params is None:
+            self.connect_params = ConnectParamsImpl()
+        elif not isinstance(params, PY_TYPE_CONNECT_PARAMS):
+            errors._raise_err(errors.ERR_INVALID_CONNECT_PARAMS)
+        else:
+            self.connect_params = params._impl.copy()
+        self.dsn = self.connect_params.process_args(dsn, kwargs, self.thin)
+        self.operation_callback = self.connect_params.operation_callback
+        self.round_trip_callback = self.connect_params.round_trip_callback
+
     async def process_async_operation(self,
                                       object method_owner, str name,
                                       object args, object kwargs):
@@ -360,18 +393,31 @@ cdef class BaseConnImpl:
         which returns sub operations. This allows the code for sync and async
         to be identical except for this function.
         """
-        cdef object method, generator, sub_op
+        cdef object generator, method, result, sub_op, completion = None
         method = getattr(method_owner, f"_{name}")
+        if self.operation_callback is not None:
+            completion = self._invoke_operation_callback(
+                method, name, args, kwargs
+            )
         generator = method(*args, **kwargs)
-        while True:
-            try:
-                sub_op = next(generator)
-                if sub_op is not None:
-                    await self._process_async_operation_sub_op(sub_op)
-            except StopIteration as e:
-                return e.value
-            except Exception as e:
-                generator.throw(e)
+        try:
+            while True:
+                try:
+                    sub_op = next(generator)
+                    if sub_op is not None:
+                        await self._process_async_operation_sub_op(sub_op)
+                except StopIteration as e:
+                    result = e.value
+                    break
+                except BaseException as e:
+                    generator.throw(e)
+        except BaseException as operation_error:
+            if completion is not None:
+                completion(operation_error)
+            raise
+        if completion is not None:
+            completion(result)
+        return result
 
     def process_sync_operation(self,
                                object method_owner, str name, object args,
@@ -382,18 +428,31 @@ cdef class BaseConnImpl:
         which returns sub operations. In thick mode, which doesn't support sub
         operations, a single sub operation is returned and discarded.
         """
-        cdef object method, generator, sub_op
+        cdef object generator, method, result, sub_op, completion = None
         method = getattr(method_owner, f"_{name}")
+        if self.operation_callback is not None:
+            completion = self._invoke_operation_callback(
+                method, name, args, kwargs
+            )
         generator = method(*args, **kwargs)
-        while True:
-            try:
-                sub_op = next(generator)
-                if sub_op is not None:
-                    self._process_sync_operation_sub_op(sub_op)
-            except StopIteration as e:
-                return e.value
-            except Exception as e:
-                generator.throw(e)
+        try:
+            while True:
+                try:
+                    sub_op = next(generator)
+                    if sub_op is not None:
+                        self._process_sync_operation_sub_op(sub_op)
+                except StopIteration as e:
+                    result = e.value
+                    break
+                except BaseException as e:
+                    generator.throw(e)
+        except BaseException as operation_error:
+            if completion is not None:
+                completion(operation_error)
+            raise
+        if completion is not None:
+            completion(result)
+        return result
 
     def rollback(self):
         errors._raise_not_supported("rolling back a transaction")

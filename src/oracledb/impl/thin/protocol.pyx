@@ -233,15 +233,33 @@ cdef class Protocol(BaseProtocol):
                 return self._process_message(message)
             message._check_and_raise_exception()
 
+    cdef int _process_round_trip(self, Message message) except -1:
+        """
+        Process one round trip and invoke callbacks, if applicable.
+        """
+        cdef object completion = None
+        if message.conn_impl.round_trip_callback is not None:
+            completion = message.conn_impl.round_trip_callback(message.name)
+            if completion is not None and not callable(completion):
+                errors._raise_err(errors.ERR_INVALID_CALLABLE_FUN)
+        try:
+            self._process_message(message)
+        except Exception as round_trip_error:
+            if completion is not None:
+                completion(round_trip_error)
+            raise
+        if completion is not None:
+            completion(None)
+
     cdef int _process_single_message(self, Message message) except -1:
         """
         Process a single message within a request.
         """
         message.preprocess()
         with self._request_lock:
-            self._process_message(message)
+            self._process_round_trip(message)
             if message.resend:
-                self._process_message(message)
+                self._process_round_trip(message)
         message.postprocess()
 
     cdef int _receive_packet(self, Message message,
@@ -438,6 +456,29 @@ cdef class BaseAsyncProtocol(BaseProtocol):
                     message.on_out_of_packets()
                     self._read_buf.restore_point()
 
+    async def _process_round_trip(self, Message message):
+        """
+        Process one round trip and invoke callbacks, if applicable.
+        """
+        cdef:
+            object callback = message.conn_impl.round_trip_callback
+            object completion = None
+        if message.conn_impl.round_trip_callback is not None:
+            completion = message.conn_impl.round_trip_callback(message.name)
+            if completion is not None and not callable(completion):
+                errors._raise_err(errors.ERR_INVALID_CALLABLE_FUN)
+        try:
+            await self._process_message(message)
+        except BaseException as round_trip_error:
+            if completion is not None:
+                try:
+                    completion(round_trip_error)
+                except BaseException as completion_error:
+                    raise round_trip_error from completion_error
+            raise
+        if completion is not None:
+            completion(None)
+
     async def _process_single_message(self, Message message):
         """
         Process a single message within a request.
@@ -447,9 +488,9 @@ cdef class BaseAsyncProtocol(BaseProtocol):
             if isinstance(message, EndPipelineMessage):
                 await message.process_pipeline()
             else:
-                await self._process_message(message)
+                await self._process_round_trip(message)
             if message.resend:
-                await self._process_message(message)
+                await self._process_round_trip(message)
         await message.postprocess_async()
 
     async def _process_timeout_helper(self, Message message, uint32_t timeout):
