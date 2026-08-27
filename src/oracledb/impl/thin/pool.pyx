@@ -442,19 +442,18 @@ cdef class BaseThinPoolImpl(BasePoolImpl):
             return self._wait_timeout * 1000
         return 0
 
-    def return_connection(self, BaseThinConnImpl conn_impl, bint in_del=False):
+    def return_connection(self, BaseThinConnImpl conn_impl):
         """
         Internal method for returning a connection to the pool.
         """
-        cdef Protocol protocol = <Protocol> conn_impl._protocol
-        with self._condition:
-            if self._open:
-                try:
-                    protocol._end_request(conn_impl)
-                except:
-                    if not in_del:
-                        raise
-                self._return_connection_helper(conn_impl)
+        cdef ReturnToPoolSubOp sub_op
+        try:
+            yield from conn_impl._end_request()
+        finally:
+            sub_op = ReturnToPoolSubOp.__new__(ReturnToPoolSubOp)
+            sub_op.pool_impl = self
+            sub_op.conn_impl = conn_impl
+            yield sub_op
 
     def set_getmode(self, uint32_t value):
         """
@@ -501,6 +500,29 @@ cdef class BaseThinPoolImpl(BasePoolImpl):
             self._wait_timeout = value / 1000
         else:
             self._wait_timeout = None
+
+
+@cython.final
+cdef class ReturnToPoolSubOp(SubOperation):
+    cdef:
+        BaseThinPoolImpl pool_impl
+        BaseThinConnImpl conn_impl
+
+    def process(self):
+        """
+        Returns the connection to the pool synchronously.
+        """
+        cdef ThinPoolImpl pool_impl = self.pool_impl
+        with pool_impl._condition:
+            pool_impl._return_connection_helper(self.conn_impl)
+
+    async def process_async(self):
+        """
+        Returns the connection to the pool asynchronously.
+        """
+        cdef AsyncThinPoolImpl pool_impl = self.pool_impl
+        async with pool_impl._condition:
+            pool_impl._return_connection_helper(self.conn_impl)
 
 
 cdef class ThinPoolImpl(BaseThinPoolImpl):
@@ -865,21 +887,6 @@ cdef class AsyncThinPoolImpl(BaseThinPoolImpl):
             self._busy_conn_impls.remove(conn_impl)
             self._drop_conn_impl(conn_impl)
             self._condition.notify()
-
-    async def return_connection(self, AsyncThinConnImpl conn_impl,
-                                bint in_del=False):
-        """
-        Internal method for returning a connection to the pool.
-        """
-        cdef BaseAsyncProtocol protocol
-        async with self._condition:
-            try:
-                protocol = <BaseAsyncProtocol> conn_impl._protocol
-                await protocol._end_request(conn_impl)
-            except:
-                if not in_del:
-                    raise
-            self._return_connection_helper(conn_impl)
 
 
 @cython.freelist(20)

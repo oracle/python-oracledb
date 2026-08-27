@@ -84,6 +84,7 @@ cdef class Message:
         bint flush_out_binds
         bint resend
         bint retry
+        bint is_one_way
         object warning
 
     cdef int _check_and_raise_exception(self) except -1:

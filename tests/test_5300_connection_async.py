@@ -258,8 +258,8 @@ async def test_5318(test_env):
     async with test_env.get_connection_async() as conn:
         assert conn.ltxid == b""
         assert conn.current_schema is None
-        conn.current_schema = "test_schema"
-        assert conn.current_schema == "test_schema"
+        conn.current_schema = "system"
+        assert conn.current_schema == "system"
         assert conn.edition is None
         conn.external_name = "test_external"
         assert conn.external_name == "test_external"

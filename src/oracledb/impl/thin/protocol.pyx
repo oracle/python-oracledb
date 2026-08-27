@@ -96,76 +96,6 @@ cdef class BaseProtocol:
         return self._transport is not None \
                 and self._read_buf._pending_error_num == 0
 
-    cdef Message _on_close_phase_one(self, BaseThinConnImpl conn_impl):
-        """
-        Called when the connection to the database is being closed. The
-        database object type cache will be destroyed. If the connection is not
-        a DRCP session and is still open, a logoff message will be returned for
-        processing.
-        """
-        conn_impl._clear_dbobject_type_cache()
-        self._check_is_healthy()
-        if self._transport is not None and not conn_impl._drcp_enabled:
-            return conn_impl._create_message(LogoffMessage)
-
-    cdef int _on_close_phase_two(self, BaseThinConnImpl conn_impl):
-        """
-        Called when the connection to the database is being closed. The final
-        close will be sent if the connection is still open.
-        """
-        cdef WriteBuffer buf = self._write_buf
-        self._check_is_healthy()
-        if self._transport is not None:
-            buf.start_request(TNS_PACKET_TYPE_DATA, 0, TNS_DATA_FLAGS_EOF)
-            buf.end_request()
-
-    cdef Message _on_request_end_phase_one(self, BaseThinConnImpl conn_impl):
-        """
-        Called when a request to the database is ending. A check is made to see
-        if there is an open transaction and, if one exists, a rollback message
-        is returned. If a request is actually in progress, a rollback message
-        will always be returned in order to ensure that the database is aware
-        of the request being ended.
-        """
-        cdef:
-            ThinDbObjectTypeCache type_cache
-            int cache_num
-        if conn_impl._dbobject_type_cache_num > 0:
-            cache_num = conn_impl._dbobject_type_cache_num
-            type_cache = get_dbobject_type_cache(cache_num)
-            type_cache._clear_cursors()
-        self._check_is_healthy()
-        if self._transport is not None:
-            if conn_impl._in_request and conn_impl._session_state_desired != 0:
-                conn_impl._in_request = False
-            if self._txn_in_progress or conn_impl._in_request:
-                if conn_impl._in_request:
-                    conn_impl._session_state_desired = \
-                            TNS_SESSION_STATE_REQUEST_END
-                    conn_impl._in_request = False
-                if conn_impl._transaction_context is not None:
-                    conn_impl._transaction_context = None
-                    return conn_impl._create_tpc_rollback_message()
-                else:
-                    return conn_impl._create_message(RollbackMessage)
-
-    cdef int _on_request_end_phase_two(self,
-                                       BaseThinConnImpl conn_impl) except -1:
-        """
-        Called when a request to the database is ending. A check is made to see
-        if DRCP is in use, and if it is, a release takes place. Any warnings
-        that were set are cleared.
-        """
-        cdef SessionReleaseMessage message
-        self._check_is_healthy()
-        if self._transport is not None and conn_impl._drcp_enabled:
-            message = conn_impl._create_message(SessionReleaseMessage)
-            if not conn_impl._is_pooled:
-                message.release_mode = DRCP_DEAUTHENTICATE
-            message.send(self._write_buf)
-            conn_impl._drcp_establish_session = True
-        conn_impl.warning = None
-
     cdef int _post_connect(self, BaseThinConnImpl conn_impl,
                            AuthMessage auth_message) except -1:
         """"
@@ -227,19 +157,6 @@ cdef class Protocol(BaseProtocol):
     def __init__(self):
         BaseProtocol.__init__(self)
         self._request_lock = threading.Lock()
-
-    cdef int _close(self, BaseThinConnImpl conn_impl) except -1:
-        """
-        Closes the connection to the database.
-        """
-        cdef Message message
-        try:
-            message = self._on_close_phase_one(conn_impl)
-            if message is not None:
-                self._process_message(message)
-            self._on_close_phase_two(conn_impl)
-        finally:
-            self._disconnect()
 
     cdef int _connect_phase_one(self, ThinConnImpl conn_impl,
                                 ConnectParamsImpl params,
@@ -440,29 +357,14 @@ cdef class Protocol(BaseProtocol):
             self._transport.create_ssl_context(params, description, address)
             self._transport.negotiate_tls(sock, address, description)
 
-    cdef int _end_request(self, BaseThinConnImpl conn_impl) except -1:
-        """
-        Ends the request on the database. This rolls back any open transaction
-        and releases any DRCP session, if applicable.
-        """
-        cdef Message message
-        message = self._on_request_end_phase_one(conn_impl)
-        if message is not None:
-            self._process_message(message)
-        self._on_request_end_phase_two(conn_impl)
-        if not self._get_is_healthy():
-            try:
-                self._close(conn_impl)
-            except:
-                pass
-
     cdef int _process_message(self, Message message) except -1:
         cdef uint32_t timeout = message.conn_impl._call_timeout
         try:
             self._read_buf.reset_packets()
             message.send(self._write_buf)
-            self._receive_packet(message, check_request_boundary=True)
-            message.process(self._read_buf)
+            if not message.is_one_way:
+                self._receive_packet(message, check_request_boundary=True)
+                message.process(self._read_buf)
         except socket.timeout:
             try:
                 self._break_external()
@@ -575,20 +477,6 @@ cdef class Protocol(BaseProtocol):
             packet_type = self._read_buf._current_packet.packet_type
         self._break_in_progress = False
 
-    cdef int close(self, ThinConnImpl conn_impl, bint in_del) except -1:
-        """
-        Closes the connection. If a transaction is in progress it will be
-        rolled back. DRCP sessions will be released. For standalone
-        connections, the session will be logged off.
-        """
-        with self._request_lock:
-            try:
-                self._end_request(conn_impl)
-                self._close(conn_impl)
-            except:
-                if not in_del:
-                    raise
-
 
 cdef class BaseAsyncProtocol(BaseProtocol):
 
@@ -599,19 +487,6 @@ cdef class BaseAsyncProtocol(BaseProtocol):
         BaseProtocol.__init__(self)
         self._request_lock = asyncio.Lock()
         self._transport._is_async = True
-
-    async def _close(self, BaseThinConnImpl conn_impl):
-        """
-        Closes the connection to the database.
-        """
-        cdef Message message
-        try:
-            message = self._on_close_phase_one(conn_impl)
-            if message is not None:
-                await self._process_message(message)
-            self._on_close_phase_two(conn_impl)
-        finally:
-            self._disconnect()
 
     async def _connect_phase_one(self,
                                  AsyncThinConnImpl conn_impl,
@@ -804,22 +679,6 @@ cdef class BaseAsyncProtocol(BaseProtocol):
             return await self._transport.negotiate_tls_async(self, address,
                                                              description)
 
-    async def _end_request(self, BaseThinConnImpl conn_impl):
-        """
-        Ends the request on the database. This rolls back any open transaction
-        and releases any DRCP session, if applicable.
-        """
-        cdef Message message
-        message = self._on_request_end_phase_one(conn_impl)
-        if message is not None:
-            await self._process_message(message)
-        self._on_request_end_phase_two(conn_impl)
-        if not self._get_is_healthy():
-            try:
-                await self._close(conn_impl)
-            except:
-                pass
-
     async def _process_message(self, Message message):
         """
         Sends a message to the server and processes its response.
@@ -880,15 +739,16 @@ cdef class BaseAsyncProtocol(BaseProtocol):
         """
         self._read_buf.reset_packets()
         message.send(self._write_buf)
-        await self._receive_packet(message, check_request_boundary=True)
-        while True:
-            try:
-                message.process(self._read_buf)
-                break
-            except OutOfPackets:
-                await self._receive_packet(message)
-                message.on_out_of_packets()
-                self._read_buf.restore_point()
+        if not message.is_one_way:
+            await self._receive_packet(message, check_request_boundary=True)
+            while True:
+                try:
+                    message.process(self._read_buf)
+                    break
+                except OutOfPackets:
+                    await self._receive_packet(message)
+                    message.on_out_of_packets()
+                    self._read_buf.restore_point()
 
     async def _process_single_message(self, Message message):
         """
@@ -967,29 +827,6 @@ cdef class BaseAsyncProtocol(BaseProtocol):
             await self._read_buf.wait_for_packets_async()
             packet_type = self._read_buf._current_packet.packet_type
         self._break_in_progress = False
-
-    async def close(self, AsyncThinConnImpl conn_impl, bint in_del):
-        """
-        Closes the connection. If a transaction is in progress it will be
-        rolled back. DRCP sessions will be released. For standalone
-        connections, the session will be logged off.
-        """
-        async with self._request_lock:
-            try:
-                await self._end_request(conn_impl)
-                await self._close(conn_impl)
-            except:
-                if not in_del:
-                    raise
-
-            # otherwise, destroy the database object type cache, send the
-            # logoff message and final close packet
-            conn_impl._clear_dbobject_type_cache()
-            if self._transport is not None:
-                if not conn_impl._drcp_enabled:
-                    message = conn_impl._create_message(LogoffMessage)
-                    await self._process_message(message)
-                self._final_close(self._write_buf)
 
     def connection_lost(self, exc):
         """

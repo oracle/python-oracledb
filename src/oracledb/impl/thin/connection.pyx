@@ -121,12 +121,30 @@ cdef class BaseThinConnImpl(BaseConnImpl):
 
     cdef int _clear_dbobject_type_cache(self) except -1:
         """
+        Clears the database object type cache.
         """
         cdef int cache_num
         if self._dbobject_type_cache_num > 0:
             cache_num = self._dbobject_type_cache_num
             self._dbobject_type_cache_num = 0
             remove_dbobject_type_cache(cache_num)
+
+    def _close(self):
+        """
+        Closes the connection to the database.
+        """
+        cdef WriteBuffer buf = self._protocol._write_buf
+        try:
+            self._clear_dbobject_type_cache()
+            self._protocol._check_is_healthy()
+            if self._protocol._transport is not None and not self._drcp_enabled:
+                yield self._create_message(LogoffMessage)
+            self._protocol._check_is_healthy()
+            if self._protocol._transport is not None:
+                buf.start_request(TNS_PACKET_TYPE_DATA, 0, TNS_DATA_FLAGS_EOF)
+                buf.end_request()
+        finally:
+            self._protocol._disconnect()
 
     cdef int _close_socket(self) except -1:
         """
@@ -287,6 +305,61 @@ cdef class BaseThinConnImpl(BaseConnImpl):
         message.context = self._transaction_context
         return message
 
+    def _end_request(self):
+        """
+        Ends the request to the database. This rolls back any open transaction
+        and releases any DRCP session, if applicable.
+        """
+        cdef:
+            ThinDbObjectTypeCache type_cache
+            SessionReleaseMessage message
+            int cache_num
+
+        # clear end user security context and any pending warning
+        self.security_context = None
+        self.warning = None
+
+        # clear cursors in database object type cache, if applicable
+        if self._dbobject_type_cache_num > 0:
+            cache_num = self._dbobject_type_cache_num
+            type_cache = get_dbobject_type_cache(cache_num)
+            type_cache._clear_cursors()
+
+        # if the connection is healthy, send a rollback message if there is
+        # an open transaction or a request is in progress
+        self._protocol._check_is_healthy()
+        if self._protocol._transport is not None:
+            if self._in_request and self._session_state_desired != 0:
+                self._in_request = False
+            if self._protocol._txn_in_progress or self._in_request:
+                if self._in_request:
+                    self._session_state_desired = \
+                            TNS_SESSION_STATE_REQUEST_END
+                    self._in_request = False
+                if self._transaction_context is not None:
+                    self._transaction_context = None
+                    yield self._create_tpc_rollback_message()
+                else:
+                    yield self._create_message(RollbackMessage)
+
+        # if the connection is still healthy and DRCP is in use, process a
+        # session release message, note that this a one-way RPC which cannot be
+        # piggybacked
+        self._protocol._check_is_healthy()
+        if self._protocol._transport is not None and self._drcp_enabled:
+            message = self._create_message(SessionReleaseMessage)
+            if not self._is_pooled:
+                message.release_mode = DRCP_DEAUTHENTICATE
+            yield message
+            self._drcp_establish_session = True
+
+        # if the connection is no longer healthy, close it
+        if not self._protocol._get_is_healthy():
+            try:
+                yield from self._close()
+            except:
+                pass
+
     cdef Statement _get_statement(self, str sql = None,
                                   bint cache_statement = False):
         """
@@ -446,6 +519,16 @@ cdef class BaseThinConnImpl(BaseConnImpl):
         Clears the end user security context.
         """
         self.security_context = None
+
+    def close(self):
+        """
+        Close the connection to the database.
+        """
+        try:
+            yield from self._end_request()
+            yield from self._close()
+        except (ssl.SSLError, exceptions.DatabaseError):
+            pass
 
     def commit(self):
         """
@@ -840,13 +923,6 @@ cdef class ThinConnImpl(BaseThinConnImpl):
         BaseThinConnImpl.__init__(self, dsn, params)
         self._protocol = Protocol()
 
-    cdef int _close(self):
-        """
-        Internal method for closing the connection.
-        """
-        cdef Protocol protocol = <Protocol> self._protocol
-        protocol._close(self)
-
     cdef int _connect_with_address(self, Address address,
                                    Description description,
                                    ConnectParamsImpl params,
@@ -923,17 +999,6 @@ cdef class ThinConnImpl(BaseThinConnImpl):
             if not self._protocol._in_connect:
                 break
 
-    def close(self, bint in_del=False):
-        """
-        Internal method for closing the connection to the database.
-        """
-        cdef Protocol protocol = <Protocol> self._protocol
-        self.security_context = None
-        try:
-            protocol.close(self, in_del)
-        except (ssl.SSLError, exceptions.DatabaseError):
-            pass
-
     def connect(self, ConnectParamsImpl params):
         cdef Protocol protocol = <Protocol> self._protocol
         try:
@@ -971,16 +1036,22 @@ cdef class ThinConnImpl(BaseThinConnImpl):
 
     def process_sync_operation(self, object generator):
         """
-        Processes a database operation synchronously. The generator returns
-        messages that need to be processed by the database.
+        Processes an operation synchronously. The generator returns sub
+        operations that need to be processed by the database or the driver.
+        Since Python doesn't allow mixing of sync and async for some things
+        (locks, establishing a TCP connection, etc.) this allows common code to
+        generate sub operations without having to duplicate code.
         """
         cdef:
             Protocol protocol = <Protocol> self._protocol
-            Message message
+            object sub_op
         while True:
             try:
-                message = next(generator)
-                protocol._process_single_message(message)
+                sub_op = next(generator)
+                if isinstance(sub_op, Message):
+                    protocol._process_single_message(sub_op)
+                else:
+                    sub_op.process()
             except StopIteration as e:
                 return e.value
 
@@ -1068,16 +1139,6 @@ cdef class AsyncThinConnImpl(BaseThinConnImpl):
             if not self._protocol._in_connect:
                 break
 
-    async def close(self, bint in_del=False):
-        """
-        Sends the messages needed to disconnect from the database.
-        """
-        cdef BaseAsyncProtocol protocol = <BaseAsyncProtocol> self._protocol
-        try:
-            await protocol.close(self, in_del)
-        except (ssl.SSLError, exceptions.DatabaseError):
-            pass
-
     async def connect(self, ConnectParamsImpl params):
         """
         Sends the messages needed to connect to the database.
@@ -1099,10 +1160,13 @@ cdef class AsyncThinConnImpl(BaseThinConnImpl):
         """
         cdef:
             BaseAsyncProtocol protocol = <BaseAsyncProtocol> self._protocol
-            Message message
+            object sub_op
         while True:
             try:
-                message = next(generator)
-                await protocol._process_single_message(message)
+                sub_op = next(generator)
+                if isinstance(sub_op, Message):
+                    await protocol._process_single_message(sub_op)
+                else:
+                    await sub_op.process_async()
             except StopIteration as e:
                 return e.value

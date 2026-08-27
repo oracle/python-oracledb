@@ -491,7 +491,6 @@ def test_2412(skip_unless_thick_mode, test_env):
     with test_env.assert_raises_full_code("ORA-24488"):
         pool.release(conn, tag="INVALID_TAG")
     pool.close(force=True)
-    conn.close()
 
 
 def test_2413(test_env):

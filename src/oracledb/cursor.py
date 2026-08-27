@@ -497,7 +497,8 @@ class BaseCursor(metaclass=BaseMetaClass):
         cursor will be unusable from this point forward; an Error exception
         will be raised if any operation is attempted with the cursor.
         """
-        self._verify_open()
+        if self._impl is None:
+            errors._raise_err(errors.ERR_CURSOR_NOT_OPEN)
         self._impl.close()
         self._impl = None
 

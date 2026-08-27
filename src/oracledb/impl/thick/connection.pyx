@@ -380,15 +380,14 @@ cdef class ThickConnImpl(BaseConnImpl):
         if status < 0:
             _raise_from_odpi()
 
-    def close(self, bint in_del=False):
+    @sync_operation
+    def close(self):
         cdef:
             uint32_t mode = DPI_MODE_CONN_CLOSE_DEFAULT
             const char *tag_ptr = NULL
             uint32_t tag_length = 0
             bytes tag_bytes
             int status
-        if in_del and self._is_external:
-            return 0
         if self.tag is not None:
             mode = DPI_MODE_CONN_CLOSE_RETAG
             tag_bytes = self.tag.encode()
@@ -399,7 +398,7 @@ cdef class ThickConnImpl(BaseConnImpl):
             if status == DPI_SUCCESS:
                 dpiConn_release(self._handle)
                 self._handle = NULL
-        if status < 0 and not in_del:
+        if status < 0:
             _raise_from_odpi()
 
     @sync_operation

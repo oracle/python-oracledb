@@ -42,6 +42,7 @@ cdef class SessionReleaseMessage(Message):
         """
         self.message_type = TNS_MSG_TYPE_ONEWAY_FN
         self.function_code = TNS_FUNC_SESSION_RELEASE
+        self.is_one_way = True
 
     cdef int _write_message(self, WriteBuffer buf) except -1:
         """

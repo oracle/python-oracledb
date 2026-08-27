@@ -47,6 +47,21 @@ class ConnectConstants:
                 major_num << 24 | minor_num << 20 | patch_num << 12
 
 
+cdef class SubOperation:
+
+    def process(self):
+        """
+        Processes a sub operation synchronously.
+        """
+        raise NotImplementedError()
+
+    async def process_async(self):
+        """
+        Processes a sub operation asynchronously.
+        """
+        raise NotImplementedError()
+
+
 cdef int _convert_base64(char_type *buf, long value, int size, int offset):
     """
     Converts every 6 bits into a character, from left to right. This is

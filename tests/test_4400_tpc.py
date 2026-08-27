@@ -315,6 +315,7 @@ def test_4414(conn, cursor, test_env):
     conn.tpc_begin(xid)
     with test_env.assert_raises_full_code("ORA-02089"):
         cursor.execute("truncate table TestTempTable")
+    conn.tpc_end(xid)
 
 
 def test_4415(conn, cursor, test_env):

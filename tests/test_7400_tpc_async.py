@@ -324,6 +324,7 @@ async def test_7414(async_conn, async_cursor, test_env):
     await async_conn.tpc_begin(xid)
     with test_env.assert_raises_full_code("ORA-02089"):
         await async_cursor.execute("truncate table TestTempTable")
+    await async_conn.tpc_end(xid)
 
 
 async def test_7415(async_conn, async_cursor, test_env):

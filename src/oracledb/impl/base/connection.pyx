@@ -199,7 +199,7 @@ cdef class BaseConnImpl:
     def clear_app_context(self, str namespace):
         errors._raise_not_supported("clearing application context")
 
-    def close(self, in_del=False):
+    def close(self):
         errors._raise_not_supported("closing a connection")
 
     def commit(self):

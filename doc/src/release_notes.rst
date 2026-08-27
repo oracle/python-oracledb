@@ -92,6 +92,8 @@ Common Changes
 #)  The class :class:`oracledb.EndUserSecurityContext` was added for
     completeness in typing hints. Objects of this class should be created
     using :func:`oracledb.create_end_user_security_context()`.
+#)  A failure to close a connection now marks the connection as unusable
+    instead of leaving it in an unknown state.
 #)  Fixed bug where the OSON encoder did not set the correct flags.
 #)  ``ValueError`` is now raised when the number of dimensions of a sparse
     vector is not a positive number.
