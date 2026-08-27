@@ -88,7 +88,6 @@ import array
 import base64
 import collections
 import copy
-import copy
 import datetime
 import decimal
 import getpass
