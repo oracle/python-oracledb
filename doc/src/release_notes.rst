@@ -109,6 +109,7 @@ Common Changes
     the variable type is a LOB type. Call the method with the value returned by
     :meth:`Connection.createlob()` instead.
 #)  Modernized typing hints.
+#)  Reorganized and added to test suite.
 
 
 oracledb `4.0.2 <https://github.com/oracle/python-oracledb/compare/v4.0.1...v4.0.2>`__ (July 2026)

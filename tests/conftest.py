@@ -382,47 +382,23 @@ class TestEnv:
         Creates the database objects used by the python-oracledb test suite.
         """
         self.drop_schema(conn)
-        self.run_sql_script(
-            conn,
-            "create_schema",
-            main_user=self.main_user,
-            main_password=self.main_password,
-            proxy_user=self.proxy_user,
-            proxy_password=self.proxy_password,
-            edition_name=self.edition_name,
-        )
+        self.run_sql_script(conn, "create_schema")
         if self.has_server_version(21):
-            self.run_sql_script(
-                conn, "create_schema_21", main_user=self.main_user
-            )
+            self.run_sql_script(conn, "create_schema_21")
         if self.has_server_version(23, 4):
-            self.run_sql_script(
-                conn, "create_schema_23_4", main_user=self.main_user
-            )
+            self.run_sql_script(conn, "create_schema_23_4")
         if self.has_server_version(23, 5):
-            self.run_sql_script(
-                conn, "create_schema_23_5", main_user=self.main_user
-            )
+            self.run_sql_script(conn, "create_schema_23_5")
         if self.has_server_version(23, 7):
-            self.run_sql_script(
-                conn, "create_schema_23_7", main_user=self.main_user
-            )
+            self.run_sql_script(conn, "create_schema_23_7")
         if self.is_on_oracle_cloud:
-            self.run_sql_script(
-                conn, "create_schema_cloud", main_user=self.main_user
-            )
+            self.run_sql_script(conn, "create_schema_cloud")
 
     def drop_schema(self, conn):
         """
         Drops the database objects used by the python-oracledb test suite.
         """
-        self.run_sql_script(
-            conn,
-            "drop_schema",
-            main_user=self.main_user,
-            proxy_user=self.proxy_user,
-            edition_name=self.edition_name,
-        )
+        self.run_sql_script(conn, "drop_schema")
 
     def defaults_context_manager(self, attribute, desired_value):
         """
@@ -688,14 +664,21 @@ class TestEnv:
             patch_version,
         )
 
-    def run_sql_script(self, conn, script_name, **kwargs):
+    def run_sql_script(self, conn, script_name):
         """
         Runs the specified script with the specified replacement values.
         """
         statement_parts = []
         cursor = conn.cursor()
-        replace_values = [("&" + k + ".", v) for k, v in kwargs.items()] + [
-            ("&" + k, v) for k, v in kwargs.items()
+        params = dict(
+            main_user=self.main_user,
+            main_password=self.main_password,
+            proxy_user=self.proxy_user,
+            proxy_password=self.proxy_password,
+            edition_name=self.edition_name,
+        )
+        replace_values = [("&" + k + ".", v) for k, v in params.items()] + [
+            ("&" + k, v) for k, v in params.items()
         ]
         script_dir = os.path.dirname(__file__)
         file_name = os.path.join(script_dir, "sql", script_name + ".sql")
