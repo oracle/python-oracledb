@@ -376,9 +376,15 @@ def test_2307(conn, cursor, test_env):
         None,
     )
     _test_data(cursor, test_env, 4, expected_value, None)
-    obj.CLOBVALUE = "A short CLOB (modified)"
-    obj.NCLOBVALUE = "A short NCLOB (modified)"
-    obj.BLOBVALUE = "A short BLOB (modified)"
+    obj.CLOBVALUE = conn.createlob(
+        oracledb.DB_TYPE_CLOB, "A short CLOB (modified)"
+    )
+    obj.NCLOBVALUE = conn.createlob(
+        oracledb.DB_TYPE_NCLOB, "A short NCLOB (modified)"
+    )
+    obj.BLOBVALUE = conn.createlob(
+        oracledb.DB_TYPE_BLOB, "A short BLOB (modified)"
+    )
     cursor.execute(
         """
         insert into TestObjects (IntCol, ObjectCol)

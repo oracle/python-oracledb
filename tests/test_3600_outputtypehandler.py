@@ -629,40 +629,45 @@ def test_3650(cursor, test_env):
 def test_3651(cursor):
     "3651 - output type handler: from CLOB to CHAR"
     val = "Some Clob String"
+    lob = cursor.connection.createlob(oracledb.DB_TYPE_CLOB, val)
     _test_type_handler(
-        cursor, oracledb.DB_TYPE_CLOB, oracledb.DB_TYPE_CHAR, val, val
+        cursor, oracledb.DB_TYPE_CLOB, oracledb.DB_TYPE_CHAR, lob, val
     )
 
 
 def test_3652(cursor):
     "3652 - output type handler: from CLOB to VARCHAR"
     val = "Some Clob String"
+    lob = cursor.connection.createlob(oracledb.DB_TYPE_CLOB, val)
     _test_type_handler(
-        cursor, oracledb.DB_TYPE_CLOB, oracledb.DB_TYPE_VARCHAR, val, val
+        cursor, oracledb.DB_TYPE_CLOB, oracledb.DB_TYPE_VARCHAR, lob, val
     )
 
 
 def test_3653(cursor):
     "3653 - output type handler: from CLOB to LONG"
     val = "Some Clob String"
+    lob = cursor.connection.createlob(oracledb.DB_TYPE_CLOB, val)
     _test_type_handler(
-        cursor, oracledb.DB_TYPE_CLOB, oracledb.DB_TYPE_LONG, val, val
+        cursor, oracledb.DB_TYPE_CLOB, oracledb.DB_TYPE_LONG, lob, val
     )
 
 
 def test_3654(cursor):
     "3654 - output type handler: from BLOB to RAW"
     val = b"Some binary data"
+    lob = cursor.connection.createlob(oracledb.DB_TYPE_BLOB, val)
     _test_type_handler(
-        cursor, oracledb.DB_TYPE_BLOB, oracledb.DB_TYPE_RAW, val, val
+        cursor, oracledb.DB_TYPE_BLOB, oracledb.DB_TYPE_RAW, lob, val
     )
 
 
 def test_3655(cursor):
     "3655 - output type handler: from BLOB to LONGRAW"
     val = b"Some binary data"
+    lob = cursor.connection.createlob(oracledb.DB_TYPE_BLOB, val)
     _test_type_handler(
-        cursor, oracledb.DB_TYPE_BLOB, oracledb.DB_TYPE_LONG_RAW, val, val
+        cursor, oracledb.DB_TYPE_BLOB, oracledb.DB_TYPE_LONG_RAW, lob, val
     )
 
 
@@ -694,24 +699,27 @@ def test_3660(cursor):
 def test_3661(cursor):
     "3661 - output type handler: from NCLOB to CHAR"
     val = "Some nclob data"
+    lob = cursor.connection.createlob(oracledb.DB_TYPE_NCLOB, val)
     _test_type_handler(
-        cursor, oracledb.DB_TYPE_NCLOB, oracledb.DB_TYPE_CHAR, val, val
+        cursor, oracledb.DB_TYPE_NCLOB, oracledb.DB_TYPE_CHAR, lob, val
     )
 
 
 def test_3662(cursor):
     "3662 - output type handler: from NCLOB to VARCHAR"
     val = "Some nclob data"
+    lob = cursor.connection.createlob(oracledb.DB_TYPE_NCLOB, val)
     _test_type_handler(
-        cursor, oracledb.DB_TYPE_NCLOB, oracledb.DB_TYPE_VARCHAR, val, val
+        cursor, oracledb.DB_TYPE_NCLOB, oracledb.DB_TYPE_VARCHAR, lob, val
     )
 
 
 def test_3663(cursor):
     "3663 - output type handler: from NCLOB to LONG"
     val = "Some nclob data"
+    lob = cursor.connection.createlob(oracledb.DB_TYPE_NCLOB, val)
     _test_type_handler(
-        cursor, oracledb.DB_TYPE_NCLOB, oracledb.DB_TYPE_LONG, val, val
+        cursor, oracledb.DB_TYPE_NCLOB, oracledb.DB_TYPE_LONG, lob, val
     )
 
 

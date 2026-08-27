@@ -106,18 +106,6 @@ cdef class BaseConnImpl:
                                       actual_type_name=lob_impl.dbtype.name,
                                       expected_type_name=metadata.dbtype.name)
                 return value
-            elif self._allow_bind_str_to_lob \
-                    and db_type_num != DB_TYPE_NUM_BFILE \
-                    and isinstance(value, (bytes, str)):
-                if db_type_num == DB_TYPE_NUM_BLOB:
-                    if isinstance(value, str):
-                        value = value.encode()
-                elif isinstance(value, bytes):
-                    value = value.decode()
-                lob_impl = self.create_temp_lob_impl(metadata.dbtype)
-                if value:
-                    lob_impl.write(value, 1)
-                return PY_TYPE_LOB._from_impl(lob_impl)
         elif db_type_num == DB_TYPE_NUM_OBJECT:
             if isinstance(value, PY_TYPE_DB_OBJECT):
                 if value._impl.type != metadata.objtype:

@@ -95,6 +95,9 @@ Common Changes
 #)  Fixed bug where the OSON encoder did not set the correct flags.
 #)  ``ValueError`` is now raised when the number of dimensions of a sparse
     vector is not a positive number.
+#)  Dropped support for calling :meth:`Var.setvalue()` with strings/bytes when
+    the variable type is a LOB type. Call the method with the value returned by
+    :meth:`Connection.createlob()` instead.
 #)  Modernized typing hints.
 
 

@@ -610,9 +610,6 @@ cdef class ThinConnImpl(BaseThinConnImpl):
         except:
             protocol._disconnect()
             raise
-        # specify that binding a string to a LOB value is possible in thin
-        # mode without the use of asyncio (will be removed in a future release)
-        self._allow_bind_str_to_lob = True
 
     def create_queue_impl(self):
         return ThinQueueImpl.__new__(ThinQueueImpl)

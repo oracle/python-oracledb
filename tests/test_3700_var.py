@@ -293,10 +293,6 @@ def test_3713(conn, cursor, test_env):
     )
     _test_negative_set_and_get(cursor, oracledb.DB_TYPE_CLOB, temp_blob)
     _test_negative_set_and_get(cursor, oracledb.DB_TYPE_NCLOB, temp_blob)
-    value = b"Short BLOB value"
-    _test_positive_set_and_get(
-        cursor, test_env, oracledb.DB_TYPE_BLOB, value, value
-    )
     _test_positive_set_and_get(
         cursor, test_env, oracledb.DB_TYPE_BLOB, None, None
     )
@@ -313,10 +309,6 @@ def test_3714(conn, cursor, test_env):
     )
     _test_negative_set_and_get(cursor, oracledb.DB_TYPE_BLOB, temp_clob)
     _test_negative_set_and_get(cursor, oracledb.DB_TYPE_NCLOB, temp_clob)
-    value = "Short CLOB value"
-    _test_positive_set_and_get(
-        cursor, test_env, oracledb.DB_TYPE_CLOB, value, value
-    )
     _test_positive_set_and_get(
         cursor, test_env, oracledb.DB_TYPE_CLOB, None, None
     )
@@ -333,10 +325,6 @@ def test_3715(conn, cursor, test_env):
     )
     _test_negative_set_and_get(cursor, oracledb.DB_TYPE_BLOB, temp_nclob)
     _test_negative_set_and_get(cursor, oracledb.DB_TYPE_CLOB, temp_nclob)
-    value = "Short NCLOB Value"
-    _test_positive_set_and_get(
-        cursor, test_env, oracledb.DB_TYPE_NCLOB, value, value
-    )
     _test_positive_set_and_get(
         cursor, test_env, oracledb.DB_TYPE_NCLOB, None, None
     )

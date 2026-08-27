@@ -711,7 +711,6 @@ cdef class BaseConnImpl:
         readonly tuple server_version
         readonly bint supports_bool
         bint supports_oson_long_field_names
-        bint _allow_bind_str_to_lob
         bint _in_request
 
     cdef object _check_value(self, OracleMetadata type_info, object value,

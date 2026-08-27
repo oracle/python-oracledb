@@ -64,6 +64,8 @@ def _perform_test(cursor, lob_type, input_type):
             bind_value = long_string.encode()
         else:
             bind_value = long_string
+        if input_type is db_type:
+            bind_value = cursor.connection.createlob(db_type, long_string)
         cursor.execute(
             f"""
             insert into Test{lob_type}s (IntCol, {lob_type}Col)
@@ -645,7 +647,7 @@ def test_1939(cursor):
     "1939 - temporary LOB in/out without modification"
     value = "test - 1939"
     var = cursor.var(oracledb.DB_TYPE_CLOB)
-    var.setvalue(0, value)
+    var.setvalue(0, cursor.connection.createlob(oracledb.DB_TYPE_CLOB, value))
     assert var.getvalue().read() == value
     cursor.callproc("pkg_TestLOBs.TestInOut", [var, None, None])
     assert var.getvalue().read() == value
@@ -657,8 +659,9 @@ def test_1940(cursor):
     replace_value = "replaced"
     initial_value = f"{search_value} - 1939"
     final_value = f"{replace_value} - 1939"
+    lob = cursor.connection.createlob(oracledb.DB_TYPE_CLOB, initial_value)
     var = cursor.var(oracledb.DB_TYPE_CLOB)
-    var.setvalue(0, initial_value)
+    var.setvalue(0, lob)
     assert var.getvalue().read() == initial_value
     cursor.callproc(
         "pkg_TestLOBs.TestInOut", [var, search_value, replace_value]
