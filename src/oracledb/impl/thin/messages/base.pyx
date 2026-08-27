@@ -86,6 +86,7 @@ cdef class Message:
         bint retry
         bint is_one_way
         object warning
+        str name
 
     cdef int _check_and_raise_exception(self) except -1:
         """
@@ -888,7 +889,7 @@ cdef class Message:
             self._process_message(buf, message_type)
 
     cdef int send(self, WriteBuffer buf) except -1:
-        buf.start_request(TNS_PACKET_TYPE_DATA)
+        buf.start_request(TNS_PACKET_TYPE_DATA, self.name)
         self._write_message(buf)
         if self.pipeline_result_impl is not None:
             buf._data_flags |= TNS_DATA_FLAGS_END_OF_REQUEST

@@ -43,7 +43,7 @@ cdef class ThinSubscrImpl(BaseSubscrImpl):
         Create the message for creating the subscription.
         """
         cdef SubscrMessage message
-        message = conn_impl._create_message(SubscrMessage)
+        message = conn_impl._create_message(SubscrMessage, "subscribe")
         message.subscr_impl = self
         message.opcode = opcode
         return message
@@ -68,7 +68,7 @@ cdef class ThinSubscrImpl(BaseSubscrImpl):
                 self, "create_connection", (conn_impl,), {}
             )
             protocol = <Protocol> self._conn_impl._protocol
-            message = self._conn_impl._create_message(NotifyMessage)
+            message = self._conn_impl._create_message(NotifyMessage, "notify")
             message.client_id = self._client_id
             message.subscr = subscr
             message.namespace = self.namespace

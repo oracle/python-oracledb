@@ -117,7 +117,9 @@ cdef class ConnectMessage(Message):
         if buf._caps.supports_oob:
             service_options |= TNS_GSO_CAN_RECV_ATTENTION
             connect_flags_2 |= TNS_CHECK_OOB
-        buf.start_request(TNS_PACKET_TYPE_CONNECT, self.packet_flags)
+        buf.start_request(
+            TNS_PACKET_TYPE_CONNECT, self.name, self.packet_flags
+        )
         buf.write_uint16be(TNS_VERSION_DESIRED)
         buf.write_uint16be(TNS_VERSION_MINIMUM)
         buf.write_uint16be(service_options)
@@ -140,6 +142,6 @@ cdef class ConnectMessage(Message):
         buf.write_uint32be(connect_flags_2)
         if self.connect_string_len > TNS_MAX_CONNECT_DATA:
             buf.end_request()
-            buf.start_request(TNS_PACKET_TYPE_DATA)
+            buf.start_request(TNS_PACKET_TYPE_DATA, self.name)
         buf.write_bytes(self.connect_string_bytes)
         buf.end_request()

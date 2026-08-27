@@ -76,7 +76,7 @@ cdef class EndPipelineMessage(Message):
         if op_type == PIPELINE_OP_TYPE_FETCH_ALL \
                 and cursor_impl._more_rows_to_fetch:
             fetch_message = cursor_impl._create_message(
-                FetchMessage, message_with_data.cursor
+                FetchMessage, "fetch", message_with_data.cursor
             )
             while cursor_impl._more_rows_to_fetch:
                 yield fetch_message

@@ -42,7 +42,7 @@ cdef class ThinQueueImpl(BaseQueueImpl):
         cdef:
             AqArrayMessage message
             uint32_t i
-        message = self._conn_impl._create_message(AqArrayMessage)
+        message = self._conn_impl._create_message(AqArrayMessage, "array_deq")
         message.num_iters = max_num_messages
         message.props_impls = \
                 [ThinMsgPropsImpl() for i in range(max_num_messages)]
@@ -60,7 +60,7 @@ cdef class ThinQueueImpl(BaseQueueImpl):
         """
         cdef AqDeqMessage message
         props_impl = ThinMsgPropsImpl()
-        message = self._conn_impl._create_message(AqDeqMessage)
+        message = self._conn_impl._create_message(AqDeqMessage, "deq")
         message.queue_impl = self
         message.deq_options_impl = self.deq_options_impl
         message.props_impl = ThinMsgPropsImpl()
@@ -73,7 +73,7 @@ cdef class ThinQueueImpl(BaseQueueImpl):
         Internal method for enqueuing many messages into a queue.
         """
         cdef AqArrayMessage message
-        message = self._conn_impl._create_message(AqArrayMessage)
+        message = self._conn_impl._create_message(AqArrayMessage, "array_enq")
         message.queue_impl = self
         message.enq_options_impl = self.enq_options_impl
         message.props_impls = props_impls
@@ -86,7 +86,7 @@ cdef class ThinQueueImpl(BaseQueueImpl):
         Internal method for enqueuing a single message into a queue.
         """
         cdef AqEnqMessage message
-        message = self._conn_impl._create_message(AqEnqMessage)
+        message = self._conn_impl._create_message(AqEnqMessage, "enq")
         message.queue_impl = self
         message.enq_options_impl = self.enq_options_impl
         message.props_impl = props_impl

@@ -36,6 +36,7 @@ cdef class _SessionlessData:
         uint32_t operation
         uint32_t flags
         uint32_t timeout
+        str round_trip_name
         bint piggyback_pending
         bint started_on_server
 
@@ -46,7 +47,9 @@ cdef class _SessionlessData:
         cdef:
             uint32_t sessionless_format_id = 0x4e5c3e
             TransactionSwitchMessage message
-        message = conn_impl._create_message(TransactionSwitchMessage)
+        message = conn_impl._create_message(
+            TransactionSwitchMessage, self.round_trip_name
+        )
         if self.operation & TNS_TPC_TXN_START:
             message.xid = (sessionless_format_id, self.transaction_id, b"")
         message.timeout = self.timeout
@@ -134,10 +137,11 @@ cdef class ThinConnImpl(BaseConnImpl):
             self._clear_dbobject_type_cache()
             self._protocol._check_is_healthy()
             if self._protocol._transport is not None and not self._drcp_enabled:
-                yield self._create_message(LogoffMessage)
+                yield self._create_message(LogoffMessage, "logoff")
             self._protocol._check_is_healthy()
             if self._protocol._transport is not None:
-                buf.start_request(TNS_PACKET_TYPE_DATA, 0, TNS_DATA_FLAGS_EOF)
+                buf.start_request(TNS_PACKET_TYPE_DATA, "eof", 0,
+                                  TNS_DATA_FLAGS_EOF)
                 buf.end_request()
         finally:
             self._protocol._disconnect()
@@ -252,7 +256,9 @@ cdef class ThinConnImpl(BaseConnImpl):
 
             # create connect message, if needed
             if connect_message is None:
-                connect_message = self._create_message(ConnectMessage)
+                connect_message = self._create_message(
+                    ConnectMessage, "connect"
+                )
                 connect_message.host = tcp_connect_sub_op.host
                 connect_message.port = tcp_connect_sub_op.port
                 connect_message.params = self.connect_params
@@ -339,19 +345,25 @@ cdef class ThinConnImpl(BaseConnImpl):
         # send the network services message, if applicable
         if self.connect_params.externalauth and address.protocol == "tcps" \
                 and description.wallet_location is not None:
-            yield self._create_message(NetworkServicesMessage)
+            yield self._create_message(
+                NetworkServicesMessage, "network_services"
+            )
 
         # create the messages that need to be sent to the server
-        protocol_message = self._create_message(ProtocolMessage)
-        data_types_message = self._create_message(DataTypesMessage)
-        auth_message = self._create_message(AuthMessage)
+        protocol_message = self._create_message(ProtocolMessage, "protocol")
+        data_types_message = self._create_message(
+            DataTypesMessage, "data_types"
+        )
+        auth_message = self._create_message(AuthMessage, "authorization")
         auth_message._set_params(self.connect_params, description)
 
         # starting in Oracle Database version 23, fast authentication is
         # possible; use it if the server supports it
         if caps.supports_fast_auth:
             caps.supports_end_of_response = supports_end_of_response
-            fast_auth_message = self._create_message(FastAuthMessage)
+            fast_auth_message = self._create_message(
+                FastAuthMessage, "fast_authorization"
+            )
             fast_auth_message.protocol_message = protocol_message
             fast_auth_message.data_types_message = data_types_message
             fast_auth_message.auth_message = auth_message
@@ -389,13 +401,14 @@ cdef class ThinConnImpl(BaseConnImpl):
         """
         return ThinCursorImpl.__new__(ThinCursorImpl, self)
 
-    cdef Message _create_message(self, type typ):
+    cdef Message _create_message(self, type typ, str name):
         """
         Creates a message object that is used to send a request to the database
         and receive back its response.
         """
         cdef Message message
         message = typ.__new__(typ)
+        message.name = name
         message._initialize(self)
         return message
 
@@ -411,7 +424,7 @@ cdef class ThinConnImpl(BaseConnImpl):
             uint32_t num_execs = 1
             object cursor
         if op_impl.op_type == PIPELINE_OP_TYPE_COMMIT:
-            return self._create_message(CommitMessage)
+            return self._create_message(CommitMessage, "commit")
         cursor = conn.cursor()
         cursor_impl = cursor._impl
         if op_impl.op_type == PIPELINE_OP_TYPE_CALL_FUNC:
@@ -466,7 +479,9 @@ cdef class ThinConnImpl(BaseConnImpl):
             errors._raise_err(errors.ERR_UNSUPPORTED_PIPELINE_OPERATION,
                               op_type=op_impl.op_type)
         yield from cursor_impl._preprocess_execute(conn)
-        message = cursor_impl._create_message(ExecuteMessage, cursor)
+        message = cursor_impl._create_message(
+            ExecuteMessage, "execute", cursor
+        )
         message.num_execs = num_execs
         return message
 
@@ -510,7 +525,9 @@ cdef class ThinConnImpl(BaseConnImpl):
         the close() method and explicitly by the user.
         """
         cdef TransactionChangeStateMessage message
-        message = self._create_message(TransactionChangeStateMessage)
+        message = self._create_message(
+            TransactionChangeStateMessage, "tpc_rollback"
+        )
         message.operation = TNS_TPC_TXN_ABORT
         message.state = TNS_TPC_TXN_STATE_ABORTED
         message.xid = xid
@@ -552,14 +569,16 @@ cdef class ThinConnImpl(BaseConnImpl):
                     self._transaction_context = None
                     yield self._create_tpc_rollback_message()
                 else:
-                    yield self._create_message(RollbackMessage)
+                    yield self._create_message(RollbackMessage, "rollback")
 
         # if the connection is still healthy and DRCP is in use, process a
         # session release message, note that this a one-way RPC which cannot be
         # piggybacked
         self._protocol._check_is_healthy()
         if self._protocol._transport is not None and self._drcp_enabled:
-            message = self._create_message(SessionReleaseMessage)
+            message = self._create_message(
+                SessionReleaseMessage, "release_drcp_session"
+            )
             if not self._is_pooled:
                 message.release_mode = DRCP_DEAUTHENTICATE
             yield message
@@ -693,7 +712,8 @@ cdef class ThinConnImpl(BaseConnImpl):
         bytes transaction_id,
         uint32_t timeout,
         uint32_t flags,
-        bint defer_round_trip
+        bint defer_round_trip,
+        str round_trip_name
     ) except -1:
         """
         Starts (either begins or resumes) a sessionless transaction. A message
@@ -706,6 +726,7 @@ cdef class ThinConnImpl(BaseConnImpl):
         self._sessionless_data.timeout = timeout
         self._sessionless_data.operation = TNS_TPC_TXN_START
         self._sessionless_data.flags = flags
+        self._sessionless_data.round_trip_name = round_trip_name
         if defer_round_trip:
             self._sessionless_data.piggyback_pending = True
 
@@ -719,7 +740,11 @@ cdef class ThinConnImpl(BaseConnImpl):
         Begins a sessionless transaction.
         """
         self._start_sessionless_transaction(
-            transaction_id, timeout, TPC_TXN_FLAGS_NEW, defer_round_trip
+            transaction_id,
+            timeout,
+            TPC_TXN_FLAGS_NEW,
+            defer_round_trip,
+            "begin_sessionless_transaction",
         )
         if not defer_round_trip:
             yield self._sessionless_data.create_message(self)
@@ -732,7 +757,7 @@ cdef class ThinConnImpl(BaseConnImpl):
         Change the password of the logged on user.
         """
         cdef AuthMessage message
-        message = self._create_message(AuthMessage)
+        message = self._create_message(AuthMessage, "change_password")
         message.change_password = True
         message.function_code = TNS_FUNC_AUTH_PHASE_TWO
         message.user_bytes = self.connect_params.user.encode()
@@ -764,7 +789,7 @@ cdef class ThinConnImpl(BaseConnImpl):
         """
         Commits the current transaction.
         """
-        yield self._create_message(CommitMessage)
+        yield self._create_message(CommitMessage, "commit")
 
     def connect(self, str dsn, ConnectParamsImpl params, object pool):
         """
@@ -863,18 +888,24 @@ cdef class ThinConnImpl(BaseConnImpl):
             BatchLoadManager manager
 
         # prepare message
-        prepare_message = self._create_message(DirectPathPrepareMessage)
+        prepare_message = self._create_message(
+            DirectPathPrepareMessage, "direct_path_prepare"
+        )
         prepare_message.schema_name = schema_name
         prepare_message.table_name = table_name
         prepare_message.column_names = column_names
         yield prepare_message
 
         # setup op message
-        op_message = self._create_message(DirectPathOpMessage)
+        op_message = self._create_message(
+            DirectPathOpMessage, "direct_path_operation"
+        )
         op_message.prepare(prepare_message.cursor_id, TNS_DP_OP_ABORT)
 
         # load message
-        load_message = self._create_message(DirectPathLoadStreamMessage)
+        load_message = self._create_message(
+            DirectPathLoadStreamMessage, "direct_path_load"
+        )
         try:
             manager = BatchLoadManager.create_for_direct_path_load(
                 data, prepare_message.column_metadata, batch_size
@@ -975,7 +1006,7 @@ cdef class ThinConnImpl(BaseConnImpl):
         """
         Sends a "ping" to the database.
         """
-        yield self._create_message(PingMessage)
+        yield self._create_message(PingMessage, "ping")
 
     def resume_sessionless_transaction(
         self,
@@ -987,7 +1018,11 @@ cdef class ThinConnImpl(BaseConnImpl):
         Resumes a sessionless transaction.
         """
         self._start_sessionless_transaction(
-            transaction_id, timeout, TPC_TXN_FLAGS_RESUME, defer_round_trip
+            transaction_id,
+            timeout,
+            TPC_TXN_FLAGS_RESUME,
+            defer_round_trip,
+            "resume_sessionless_transaction",
         )
         if not defer_round_trip:
             yield self._sessionless_data.create_message(self)
@@ -996,7 +1031,7 @@ cdef class ThinConnImpl(BaseConnImpl):
         """
         Rolls back the current transaction.
         """
-        yield self._create_message(RollbackMessage)
+        yield self._create_message(RollbackMessage, "rollback")
 
     def run_pipeline_with_pipelining(
         self, object conn, list results, bint continue_on_error
@@ -1005,7 +1040,7 @@ cdef class ThinConnImpl(BaseConnImpl):
         Run the pipeline with pipelining when the database supports it.
         """
         cdef EndPipelineMessage message
-        message = self._create_message(EndPipelineMessage)
+        message = self._create_message(EndPipelineMessage, "end_pipeline")
         message.messages = yield from self._create_messages_for_pipeline(
             conn, results, continue_on_error
         )
@@ -1137,7 +1172,9 @@ cdef class ThinConnImpl(BaseConnImpl):
             errors._raise_err(errors.ERR_SESSIONLESS_INACTIVE)
         elif self._sessionless_data.started_on_server:
             errors._raise_err(errors.ERR_SESSIONLESS_DIFFERING_METHODS)
-        message = self._create_message(TransactionSwitchMessage)
+        message = self._create_message(
+            TransactionSwitchMessage, "suspend_sessionless_transaction"
+        )
         message.operation = TNS_TPC_TXN_DETACH
         message.flags = TPC_TXN_FLAGS_SESSIONLESS
         yield message
@@ -1147,7 +1184,7 @@ cdef class ThinConnImpl(BaseConnImpl):
         Begin a Two-Phase Commit (TPC) on a global transaction.
         """
         cdef TransactionSwitchMessage message
-        message = self._create_message(TransactionSwitchMessage)
+        message = self._create_message(TransactionSwitchMessage, "tpc_begin")
         message.operation = TNS_TPC_TXN_START
         message.xid = xid
         message.flags = flags
@@ -1160,7 +1197,9 @@ cdef class ThinConnImpl(BaseConnImpl):
         Commit a global transaction.
         """
         cdef TransactionChangeStateMessage message
-        message = self._create_message(TransactionChangeStateMessage)
+        message = self._create_message(
+            TransactionChangeStateMessage, "tpc_commit"
+        )
         message.operation = TNS_TPC_TXN_COMMIT
         message.state = TNS_TPC_TXN_STATE_READ_ONLY if one_phase \
                 else TNS_TPC_TXN_STATE_COMMITTED
@@ -1180,7 +1219,7 @@ cdef class ThinConnImpl(BaseConnImpl):
         Ends a global transaction.
         """
         cdef TransactionSwitchMessage message
-        message = self._create_message(TransactionSwitchMessage)
+        message = self._create_message(TransactionSwitchMessage, "tpc_end")
         message.operation = TNS_TPC_TXN_DETACH
         message.xid = xid
         message.context = self._transaction_context
@@ -1193,7 +1232,9 @@ cdef class ThinConnImpl(BaseConnImpl):
         Prepares a global transaction for commit.
         """
         cdef TransactionChangeStateMessage message
-        message = self._create_message(TransactionChangeStateMessage)
+        message = self._create_message(
+            TransactionChangeStateMessage, "tpc_prepare"
+        )
         message.operation = TNS_TPC_TXN_PREPARE
         message.xid = xid
         message.context = self._transaction_context

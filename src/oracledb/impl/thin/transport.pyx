@@ -375,7 +375,7 @@ cdef class Transport:
         """
         cdef bytes data = buf._data[:buf._pos]
         if DEBUG_PACKETS:
-            self._print_packet("Sending packet", data)
+            self._print_packet(f"Sending request {buf._request_name}", data)
         try:
             if self._is_async:
                 self._transport.write(data)

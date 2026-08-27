@@ -101,7 +101,7 @@ cdef class BaseProtocol:
         Sends a marker of the specified type to the server.
         Internal method for sending a break to the server.
         """
-        buf.start_request(TNS_PACKET_TYPE_MARKER)
+        buf.start_request(TNS_PACKET_TYPE_MARKER, "send_marker")
         buf.write_uint8(1)
         buf.write_uint8(0)
         buf.write_uint8(marker_type)
@@ -207,7 +207,9 @@ cdef class Protocol(BaseProtocol):
                 self._reset()
             raise
         if message.flush_out_binds:
-            self._write_buf.start_request(TNS_PACKET_TYPE_DATA)
+            self._write_buf.start_request(
+                TNS_PACKET_TYPE_DATA, "flush_out_binds"
+            )
             self._write_buf.write_uint8(TNS_MSG_TYPE_FLUSH_OUT_BINDS)
             self._write_buf.end_request()
             self._receive_packet(message)
@@ -394,7 +396,9 @@ cdef class BaseAsyncProtocol(BaseProtocol):
                 await self._reset()
             raise
         if message.flush_out_binds:
-            self._write_buf.start_request(TNS_PACKET_TYPE_DATA)
+            self._write_buf.start_request(
+                TNS_PACKET_TYPE_DATA, "flush_out_binds"
+            )
             self._write_buf.write_uint8(TNS_MSG_TYPE_FLUSH_OUT_BINDS)
             self._write_buf.end_request()
             await self._receive_packet(message)

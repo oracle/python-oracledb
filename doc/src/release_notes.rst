@@ -31,6 +31,8 @@ Thin Mode Changes
     attributes in the :ref:`end_user_sec_provider
     <endusersecurityproviderplugin>` plugin for the current thread.
 #)  Added support for the HA readiness requirements of Oracle Database 23.26.3.
+#)  Added round trip name into the packet output when setting the environment
+    variable `PYO_DEBUG_PACKETS`.
 #)  Fixed bug in :func:`Cursor.executemany()` when in/out variables are present
     (`issue 599 <https://github.com/oracle/python-oracledb/issues/599>`__).
 #)  Fixed bug in :func:`oracledb.create_end_user_security_context()` which

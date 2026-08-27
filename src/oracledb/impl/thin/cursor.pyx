@@ -69,13 +69,15 @@ cdef class ThinCursorImpl(BaseCursorImpl):
             self._conn_impl._return_statement(self._statement)
             self._statement = None
 
-    cdef MessageWithData _create_message(self, type typ, object cursor):
+    cdef MessageWithData _create_message(self, type typ, str name,
+                                         object cursor):
         """
         Creates a message object that is used to send a request to the database
         and receive back its response.
         """
         cdef MessageWithData message
         message = typ.__new__(typ, cursor, self)
+        message.name = name
         message._initialize(self._conn_impl)
         message.cursor = cursor
         message.cursor_impl = self
@@ -86,7 +88,7 @@ cdef class ThinCursorImpl(BaseCursorImpl):
         Creates and returns the message used to execute a statement once.
         """
         cdef ExecuteMessage message
-        message = self._create_message(ExecuteMessage, cursor)
+        message = self._create_message(ExecuteMessage, "execute", cursor)
         message.num_execs = 1
         if self.scrollable:
             message.fetch_orientation = TNS_FETCH_ORIENTATION_CURRENT
@@ -133,7 +135,7 @@ cdef class ThinCursorImpl(BaseCursorImpl):
             return None
 
         # build message
-        message = self._create_message(ExecuteMessage, cursor)
+        message = self._create_message(ExecuteMessage, "scroll", cursor)
         message.scroll_operation = True
         message.fetch_orientation = orientation
         message.fetch_pos = <uint32_t> desired_row
@@ -266,7 +268,7 @@ cdef class ThinCursorImpl(BaseCursorImpl):
         if self._statement._sql is None or self.scrollable:
             yield self._create_execute_message(cursor)
         else:
-            yield self._create_message(FetchMessage, cursor)
+            yield self._create_message(FetchMessage, "fetch", cursor)
         self._buffer_min_row = self.rowcount + 1
         self._buffer_max_row = self._buffer_min_row + self._buffer_rowcount
 
@@ -306,7 +308,7 @@ cdef class ThinCursorImpl(BaseCursorImpl):
 
         # set up message to send
         yield from self._preprocess_execute(cursor.connection)
-        message = self._create_message(ExecuteMessage, cursor)
+        message = self._create_message(ExecuteMessage, "execute", cursor)
         message.num_execs = num_execs
         message.batcherrors = batcherrors
         message.arraydmlrowcounts = arraydmlrowcounts
@@ -347,7 +349,7 @@ cdef class ThinCursorImpl(BaseCursorImpl):
 
     def parse(self, cursor):
         cdef MessageWithData message
-        message = self._create_message(ExecuteMessage, cursor)
+        message = self._create_message(ExecuteMessage, "parse", cursor)
         message.parse_only = True
         yield message
 

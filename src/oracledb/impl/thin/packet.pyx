@@ -762,6 +762,7 @@ cdef class WriteBuffer(Buffer):
         Transport _transport
         uint8_t _seq_num
         bint _packet_sent
+        str _request_name
 
     def __cinit__(self, Transport transport, Capabilities caps):
         self._transport = transport
@@ -823,8 +824,8 @@ cdef class WriteBuffer(Buffer):
         """
         return self._max_size - PACKET_HEADER_SIZE - 2
 
-    cdef void start_request(self, uint8_t packet_type, uint8_t packet_flags=0,
-                            uint16_t data_flags=0):
+    cdef void start_request(self, uint8_t packet_type, str name,
+                            uint8_t packet_flags=0, uint16_t data_flags=0):
         """
         Indicates that a request from the client is starting. The packet type
         is retained just in case a request spans multiple packets. The packet
@@ -835,6 +836,7 @@ cdef class WriteBuffer(Buffer):
         self._packet_type = packet_type
         self._packet_flags = packet_flags
         self._pos = PACKET_HEADER_SIZE
+        self._request_name = name
         if packet_type == TNS_PACKET_TYPE_DATA:
             self._data_flags = data_flags
             self._pos += sizeof(uint16_t)
