@@ -96,6 +96,7 @@ Common Changes
     :class:`oracledb.ConnectParams`, :class:`oracledb.PoolParams` and
     :class:`oracledb.SecretValue`.
 #)  Added :func:`clear_all_secrets()` to clear all secrets stored in the cache.
+#)  Upgraded Arrow C Data (nanoarrow) API version to 0.9.0.
 #)  The class :class:`oracledb.EndUserSecurityContext` was added for
     completeness in typing hints. Objects of this class should be created
     using :func:`oracledb.create_end_user_security_context()`.
