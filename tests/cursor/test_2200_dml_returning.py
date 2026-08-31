@@ -32,7 +32,7 @@ import oracledb
 import pytest
 
 
-def test_220(cursor):
+def test_2200(cursor):
     "2200 - test insert (single row) with DML returning"
     cursor.execute("truncate table TestTempTable")
     int_val = 5
@@ -54,7 +54,7 @@ def test_220(cursor):
     assert str_var.values == [[str_val]]
 
 
-def test_221(cursor):
+def test_2201(cursor):
     "2201 - test insert (multiple rows) with DML returning"
     cursor.execute("truncate table TestTempTable")
     int_values = [5, 8, 17, 24, 6]
@@ -75,7 +75,7 @@ def test_221(cursor):
     assert str_var.values == [[v] for v in str_values]
 
 
-def test_222(cursor, test_env):
+def test_2202(cursor, test_env):
     "2202 - test insert with DML returning into too small a variable"
     cursor.execute("truncate table TestTempTable")
     int_val = 6
@@ -96,7 +96,7 @@ def test_222(cursor, test_env):
         )
 
 
-def test_223(cursor):
+def test_2203(cursor):
     "2203 - test update single row with DML returning"
     int_val = 7
     str_val = "The updated value of the string"
@@ -126,7 +126,7 @@ def test_223(cursor):
     assert str_var.values == [[str_val]]
 
 
-def test_224(cursor):
+def test_2204(cursor):
     "2204 - test update no rows with DML returning"
     int_val = 8
     str_val = "The updated value of the string"
@@ -158,7 +158,7 @@ def test_224(cursor):
     assert str_var.getvalue() == []
 
 
-def test_225(cursor):
+def test_2205(cursor):
     "2205 - test update multiple rows with DML returning"
     cursor.execute("truncate table TestTempTable")
     for i in (8, 9, 10):
@@ -192,7 +192,7 @@ def test_225(cursor):
     assert str_var.values == expected_values
 
 
-def test_226(cursor):
+def test_2206(cursor):
     "2206 - test update multiple rows with DML returning (executemany)"
     data = [(i, f"The initial value of string {i}") for i in range(1, 11)]
     cursor.execute("truncate table TestTempTable")
@@ -233,7 +233,7 @@ def test_226(cursor):
     assert str_var.values == expected_values
 
 
-def test_227(conn, cursor):
+def test_2207(conn, cursor):
     "2207 - test inserting an object with DML returning"
     type_obj = conn.gettype("UDT_OBJECT")
     string_value = "The string that will be verified"
@@ -253,7 +253,7 @@ def test_227(conn, cursor):
     conn.rollback()
 
 
-def test_228(cursor):
+def test_2208(cursor):
     "2208 - test inserting a row and returning a rowid"
     cursor.execute("truncate table TestTempTable")
     var = cursor.var(oracledb.ROWID)
@@ -277,7 +277,7 @@ def test_228(cursor):
     assert cursor.fetchall() == [(278, "String 278")]
 
 
-def test_229(conn, cursor):
+def test_2209(conn, cursor):
     "2209 - test inserting with a REF cursor and returning a rowid"
     cursor.execute("truncate table TestTempTable")
     var = cursor.var(oracledb.ROWID)
@@ -308,7 +308,7 @@ def test_229(conn, cursor):
     assert cursor.fetchall() == [(187, "String 7 (Modified)")]
 
 
-def test_1610(cursor):
+def test_2210(cursor):
     "2210 - test delete returning decreasing number of rows"
     data = [(i, f"Test String {i}") for i in range(1, 11)]
     cursor.execute("truncate table TestTempTable")
@@ -335,7 +335,7 @@ def test_1610(cursor):
     assert results == [[1, 2, 3, 4], [5, 6, 7], [8, 9]]
 
 
-def test_1611(cursor):
+def test_2211(cursor):
     "2211 - test delete returning no rows after returning many rows"
     data = [(i, f"Test String {i}") for i in range(1, 11)]
     cursor.execute("truncate table TestTempTable")
@@ -360,7 +360,7 @@ def test_1611(cursor):
     assert int_var.getvalue() == []
 
 
-def test_1612(cursor, test_env):
+def test_2212(cursor, test_env):
     "2212 - test DML returning when an error occurs"
     cursor.execute("truncate table TestTempTable")
     int_val = 7
@@ -378,7 +378,7 @@ def test_1612(cursor, test_env):
         cursor.execute(sql, parameters)
 
 
-def test_1613(cursor):
+def test_2213(cursor):
     "2213 - test DML returning with no input variables, multiple iters"
     cursor.execute("truncate table TestTempTable")
     sql = """
@@ -392,7 +392,7 @@ def test_1613(cursor):
     assert var.getvalue() == [2]
 
 
-def test_1614(cursor):
+def test_2214(cursor):
     "2214 - test DML returning with a quoted bind name"
     sql = """
             insert into TestTempTable (IntCol, StringCol1)
@@ -403,7 +403,7 @@ def test_1614(cursor):
     assert cursor.bindnames() == expected_bind_names
 
 
-def test_1615(cursor, test_env):
+def test_2215(cursor, test_env):
     "2215 - test DML returning with an invalid bind name"
     sql = """
             insert into TestTempTable (IntCol)
@@ -413,7 +413,7 @@ def test_1615(cursor, test_env):
         cursor.parse(sql)
 
 
-def test_1616(cursor):
+def test_2216(cursor):
     "2216 - test DML returning with a non-ascii bind name"
     sql = """
             insert into TestTempTable (IntCol)
@@ -423,7 +423,7 @@ def test_1616(cursor):
     assert cursor.bindnames() == ["INT_VAL", "MÉIL"]
 
 
-def test_1617(conn, cursor):
+def test_2217(conn, cursor):
     "2217 - test DML returning with input bind variable data"
     cursor.execute("truncate table TestTempTable")
     out_var = cursor.var(int)
@@ -441,7 +441,7 @@ def test_1617(conn, cursor):
     assert out_var.getvalue() == [23]
 
 
-def test_1618(conn, cursor):
+def test_2218(conn, cursor):
     "2218 - test DML returning with LOBs and an output converter"
     cursor.execute("delete from TestCLOBs")
     out_var = cursor.var(
@@ -461,7 +461,7 @@ def test_1618(conn, cursor):
     assert out_var.getvalue() == [lob_value]
 
 
-def test_1619(conn, cursor):
+def test_2219(conn, cursor):
     "2219 - test DML returning with CLOB converted to LONG"
     cursor.execute("delete from TestCLOBs")
     out_var = cursor.var(oracledb.DB_TYPE_LONG)
@@ -480,7 +480,7 @@ def test_1619(conn, cursor):
     assert out_var.getvalue() == [lob_value]
 
 
-def test_1620(cursor):
+def test_2220(cursor):
     "2220 - test dml returning with an index organized table"
     cursor.execute("truncate table TestUniversalRowids")
     rowid_var = cursor.var(oracledb.ROWID)
@@ -502,7 +502,7 @@ def test_1620(cursor):
     assert row == data[:3]
 
 
-def test_1621(cursor):
+def test_2221(cursor):
     "2221 - test plsql returning rowids with index organized table"
     cursor.execute("truncate table TestUniversalRowids")
     rowid_var = cursor.var(oracledb.ROWID)
@@ -529,7 +529,7 @@ def test_1621(cursor):
     assert row == data[:3]
 
 
-def test_1622(cursor):
+def test_2222(cursor):
     "2222 - parse DML returning with no spaces"
     cursor.execute("truncate table TestTempTable")
     sql = (
@@ -541,7 +541,7 @@ def test_1622(cursor):
     assert out_val.getvalue() == [25]
 
 
-def test_1623(skip_unless_thin_mode, cursor, test_env):
+def test_2223(skip_unless_thin_mode, cursor, test_env):
     "2223 - execute DML returning with duplicated binds"
     cursor.execute("truncate table TestTempTable")
     str_val = cursor.var(str)
@@ -555,7 +555,7 @@ def test_1623(skip_unless_thin_mode, cursor, test_env):
         cursor.execute(sql, id_val=1, str_val=str_val)
 
 
-def test_1624(cursor):
+def test_2224(cursor):
     "2224 - use bind variable in new statement after RETURNING statement"
     cursor.execute("truncate table TestTempTable")
     sql = (
@@ -570,7 +570,7 @@ def test_1624(cursor):
     assert out_val.getvalue() == 70
 
 
-def test_1625(conn, cursor):
+def test_2225(conn, cursor):
     "2225 - test DML returning with multiple LOBs returned"
     lob_data = [
         "Short CLOB - 1625a",
@@ -600,7 +600,7 @@ def test_1625(conn, cursor):
 
 
 # blocked by bug 37741324 in thick mode
-def test_1626(skip_unless_thin_mode, conn, cursor, test_env):
+def test_2226(skip_unless_thin_mode, conn, cursor, test_env):
     "2226 - test DML returning with multiple DbObjects returned"
     if not test_env.has_server_version(21):
         pytest.skip("awaiting fix for bug 37756810")
