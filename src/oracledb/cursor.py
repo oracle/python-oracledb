@@ -32,7 +32,8 @@
 import datetime
 import decimal
 import functools
-from typing import Any, Callable, Self, Type
+from typing import Any, Callable, Type
+from typing_extensions import Self
 
 from . import connection as connection_module
 from . import errors
