@@ -38,6 +38,9 @@ Thin Mode Changes
     :attr:`DeqOptions.correlation`, :attr:`MessageProperties.correlation`,
     :attr:`DeqOptions.transformation`, :attr:`EnqOptions.transformation`, and
     :attr:`MessageProperties.exceptionq`.
+#)  Added method :meth:`AsyncConnection.terminate()` to allow for terminating
+    a connection when the event loop is no longer available
+    (`issue 602 <https://github.com/oracle/python-oracledb/issues/602>`__).
 #)  Fixed bug in :func:`Cursor.executemany()` when in/out variables are present
     (`issue 599 <https://github.com/oracle/python-oracledb/issues/599>`__).
 #)  Fixed bug in :func:`oracledb.create_end_user_security_context()` which

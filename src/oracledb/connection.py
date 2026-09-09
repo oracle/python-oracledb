@@ -3075,6 +3075,19 @@ class AsyncConnection(BaseConnection):
         """
         pass
 
+    def terminate(self) -> None:
+        """
+        Terminates the connection without performing any of the normal logoff
+        procedures. This should only be called when the event loop is no longer
+        available. This is required for cleanup by libraries such as
+        SQLAlchemy, which need to handle connections which have fallen out of
+        the event loop and end up in the garbage collection phase.
+        """
+        impl = self._impl
+        self._impl = None
+        if impl is not None:
+            impl.terminate()
+
     @async_operation
     async def tpc_begin(
         self, xid: Xid, flags: int = oracledb.TPC_BEGIN_NEW, timeout: int = 0

@@ -199,6 +199,10 @@ AsyncConnection Methods
 
     .. versionadded:: 3.3.0
 
+.. automethod:: AsyncConnection.terminate
+
+    .. versionadded:: 26.0.0
+
 .. automethod:: AsyncConnection.tpc_begin
 
     The following code sample demonstrates the ``tpc_begin()`` function::

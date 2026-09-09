@@ -1177,6 +1177,14 @@ cdef class ThinConnImpl(BaseConnImpl):
         message.flags = TPC_TXN_FLAGS_SESSIONLESS
         yield message
 
+    def terminate(self):
+        """
+        Terminates the connection without performing any of the normal logoff
+        procedures. This should only be called by the async implementation when
+        the event loop is no longer available.
+        """
+        self._protocol._disconnect()
+
     def tpc_begin(self, xid, uint32_t flags, uint32_t timeout):
         """
         Begin a Two-Phase Commit (TPC) on a global transaction.
