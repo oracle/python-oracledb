@@ -27,7 +27,7 @@ This directory contains the test suite for python-oracledb.
 
     You may also run each of the test scripts independently, as in:
 
-        python -m pytest tests/test_1000_module.py
+        python -m pytest tests/misc/test_1000_module.py
 
     The tests run in thin mode by default. If you wish to run the tests in
     thick mode, use the following command:

@@ -53,13 +53,14 @@ Thick Mode Changes
 #)  Added support for a proxy user to be used with
     :ref:`token authentication <tokenauth>` when creating standalone
     connections.
-#)  ODPI-C now requires the standard Oracle Client library file names
-    `libclntsh.so` on Linux and `libclntsh.dylib` on macOS when using
+#)  The standard Oracle Client library file names `libclntsh.so` on Linux and
+    `libclntsh.dylib` on macOS are now required when using
     :meth:`oracledb.init_oracle_client()` to load Oracle Client libraries.
     Version-specific library names such as `libclntsh.so.19.1` are no longer
     loaded directly. On Linux, the ``lib_dir`` parameter can be used when
     `libclntsh.so` uses `RPATH=$ORIGIN` to resolve dependent libraries from the
-    Oracle Client library directory.
+    Oracle Client library directory
+    (`ODPI-C <https://github.com/oracle/odpi>`__ dependency update).
 #)  Fixed bug where TIMESTAMP WITH TIME ZONE column data was converted
     incorrectly to :ref:`Arrow data frames <dataframeformat>`
     (`issue 596 <https://github.com/oracle/python-oracledb/issues/596>`__).
@@ -67,6 +68,9 @@ Thick Mode Changes
 Common Changes
 ++++++++++++++
 
+#)  Moved to a year-based version number system. The python-oracledb major
+    version number will be the two-digit year in which that major version was
+    first relesed.
 #)  Dropped support for Python 3.9 and added initial support for Python 3.15.
 #)  Added support for :ref:`Python 3.14 templates <pythontemplatestrings>`
     (`issue 594 <https://github.com/oracle/python-oracledb/issues/594>`__).
@@ -120,6 +124,10 @@ Common Changes
 #)  Dropped support for calling :meth:`Var.setvalue()` with strings/bytes when
     the variable type is a LOB type. Call the method with the value returned by
     :meth:`Connection.createlob()` instead.
+#)  Internal change: most database operations now use an internal generator
+    function which allows implementation differences between sync and async in
+    Thin mode to be eliminated. This improves code maintenance and simplifies
+    adding hooks.
 #)  Modernized typing hints.
 #)  Reorganized and added to test suite.
 
