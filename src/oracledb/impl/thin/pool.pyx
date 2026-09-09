@@ -164,6 +164,17 @@ cdef class BaseThinPoolImpl(BasePoolImpl):
         self._notify_bg_task()
         self._condition.notify_all()
 
+    def _close_connection(self, ThinConnImpl conn_impl):
+        """
+        Closes a pooled connection.
+        """
+        try:
+            yield from conn_impl._close()
+        except asyncio.CancelledError:
+            raise
+        except:
+            pass
+
     cdef int _close_helper(self, bint force) except -1:
         """
         Helper function that closes all of the connections in the pool.
@@ -603,10 +614,9 @@ cdef class ThinPoolImpl(BaseThinPoolImpl):
             with self._condition:
                 if self._conn_impls_to_drop:
                     conn_impl = self._conn_impls_to_drop.pop()
-                    try:
-                        conn_impl._close()
-                    except:
-                        pass
+                    conn_impl.process_sync_operation(
+                        self, "close_connection", (conn_impl,), {}
+                    )
                     continue
 
             # otherwise, nothing to do yet, wait for notifications!
@@ -754,12 +764,9 @@ cdef class AsyncThinPoolImpl(BaseThinPoolImpl):
             async with self._condition:
                 if self._conn_impls_to_drop:
                     conn_impl = self._conn_impls_to_drop.pop()
-                    try:
-                        await conn_impl._protocol._close(conn_impl)
-                    except asyncio.CancelledError:
-                        raise
-                    except:
-                        pass
+                    await conn_impl.process_async_operation(
+                        self, "close_connection", (conn_impl,), {}
+                    )
                     continue
 
             # otherwise, nothing to do yet, wait for notifications!
