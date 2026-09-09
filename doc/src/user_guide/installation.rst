@@ -355,9 +355,10 @@ To use python-oracledb Thick mode with Oracle Instant Client zip files:
   Oracle Instant Client version 19 will connect to Oracle Database 11.2 or
   later.
 
-  Oracle Database 26ai and 19c are Long Term Support Releases. Note 32-bit
-  clients are not available on any platform for Oracle Database 26ai, however
-  you can use older 32-bit clients to connect to this version of the database.
+  Oracle AI Database 26ai and Oracle Database 19c are Long Term Support
+  Releases. Note 32-bit clients are not available on any platform for Oracle
+  AI Database 26ai, however you can use older 32-bit clients to connect to
+  this version of the database.
 
   It is recommended to keep up to date with the latest Oracle Instant Client
   release updates of your desired major version.
@@ -466,10 +467,10 @@ To use python-oracledb with Oracle Instant Client RPMs:
     It is recommended to keep up to date with the latest Oracle Instant Client
     release updates of your desired major version.
 
-    Oracle Database 26ai and 19c are Long Term Support Releases. Oracle Instant
-    Client version 23 will connect to Oracle Database 19 or later. Oracle
-    Instant Client version 19 will connect to Oracle Database version 11.2 or
-    later.
+    Oracle AI Database 26ai and Oracle Database 19c are Long Term Support
+    Releases. Oracle Instant Client version 23 will connect to Oracle Database
+    19 or later. Oracle Instant Client version 19 will connect to Oracle
+    Database version 11.2 or later.
 
     Note 32-bit clients are not available on any platform for Oracle Database
     26ai, however you can use older 32-bit clients to connect to this
@@ -587,7 +588,7 @@ by Oracle's GUI installer).
 
 The libraries must be either 32-bit or 64-bit, matching your Python
 architecture. Note 32-bit clients are not available on any platform for Oracle
-Database 26ai, however you can use older 32-bit clients to connect to this
+AI Database 26ai, however you can use older 32-bit clients to connect to this
 version of the database.
 
 1. Set required Oracle environment variables, such as ``ORACLE_HOME``, by
@@ -683,7 +684,7 @@ To use python-oracledb in Thick mode with Oracle Instant Client zip files:
    downloads.html>`__ or `32-bit <https://www.oracle.com/database/technologies
    /instant-client/microsoft-windows-32-downloads.html>`__, matching your
    Python architecture.  Note 32-bit clients are not available on any platform
-   for Oracle Database 26ai, however you can use older 32-bit clients to
+   for Oracle AI Database 26ai, however you can use older 32-bit clients to
    connect to this version of the database.
 
    The latest version is recommended.  Oracle Instant Client 19 will connect to
@@ -786,7 +787,7 @@ by Oracle's GUI installer).
 
 The Oracle libraries must be either 32-bit or 64-bit, matching your Python
 architecture. Note 32-bit clients are not available on any platform for Oracle
-Database 26ai, however you can use older 32-bit clients to connect to this
+AI Database 26ai, however you can use older 32-bit clients to connect to this
 version of the database.
 
 1. Set the environment variable ``PATH`` to include the path that contains

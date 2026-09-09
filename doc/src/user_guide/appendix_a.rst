@@ -174,7 +174,7 @@ For more details see :ref:`driverdiff` and :ref:`upgrading83`.
       - Yes
       - Yes
       - Yes
-    * - Oracle Database 26ai Implicit Connection Pooling with :ref:`DRCP <drcp>` and PRCP (see :ref:`implicitconnpool`)
+    * - Oracle AI Database 26ai Implicit Connection Pooling with :ref:`DRCP <drcp>` and PRCP (see :ref:`implicitconnpool`)
       - Yes
       - Yes
       - No
@@ -254,7 +254,7 @@ For more details see :ref:`driverdiff` and :ref:`upgrading83`.
       - Yes
       - No
       - No
-    * - Oracle Database 26ai JSON-Relational Duality Views (see :ref:`jsondualityviews`)
+    * - Oracle AI Database 26ai JSON-Relational Duality Views (see :ref:`jsondualityviews`)
       - Yes
       - Yes
       - No
@@ -314,7 +314,7 @@ For more details see :ref:`driverdiff` and :ref:`upgrading83`.
       - Yes
       - No
       - No
-    * - Oracle Database 26ai Pipelining (see :ref:`pipelining`)
+    * - Oracle AI Database 26ai Pipelining (see :ref:`pipelining`)
       - Yes
       - No
       - No
@@ -330,7 +330,7 @@ For more details see :ref:`driverdiff` and :ref:`upgrading83`.
       - Yes
       - Yes
       - Yes
-    * - Oracle Database 26ai Sessionless Transactions (see :ref:`sessionlesstxns`)
+    * - Oracle AI Database 26ai Sessionless Transactions (see :ref:`sessionlesstxns`)
       - Yes
       - Yes
       - No
@@ -407,7 +407,7 @@ APIs you may use other types, for example when binding numeric values.
       - :data:`~oracledb.DB_TYPE_DATE`
       - datetime.date, datetime.datetime
       - No relevant notes
-    * - BOOLEAN (PL/SQL and Oracle Database 26ai SQL)
+    * - BOOLEAN (PL/SQL and Oracle AI Database 26ai SQL)
       - :data:`~oracledb.DB_TYPE_BOOLEAN`
       - Any type convertible to bool
       - No relevant notes

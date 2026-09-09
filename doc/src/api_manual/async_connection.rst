@@ -171,7 +171,7 @@ AsyncConnection Methods
 
     .. note::
 
-        True pipelining requires Oracle Database 26ai, or later.
+        True pipelining requires Oracle AI Database 26ai, or later.
 
         When you connect to an older database, operations are sequentially
         executed by python-oracledb. Each operation concludes before the next

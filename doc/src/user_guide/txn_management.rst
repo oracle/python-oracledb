@@ -89,8 +89,8 @@ Transaction priority is set at the database session level and applies to
 transactions in that session. When a higher-priority transaction is blocked by
 a lower-priority transaction, Oracle Database can automatically roll back the
 lower-priority transaction, allowing the higher-priority transaction to
-proceed. Transaction Priority is available starting with Oracle Database 26ai.
-For more information on transaction priority, see `Priority Transactions
+proceed. Transaction Priority is available starting with Oracle AI Database
+26ai. For more information on transaction priority, see `Priority Transactions
 <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-8B71D725-24E9-
 4AE1-B9FA-BAC291923EAC>`__.
 
