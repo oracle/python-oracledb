@@ -98,6 +98,7 @@ cdef class ThinSubscrImpl(BaseSubscrImpl):
         self._conn_impl.dsn = conn_impl.dsn
         self._conn_impl.connect_params = params
         yield from self._conn_impl.connect()
+        self._conn_impl._send_ha_readiness = False
 
     def register_query(self, str sql, object args):
         """
