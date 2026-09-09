@@ -40,7 +40,7 @@ def module_checks(test_env):
         pytest.skip("unsupported server")
 
 
-def test_2800(cursor):
+def test_data_types_2800(cursor):
     "2800 - verify fetch information for older clients"
     attr_names = ["name", "type_code", "is_json"]
     expected_values = [
@@ -59,7 +59,7 @@ def test_2800(cursor):
     assert values == expected_values
 
 
-def test_2801(conn, cursor):
+def test_data_types_2801(conn, cursor):
     "2801 - verify default fetched value is a Python list"
     expected_data = (
         1,
@@ -94,7 +94,7 @@ def test_2801(conn, cursor):
     assert fetched_data == expected_data
 
 
-def test_2802(conn, cursor):
+def test_data_types_2802(conn, cursor):
     "2802 - verify fetched value as intermediate long value"
     expected_data = (
         1,
@@ -142,7 +142,7 @@ def test_2802(conn, cursor):
     assert executions[0] == 7
 
 
-def test_2803(conn, cursor):
+def test_data_types_2803(conn, cursor):
     "2803 - verify fetched value as intermediate string value"
     expected_data = (
         1,
@@ -191,7 +191,7 @@ def test_2803(conn, cursor):
 
 
 @pytest.mark.skip("awaiting database support")
-def test_2804(conn, cursor):
+def test_data_types_2804(conn, cursor):
     "2802 - verify fetching large vector as intermediate long value"
     num_dimensions = 35655
     expected_data = (

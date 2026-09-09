@@ -60,7 +60,7 @@ def _verify_network_name_attr(test_env, name):
                     pass
 
 
-def test_1600(test_env):
+def test_misc_1600(test_env):
     "1600 - test setting defaults.arraysize"
     with test_env.defaults_context_manager("arraysize", 50):
         with test_env.get_connection() as conn:
@@ -68,7 +68,7 @@ def test_1600(test_env):
             assert cursor.arraysize == oracledb.defaults.arraysize
 
 
-def test_1601(cursor, test_env):
+def test_misc_1601(cursor, test_env):
     "1601 - test getting decimals with defaults.fetch_decimals=True"
     with test_env.defaults_context_manager("fetch_decimals", True):
         cursor.execute("select 9 from dual")
@@ -76,7 +76,7 @@ def test_1601(cursor, test_env):
         assert isinstance(result, decimal.Decimal)
 
 
-def test_1602(cursor, test_env):
+def test_misc_1602(cursor, test_env):
     "1602 - test getting string lob with defaults.fetch_lobs=False"
     with test_env.defaults_context_manager("fetch_lobs", False):
         cursor.execute("select to_clob('Hello world') from dual")
@@ -84,7 +84,7 @@ def test_1602(cursor, test_env):
         assert isinstance(result, str)
 
 
-def test_1603(test_env):
+def test_misc_1603(test_env):
     "1603 - test setting defaults.prefetchrows"
     with test_env.defaults_context_manager("prefetchrows", 20):
         with test_env.get_connection() as conn:
@@ -92,7 +92,7 @@ def test_1603(test_env):
             assert cursor.prefetchrows == oracledb.defaults.prefetchrows
 
 
-def test_1604(test_env):
+def test_misc_1604(test_env):
     "1604 - test setting defaults.stmtcachesize (pool)"
     new_stmtcachesize = 15
     with test_env.defaults_context_manager("stmtcachesize", 40):
@@ -108,7 +108,7 @@ def test_1604(test_env):
         pool.close()
 
 
-def test_1605(test_env):
+def test_misc_1605(test_env):
     "1605 - test setting defaults.stmtcachesize (standalone connection)"
     new_stmtcachesize = 25
     with test_env.defaults_context_manager("stmtcachesize", 50):
@@ -118,7 +118,7 @@ def test_1605(test_env):
             assert conn.stmtcachesize == new_stmtcachesize
 
 
-def test_1606(cursor, test_env):
+def test_misc_1606(cursor, test_env):
     "1606 - fetch_lobs does not affect LOBS returned as OUT binds"
     with test_env.defaults_context_manager("fetch_lobs", False):
         var = cursor.var(oracledb.DB_TYPE_CLOB)
@@ -129,7 +129,7 @@ def test_1606(cursor, test_env):
         assert isinstance(var.getvalue(), oracledb.LOB)
 
 
-def test_1607(test_env):
+def test_misc_1607(test_env):
     "1607 - test setting defaults.config_dir"
     with tempfile.TemporaryDirectory() as temp_dir:
         new_temp_dir = os.path.join(temp_dir, "subdir")
@@ -141,7 +141,7 @@ def test_1607(test_env):
             assert params.config_dir == new_temp_dir
 
 
-def test_1608(test_env):
+def test_misc_1608(test_env):
     "1608 - test setting defaults.stmtcachesize (ConnectParams)"
     new_stmtcachesize = 35
     with test_env.defaults_context_manager("stmtcachesize", 60):
@@ -151,7 +151,7 @@ def test_1608(test_env):
         assert params.stmtcachesize == new_stmtcachesize
 
 
-def test_1609(test_env):
+def test_misc_1609(test_env):
     "1609 - test defaults.stmtcachesize persists after setting it again"
     value = 50
     new_value = 29
@@ -181,36 +181,36 @@ def test_1609(test_env):
         pool.close()
 
 
-def test_1610(test_env):
+def test_misc_1610(test_env):
     "1610 - test setting defaults.terminal"
     with test_env.defaults_context_manager("terminal", "newterminal"):
         params = oracledb.ConnectParams()
         assert params.terminal == oracledb.defaults.terminal
 
 
-def test_1611(test_env):
+def test_misc_1611(test_env):
     "1611 - test setting defaults.driver_name"
     with test_env.defaults_context_manager("driver_name", "newdriver"):
         params = oracledb.ConnectParams()
         assert params.driver_name == oracledb.defaults.driver_name
 
 
-def test_1612(test_env):
+def test_misc_1612(test_env):
     "1612 - test setting defaults.program attribute"
     _verify_network_name_attr(test_env, "program")
 
 
-def test_1613(test_env):
+def test_misc_1613(test_env):
     "1613 - test setting defaults.machine attribute"
     _verify_network_name_attr(test_env, "machine")
 
 
-def test_1614(test_env):
+def test_misc_1614(test_env):
     "1614 - test setting defaults.osuser attribute"
     _verify_network_name_attr(test_env, "osuser")
 
 
-def test_1615(skip_unless_thin_mode, test_env):
+def test_misc_1615(skip_unless_thin_mode, test_env):
     "1615 - test program with two pools"
     default_value = "defaultprogram"
     new_value = "newprogram"

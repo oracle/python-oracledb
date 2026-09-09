@@ -59,7 +59,7 @@ def _test_negative_set_and_get(cursor, var_type, value_to_set, type_name=None):
     )
 
 
-def test_2000(cursor, test_env):
+def test_cursor_2000(cursor, test_env):
     "2000 - setting values on variables of type DB_TYPE_NUMBER"
     _test_positive_set_and_get(cursor, test_env, int, 5, 5)
     _test_positive_set_and_get(
@@ -80,7 +80,7 @@ def test_2000(cursor, test_env):
     _test_negative_set_and_get(cursor, oracledb.DB_TYPE_NUMBER, "abc")
 
 
-def test_2001(cursor, test_env):
+def test_cursor_2001(cursor, test_env):
     "2001 - setting values on variables of type DB_TYPE_BINARY_INTEGER"
     _test_positive_set_and_get(
         cursor, test_env, oracledb.DB_TYPE_BINARY_INTEGER, 5, 5
@@ -107,7 +107,7 @@ def test_2001(cursor, test_env):
     _test_negative_set_and_get(cursor, oracledb.DB_TYPE_BINARY_INTEGER, "abc")
 
 
-def test_2002(cursor, test_env):
+def test_cursor_2002(cursor, test_env):
     "2002 - setting values on variables of type DB_TYPE_VARCHAR"
     value = "A VARCHAR string"
     _test_positive_set_and_get(
@@ -123,7 +123,7 @@ def test_2002(cursor, test_env):
     _test_negative_set_and_get(cursor, oracledb.DB_TYPE_VARCHAR, 5)
 
 
-def test_2003(cursor, test_env):
+def test_cursor_2003(cursor, test_env):
     "2003 - setting values on variables of type DB_TYPE_NVARCHAR"
     value = "A NVARCHAR string"
     _test_positive_set_and_get(
@@ -139,7 +139,7 @@ def test_2003(cursor, test_env):
     _test_negative_set_and_get(cursor, oracledb.DB_TYPE_NVARCHAR, 5)
 
 
-def test_2004(cursor, test_env):
+def test_cursor_2004(cursor, test_env):
     "2004 - setting values on variables of type DB_TYPE_CHAR"
     value = "A CHAR string"
     _test_positive_set_and_get(
@@ -155,7 +155,7 @@ def test_2004(cursor, test_env):
     _test_negative_set_and_get(cursor, oracledb.DB_TYPE_CHAR, 5)
 
 
-def test_2005(cursor, test_env):
+def test_cursor_2005(cursor, test_env):
     "2005 - setting values on variables of type DB_TYPE_NCHAR"
     value = "A NCHAR string"
     _test_positive_set_and_get(
@@ -171,7 +171,7 @@ def test_2005(cursor, test_env):
     _test_negative_set_and_get(cursor, oracledb.DB_TYPE_NCHAR, 5)
 
 
-def test_2006(cursor, test_env):
+def test_cursor_2006(cursor, test_env):
     "2006 - setting values on variables of type DB_TYPE_LONG"
     value = "Long Data" * 15000
     _test_positive_set_and_get(
@@ -187,7 +187,7 @@ def test_2006(cursor, test_env):
     _test_negative_set_and_get(cursor, oracledb.DB_TYPE_LONG, 5)
 
 
-def test_2007(cursor, test_env):
+def test_cursor_2007(cursor, test_env):
     "2007 - setting values on variables of type DB_TYPE_RAW"
     value = b"Raw Data"
     _test_positive_set_and_get(
@@ -203,7 +203,7 @@ def test_2007(cursor, test_env):
     _test_negative_set_and_get(cursor, oracledb.DB_TYPE_RAW, 5)
 
 
-def test_2008(cursor, test_env):
+def test_cursor_2008(cursor, test_env):
     "2008 - setting values on variables of type DB_TYPE_LONG_RAW"
     value = b"Long Raw Data" * 15000
     _test_positive_set_and_get(
@@ -219,7 +219,7 @@ def test_2008(cursor, test_env):
     _test_negative_set_and_get(cursor, oracledb.DB_TYPE_LONG_RAW, 5)
 
 
-def test_2009(cursor, test_env):
+def test_cursor_2009(cursor, test_env):
     "2009 - setting values on variables of type DB_TYPE_DATE"
     value = datetime.date(2017, 5, 6)
     _test_positive_set_and_get(
@@ -235,7 +235,7 @@ def test_2009(cursor, test_env):
     _test_negative_set_and_get(cursor, oracledb.DB_TYPE_DATE, 5)
 
 
-def test_2010(cursor, test_env):
+def test_cursor_2010(cursor, test_env):
     "2010 - setting values on variables of type DB_TYPE_TIMESTAMP"
     value = datetime.date(2017, 5, 6)
     _test_positive_set_and_get(
@@ -251,7 +251,7 @@ def test_2010(cursor, test_env):
     _test_negative_set_and_get(cursor, oracledb.DB_TYPE_TIMESTAMP, 5)
 
 
-def test_2011(cursor, test_env):
+def test_cursor_2011(cursor, test_env):
     "2011 - setting values on variables of type DB_TYPE_TIMESTAMP_TZ"
     value = datetime.date(2017, 5, 6)
     _test_positive_set_and_get(
@@ -267,7 +267,7 @@ def test_2011(cursor, test_env):
     _test_negative_set_and_get(cursor, oracledb.DB_TYPE_TIMESTAMP_TZ, 5)
 
 
-def test_2012(cursor, test_env):
+def test_cursor_2012(cursor, test_env):
     "2012 - setting values on variables of type DB_TYPE_TIMESTAMP_LTZ"
     value = datetime.date(2017, 5, 6)
     _test_positive_set_and_get(
@@ -283,7 +283,7 @@ def test_2012(cursor, test_env):
     _test_negative_set_and_get(cursor, oracledb.DB_TYPE_TIMESTAMP_LTZ, 5)
 
 
-def test_2013(conn, cursor, test_env):
+def test_cursor_2013(conn, cursor, test_env):
     "2013 - setting values on variables of type DB_TYPE_BLOB"
     value = b"Short temp BLOB value"
     temp_blob = conn.createlob(oracledb.DB_TYPE_BLOB)
@@ -299,7 +299,7 @@ def test_2013(conn, cursor, test_env):
     _test_negative_set_and_get(cursor, oracledb.DB_TYPE_BLOB, 5)
 
 
-def test_2014(conn, cursor, test_env):
+def test_cursor_2014(conn, cursor, test_env):
     "2014 - setting values on variables of type DB_TYPE_CLOB"
     value = "Short temp CLOB value"
     temp_clob = conn.createlob(oracledb.DB_TYPE_CLOB)
@@ -315,7 +315,7 @@ def test_2014(conn, cursor, test_env):
     _test_negative_set_and_get(cursor, oracledb.DB_TYPE_CLOB, 5)
 
 
-def test_2015(conn, cursor, test_env):
+def test_cursor_2015(conn, cursor, test_env):
     "2015 - setting values on variables of type DB_TYPE_NCLOB"
     value = "Short temp NCLOB value"
     temp_nclob = conn.createlob(oracledb.DB_TYPE_NCLOB)
@@ -331,7 +331,7 @@ def test_2015(conn, cursor, test_env):
     _test_negative_set_and_get(cursor, oracledb.DB_TYPE_NCLOB, 5)
 
 
-def test_2016(cursor, test_env):
+def test_cursor_2016(cursor, test_env):
     "2016 - setting values on variables of type DB_TYPE_BINARY_FLOAT"
     _test_positive_set_and_get(
         cursor, test_env, oracledb.DB_TYPE_BINARY_FLOAT, 5, 5.0
@@ -358,7 +358,7 @@ def test_2016(cursor, test_env):
     _test_negative_set_and_get(cursor, oracledb.DB_TYPE_BINARY_FLOAT, "abc")
 
 
-def test_2017(cursor, test_env):
+def test_cursor_2017(cursor, test_env):
     "2017 - setting values on variables of type DB_TYPE_BINARY_DOUBLE"
     _test_positive_set_and_get(
         cursor, test_env, oracledb.DB_TYPE_BINARY_DOUBLE, 5, 5.0
@@ -385,7 +385,7 @@ def test_2017(cursor, test_env):
     _test_negative_set_and_get(cursor, oracledb.DB_TYPE_BINARY_DOUBLE, "abc")
 
 
-def test_2018(cursor, test_env):
+def test_cursor_2018(cursor, test_env):
     "2018 - setting values on variables of type DB_TYPE_BOOLEAN"
     _test_positive_set_and_get(
         cursor, test_env, oracledb.DB_TYPE_BOOLEAN, 5, True
@@ -414,7 +414,7 @@ def test_2018(cursor, test_env):
     )
 
 
-def test_2019(cursor, test_env):
+def test_cursor_2019(cursor, test_env):
     "2019 - setting values on variables of type DB_TYPE_INTERVAL_DS"
     value = datetime.timedelta(days=5, seconds=56000, microseconds=123780)
     _test_positive_set_and_get(
@@ -426,13 +426,13 @@ def test_2019(cursor, test_env):
     _test_negative_set_and_get(cursor, oracledb.DB_TYPE_INTERVAL_DS, 5)
 
 
-def test_2020(cursor, test_env):
+def test_cursor_2020(cursor, test_env):
     "2020 - setting values on variables of type DB_TYPE_ROWID"
     _test_negative_set_and_get(cursor, oracledb.DB_TYPE_ROWID, 12345)
     _test_negative_set_and_get(cursor, oracledb.DB_TYPE_ROWID, "523lkhlf")
 
 
-def test_2021(conn, cursor, test_env):
+def test_cursor_2021(conn, cursor, test_env):
     "2021 - setting values on variables of type DB_TYPE_OBJECT"
     obj_type = conn.gettype("UDT_OBJECT")
     obj = obj_type.newobject()
@@ -455,7 +455,7 @@ def test_2021(conn, cursor, test_env):
     _test_negative_set_and_get(cursor, wrong_obj_type, obj)
 
 
-def test_2022(skip_unless_native_json_supported, cursor, test_env):
+def test_cursor_2022(skip_unless_native_json_supported, cursor, test_env):
     "2022 - setting values on variables of type DB_TYPE_JSON"
     json_data = [
         5,
@@ -501,7 +501,7 @@ def test_2022(skip_unless_native_json_supported, cursor, test_env):
     )
 
 
-def test_2023(cursor, test_env):
+def test_cursor_2023(cursor, test_env):
     "2023 - test setting values on variables of type DB_TYPE_CURSOR"
     _test_positive_set_and_get(
         cursor, test_env, oracledb.DB_TYPE_CURSOR, None, None
@@ -509,7 +509,7 @@ def test_2023(cursor, test_env):
     _test_negative_set_and_get(cursor, oracledb.DB_TYPE_CURSOR, 5)
 
 
-def test_2024(cursor):
+def test_cursor_2024(cursor):
     "2024 - test fetching columns containing all null values"
     cursor.execute("""
         select null, to_char(null), to_number(null), to_date(null),
@@ -519,13 +519,13 @@ def test_2024(cursor):
     assert cursor.fetchall() == [(None, None, None, None, None, None, None)]
 
 
-def test_2025(skip_unless_thin_mode, cursor, test_env):
+def test_cursor_2025(skip_unless_thin_mode, cursor, test_env):
     "2025 - setting values on variables of type DB_TYPE_UROWID"
     _test_negative_set_and_get(cursor, oracledb.DB_TYPE_UROWID, 12345)
     _test_negative_set_and_get(cursor, oracledb.DB_TYPE_UROWID, "523lkhlf")
 
 
-def test_2026(cursor):
+def test_cursor_2026(cursor):
     "2026 - getting value with an specific index"
     var = cursor.var(oracledb.DB_TYPE_NUMBER, 1000, 2)
     var.setvalue(0, 10)
@@ -534,7 +534,7 @@ def test_2026(cursor):
     pytest.raises(IndexError, var.getvalue, 4)
 
 
-def test_2027(cursor):
+def test_cursor_2027(cursor):
     "2027 - getting buffer_size attribute"
     test_values = [
         (oracledb.DB_TYPE_NUMBER, 200, 22),
@@ -548,7 +548,7 @@ def test_2027(cursor):
         assert var.buffer_size == buffer_size
 
 
-def test_2028(cursor):
+def test_cursor_2028(cursor):
     "2028 - getting actual elements"
     array_size = 8
     var = cursor.var(oracledb.DB_TYPE_NUMBER, arraysize=array_size)
@@ -556,7 +556,7 @@ def test_2028(cursor):
     assert var.actual_elements == var.num_elements
 
 
-def test_2029(cursor):
+def test_cursor_2029(cursor):
     "2029 - test deprecated attributes"
     var = cursor.var(oracledb.DB_TYPE_NUMBER, arraysize=200)
     assert var.bufferSize == 22
@@ -564,7 +564,7 @@ def test_2029(cursor):
     assert var.numElements == 200
 
 
-def test_2030(cursor):
+def test_cursor_2030(cursor):
     "2030 - test calling of outconverter with null values"
 
     def type_handler(cursor, metadata):
@@ -595,14 +595,14 @@ def test_2030(cursor):
     assert rows == expected_rows
 
 
-def test_2031(cursor):
+def test_cursor_2031(cursor):
     "2031 - test getting convert_nulls"
     for convert_nulls in [True, False]:
         simple_var = cursor.var(str, convert_nulls=convert_nulls)
         assert simple_var.convert_nulls == convert_nulls
 
 
-def test_2032(conn, cursor, test_env):
+def test_cursor_2032(conn, cursor, test_env):
     "2032 - test encoding_errors"
     if test_env.charset != "AL32UTF8":
         pytest.skip("Database character set must be AL32UTF8")

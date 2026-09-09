@@ -80,7 +80,7 @@ def module_data_by_key(module_data):
     return data_by_key
 
 
-def test_2100(cursor, module_data_by_key):
+def test_data_types_2100(cursor, module_data_by_key):
     "2100 - test binding in a timestamp"
     cursor.setinputsizes(value=oracledb.DB_TYPE_TIMESTAMP)
     cursor.execute(
@@ -90,7 +90,7 @@ def test_2100(cursor, module_data_by_key):
     assert cursor.fetchall() == [module_data_by_key[5]]
 
 
-def test_2101(cursor):
+def test_data_types_2101(cursor):
     "2101 - test binding in a null"
     cursor.setinputsizes(value=oracledb.DB_TYPE_TIMESTAMP)
     cursor.execute(
@@ -100,7 +100,7 @@ def test_2101(cursor):
     assert cursor.fetchall() == []
 
 
-def test_2102(cursor):
+def test_data_types_2102(cursor):
     "2102 - test binding out with set input sizes defined"
     bind_vars = cursor.setinputsizes(value=oracledb.DB_TYPE_TIMESTAMP)
     cursor.execute("""
@@ -111,7 +111,7 @@ def test_2102(cursor):
     assert bind_vars["value"].getvalue() == datetime.datetime(2002, 12, 9)
 
 
-def test_2103(cursor):
+def test_data_types_2103(cursor):
     "2103 - test binding in/out with set input sizes defined"
     bind_vars = cursor.setinputsizes(value=oracledb.DB_TYPE_TIMESTAMP)
     cursor.execute(
@@ -126,7 +126,7 @@ def test_2103(cursor):
     assert value == datetime.datetime(2002, 12, 17, 16, 0, 0)
 
 
-def test_2104(cursor):
+def test_data_types_2104(cursor):
     "2104 - test binding out with cursor.var() method"
     var = cursor.var(oracledb.DB_TYPE_TIMESTAMP)
     cursor.execute(
@@ -141,7 +141,7 @@ def test_2104(cursor):
     assert var.getvalue() == datetime.datetime(2002, 12, 31, 12, 31, 0)
 
 
-def test_2105(cursor):
+def test_data_types_2105(cursor):
     "2105 - test binding in/out with cursor.var() method"
     var = cursor.var(oracledb.DB_TYPE_TIMESTAMP)
     var.setvalue(0, datetime.datetime(2002, 12, 9, 6, 0, 0))
@@ -156,7 +156,7 @@ def test_2105(cursor):
     assert var.getvalue() == datetime.datetime(2002, 12, 14, 12, 0, 0)
 
 
-def test_2106(cursor):
+def test_data_types_2106(cursor):
     "2106 - test cursor description is accurate"
     cursor.execute("select * from TestTimestamps")
     expected_value = [
@@ -184,14 +184,14 @@ def test_2106(cursor):
     assert cursor.description == expected_value
 
 
-def test_2107(cursor, module_data):
+def test_data_types_2107(cursor, module_data):
     "2107 - test that fetching all of the data returns the correct results"
     cursor.execute("select * From TestTimestamps order by IntCol")
     assert cursor.fetchall() == module_data
     assert cursor.fetchall() == []
 
 
-def test_2108(cursor, module_data):
+def test_data_types_2108(cursor, module_data):
     "2108 - test that fetching data in chunks returns the correct results"
     cursor.execute("select * From TestTimestamps order by IntCol")
     assert cursor.fetchmany(3) == module_data[0:3]
@@ -201,7 +201,7 @@ def test_2108(cursor, module_data):
     assert cursor.fetchmany(3) == []
 
 
-def test_2109(cursor, module_data_by_key):
+def test_data_types_2109(cursor, module_data_by_key):
     "2109 - test that fetching a single row returns the correct results"
     cursor.execute("""
         select *
@@ -214,7 +214,7 @@ def test_2109(cursor, module_data_by_key):
     assert cursor.fetchone() is None
 
 
-def test_2110(cursor, module_data_by_key):
+def test_data_types_2110(cursor, module_data_by_key):
     "2110 - test binding a timestamp with zero fractional seconds"
     cursor.setinputsizes(value=oracledb.DB_TYPE_TIMESTAMP)
     cursor.execute(
@@ -228,7 +228,7 @@ def test_2110(cursor, module_data_by_key):
     assert cursor.fetchall() == [module_data_by_key[5]]
 
 
-def test_2111(cursor, module_data_by_key):
+def test_data_types_2111(cursor, module_data_by_key):
     "2111 - test binding a timestamp with datetime.date as input"
     cursor.setinputsizes(value=oracledb.DB_TYPE_TIMESTAMP)
     cursor.execute(

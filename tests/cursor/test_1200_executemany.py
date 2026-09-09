@@ -37,7 +37,7 @@ def empty_tab(cursor):
     cursor.execute("truncate table TestTempTable")
 
 
-def test_1200(conn, cursor, empty_tab):
+def test_cursor_1200(conn, cursor, empty_tab):
     "1200 - test executing a statement multiple times (named args)"
     rows = [{"value": n} for n in range(250)]
     cursor.arraysize = 100
@@ -51,7 +51,7 @@ def test_1200(conn, cursor, empty_tab):
     assert count == len(rows)
 
 
-def test_1201(conn, cursor, empty_tab):
+def test_cursor_1201(conn, cursor, empty_tab):
     "1201 - test executing a statement multiple times (positional args)"
     rows = [[n] for n in range(230)]
     cursor.arraysize = 100
@@ -65,7 +65,7 @@ def test_1201(conn, cursor, empty_tab):
     assert count == len(rows)
 
 
-def test_1202(conn, cursor, empty_tab):
+def test_cursor_1202(conn, cursor, empty_tab):
     "1202 - test executing a statement multiple times (with prepare)"
     rows = [[n] for n in range(225)]
     cursor.arraysize = 100
@@ -77,7 +77,7 @@ def test_1202(conn, cursor, empty_tab):
     assert count == len(rows)
 
 
-def test_1203(conn, cursor, empty_tab):
+def test_cursor_1203(conn, cursor, empty_tab):
     "1203 - test executing a statement multiple times (with rebind)"
     rows = [[n] for n in range(235)]
     cursor.arraysize = 100
@@ -90,7 +90,7 @@ def test_1203(conn, cursor, empty_tab):
     assert count == len(rows)
 
 
-def test_1204(conn):
+def test_cursor_1204(conn):
     "1204 - test executing multiple times (with input sizes wrong)"
     cursor = conn.cursor()
     cursor.setinputsizes(oracledb.NUMBER)
@@ -98,14 +98,14 @@ def test_1204(conn):
     cursor.executemany("declare t number; begin t := :1; end;", data)
 
 
-def test_1205(cursor, empty_tab):
+def test_cursor_1205(cursor, empty_tab):
     "1205 - test executing multiple times (with multiple batches)"
     sql = "insert into TestTempTable (IntCol, StringCol1) values (:1, :2)"
     cursor.executemany(sql, [(1, None), (2, None)])
     cursor.executemany(sql, [(3, None), (4, "Testing")])
 
 
-def test_1206(cursor, empty_tab):
+def test_cursor_1206(cursor, empty_tab):
     "1206 - test executemany() with various numeric types"
     data = [
         (1, 5),
@@ -124,7 +124,7 @@ def test_1206(cursor, empty_tab):
     assert cursor.fetchall() == data
 
 
-def test_1207(cursor, empty_tab):
+def test_cursor_1207(cursor, empty_tab):
     "1207 - test executing a statement multiple times (with resize)"
     rows = [
         (1, "First"),
@@ -145,7 +145,7 @@ def test_1207(cursor, empty_tab):
     assert cursor.fetchall() == rows
 
 
-def test_1208(cursor, empty_tab, test_env):
+def test_cursor_1208(cursor, empty_tab, test_env):
     "1208 - test executing a statement multiple times (with exception)"
     rows = [{"value": n} for n in (1, 2, 3, 2, 5)]
     statement = "insert into TestTempTable (IntCol) values (:value)"
@@ -154,7 +154,7 @@ def test_1208(cursor, empty_tab, test_env):
     assert cursor.rowcount == 3
 
 
-def test_1209(cursor, test_env):
+def test_cursor_1209(cursor, test_env):
     "1209 - test calling executemany() with invalid parameters"
     sql = """
             insert into TestTempTable (IntCol, StringCol1)
@@ -163,7 +163,7 @@ def test_1209(cursor, test_env):
         cursor.executemany(sql, "These are not valid parameters")
 
 
-def test_1210(cursor, empty_tab):
+def test_cursor_1210(cursor, empty_tab):
     "1210 - test calling executemany() without any bind parameters"
     num_rows = 5
     cursor.executemany(
@@ -186,7 +186,7 @@ def test_1210(cursor, empty_tab):
     assert count == num_rows
 
 
-def test_1211(cursor, empty_tab):
+def test_cursor_1211(cursor, empty_tab):
     "1211 - test calling executemany() with binds performed earlier"
     num_rows = 9
     var = cursor.var(int, arraysize=num_rows)
@@ -213,7 +213,7 @@ def test_1211(cursor, empty_tab):
     assert var.values == expected_data
 
 
-def test_1212(cursor):
+def test_cursor_1212(cursor):
     "1212 - test executing plsql statements multiple times (with binds)"
     var = cursor.var(int, arraysize=5)
     cursor.setinputsizes(var)
@@ -223,27 +223,27 @@ def test_1212(cursor):
     assert var.values == exepected_data
 
 
-def test_1213(cursor, test_env):
+def test_cursor_1213(cursor, test_env):
     "1213 - test executemany with incorrect parameters"
     with test_env.assert_raises_full_code("DPY-2004"):
         cursor.executemany("select :1 from dual", [1])
 
 
-def test_1214(cursor, test_env):
+def test_cursor_1214(cursor, test_env):
     "1214 - test executemany with mixed binds (pos first)"
     rows = [["test"], {"value": 1}]
     with test_env.assert_raises_full_code("DPY-2006"):
         cursor.executemany("select :1 from dual", rows)
 
 
-def test_1215(cursor, test_env):
+def test_cursor_1215(cursor, test_env):
     "1215 - test executemany with mixed binds (name first)"
     rows = [{"value": 1}, ["test"]]
     with test_env.assert_raises_full_code("DPY-2006"):
         cursor.executemany("select :value from dual", rows)
 
 
-def test_1216(cursor, empty_tab):
+def test_cursor_1216(cursor, empty_tab):
     "1216 - test executemany() with a pl/sql statement with dml returning"
     num_rows = 5
     out_var = cursor.var(oracledb.NUMBER, arraysize=5)
@@ -266,7 +266,7 @@ def test_1216(cursor, empty_tab):
     assert out_var.values == [1, 2, 3, 4, 5]
 
 
-def test_1217(cursor, empty_tab):
+def test_cursor_1217(cursor, empty_tab):
     "1217 - test executemany() with pl/sql in binds and out binds"
     values = [5, 8, 17, 24, 6]
     data = [(i, f"Test {i}") for i in values]
@@ -285,7 +285,7 @@ def test_1217(cursor, empty_tab):
     assert out_bind.values == values
 
 
-def test_1218(cursor, empty_tab):
+def test_cursor_1218(cursor, empty_tab):
     "1218 - test executemany() with pl/sql outbinds"
     out_bind = cursor.var(oracledb.NUMBER, arraysize=5)
     cursor.setinputsizes(out_bind)
@@ -293,7 +293,7 @@ def test_1218(cursor, empty_tab):
     assert out_bind.values == [5, 5, 5, 5, 5]
 
 
-def test_1219(cursor):
+def test_cursor_1219(cursor):
     "1219 - test re-executemany() with pl/sql in binds and out binds"
     values = [5, 8, 17, 24, 6]
     data = [(i, f"Test {i}") for i in values]
@@ -314,7 +314,7 @@ def test_1219(cursor):
         assert out_bind.values == values
 
 
-def test_1220(cursor):
+def test_cursor_1220(cursor):
     "1220 - test PL/SQL statement with single row bind"
     value = 4020
     var = cursor.var(int)
@@ -322,7 +322,7 @@ def test_1220(cursor):
     assert var.values == [value]
 
 
-def test_1221(conn, cursor, empty_tab):
+def test_cursor_1221(conn, cursor, empty_tab):
     "1221 - test deferral of type assignment"
     data = [(1, None), (2, 25)]
     cursor.executemany(
@@ -342,7 +342,7 @@ def test_1221(conn, cursor, empty_tab):
     assert cursor.fetchall() == data
 
 
-def test_1222(cursor):
+def test_cursor_1222(cursor):
     "1222 - test PL/SQL with a lerge number of binds"
     parts = []
     bind_names = []
@@ -375,13 +375,13 @@ def test_1222(cursor):
         init_val += 6
 
 
-def test_1223(cursor, test_env):
+def test_cursor_1223(cursor, test_env):
     "3901 - test executing a None statement"
     with test_env.assert_raises_full_code("DPY-2001"):
         cursor.executemany(None, [(1,), (2,)])
 
 
-def test_1224(cursor):
+def test_cursor_1224(cursor):
     """
     4024 - test executemany with number of iterations
     (previous bind values)
@@ -396,7 +396,7 @@ def test_1224(cursor):
         assert cursor.fetchall() == expected_value
 
 
-def test_1225(cursor):
+def test_cursor_1225(cursor):
     "1225 - test executemany with empty lists and number of iterations"
     values = [[] for _ in range(5)]
     for num_iterations in (4, 6):
@@ -411,7 +411,7 @@ def test_1225(cursor):
         assert cursor.fetchall() == expected_value
 
 
-def test_1226(cursor):
+def test_cursor_1226(cursor):
     "1226 - test executemany error offset returned correctly"
     data = [(i,) for i in range(1, 11)]
     with pytest.raises(oracledb.Error) as excinfo:
@@ -429,7 +429,7 @@ def test_1226(cursor):
     assert error_obj.offset == 3
 
 
-def test_1227(cursor, empty_tab, test_env):
+def test_cursor_1227(cursor, empty_tab, test_env):
     "1227 - test executemany with number of iterations too small"
     data = [[1], [2], [3]]
     cursor.executemany(
@@ -447,12 +447,12 @@ def test_1227(cursor, empty_tab, test_env):
         cursor.executemany(None, 4)
 
 
-def test_1228(cursor):
+def test_cursor_1228(cursor):
     "1228 - test executemany with empty parameter set"
     cursor.executemany("insert into TestTempTable values (:1)", [])
 
 
-def test_1229(cursor, test_env):
+def test_cursor_1229(cursor, test_env):
     "1229 - test executemany with an empty statement"
     with test_env.assert_raises_full_code("DPY-2066"):
         cursor.executemany("", 5)
@@ -460,7 +460,7 @@ def test_1229(cursor, test_env):
         cursor.executemany("  ", 5)
 
 
-def test_1230(cursor):
+def test_cursor_1230(cursor):
     "1230 - test executemany with batch size 0"
     rows = [[1], [2]]
     with pytest.raises(TypeError):
@@ -472,7 +472,7 @@ def test_1230(cursor):
 
 
 @pytest.mark.parametrize("batch_size", [1, 5, 99, 199, 200])
-def test_1231(batch_size, conn, cursor, empty_tab, round_trip_checker):
+def test_cursor_1231(batch_size, conn, cursor, empty_tab, round_trip_checker):
     "1231 - test executemany with various batch sizes"
     rows = [(i + 1, f"String for row {i + 1}") for i in range(200)]
     cursor.executemany(
@@ -491,7 +491,7 @@ def test_1231(batch_size, conn, cursor, empty_tab, round_trip_checker):
     assert cursor.fetchall() == rows
 
 
-def test_1232(conn, cursor, empty_tab):
+def test_cursor_1232(conn, cursor, empty_tab):
     "1232 - test consecutive executemany() with all values null in first call"
     rows = [(i + 1, None) for i in range(10)] + [
         (i + 11, (i + 11) * 0.25) for i in range(10)
@@ -510,7 +510,7 @@ def test_1232(conn, cursor, empty_tab):
     assert cursor.fetchall() == rows
 
 
-def test_1233(conn, cursor, empty_tab):
+def test_cursor_1233(conn, cursor, empty_tab):
     "1233 - test batched executemany() with all values null in first chunks"
     rows = [(i + 1, None) for i in range(10)] + [
         (i + 11, (i + 11) * 0.25) for i in range(10)
@@ -527,7 +527,7 @@ def test_1233(conn, cursor, empty_tab):
     assert cursor.fetchall() == rows
 
 
-def test_1234(conn, cursor):
+def test_cursor_1234(conn, cursor):
     "1234 - test executemany() with PL/SQL in/out variables"
     typ = conn.gettype("PKG_TESTRECORDS.UDT_RECORDARRAY")
     obj = typ.newobject()

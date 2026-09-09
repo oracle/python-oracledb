@@ -37,7 +37,7 @@ def module_checks(skip_unless_vectors_supported):
     pass
 
 
-def test_1400(conn, test_env):
+def test_dataframe_1400(conn, test_env):
     "1400 - fetch float32 vector"
 
     # float32 is a special case while comparing dataframe values
@@ -62,7 +62,7 @@ def test_1400(conn, test_env):
     assert data == test_env.get_data_from_df(fetched_df)
 
 
-def test_1401(conn, test_env):
+def test_dataframe_1401(conn, test_env):
     "1401 - fetch float64 vector"
     data = [
         ([34.6, 77.8],),
@@ -80,7 +80,7 @@ def test_1401(conn, test_env):
     assert data == test_env.get_data_from_df(fetched_df)
 
 
-def test_1402(conn, test_env):
+def test_dataframe_1402(conn, test_env):
     "1402 - fetch int8 vector"
     data = [
         ([34, -77],),
@@ -98,7 +98,7 @@ def test_1402(conn, test_env):
     assert data == test_env.get_data_from_df(fetched_df)
 
 
-def test_1403(skip_unless_binary_vectors_supported, conn, test_env):
+def test_dataframe_1403(skip_unless_binary_vectors_supported, conn, test_env):
     "1403 - fetch binary vector"
     data = [
         ([3, 2, 3],),
@@ -116,7 +116,7 @@ def test_1403(skip_unless_binary_vectors_supported, conn, test_env):
     assert data == test_env.get_data_from_df(fetched_df)
 
 
-def test_1404(conn, test_env):
+def test_dataframe_1404(conn, test_env):
     "1404 - fetch duplicate float64 vectors"
     data = [
         ([34.6, 77.8],),
@@ -161,7 +161,7 @@ def test_1404(conn, test_env):
     assert data == test_env.get_data_from_df(fetched_df)
 
 
-def test_1405(skip_unless_sparse_vectors_supported, conn, test_env):
+def test_dataframe_1405(skip_unless_sparse_vectors_supported, conn, test_env):
     "1405 - fetch float32 sparse vectors"
     data = [
         (
@@ -188,7 +188,7 @@ def test_1405(skip_unless_sparse_vectors_supported, conn, test_env):
     assert data == test_env.get_data_from_df(fetched_df)
 
 
-def test_1406(skip_unless_sparse_vectors_supported, conn, test_env):
+def test_dataframe_1406(skip_unless_sparse_vectors_supported, conn, test_env):
     "1406 - fetch float64 sparse vectors"
     data = [
         (
@@ -218,7 +218,7 @@ def test_1406(skip_unless_sparse_vectors_supported, conn, test_env):
     assert data == test_env.get_data_from_df(fetched_df)
 
 
-def test_1407(conn, test_env):
+def test_dataframe_1407(conn, test_env):
     "1407 - DPY-3031 - Unsupported flexible vector formats"
     with test_env.assert_raises_full_code("DPY-3031"):
         conn.fetch_df_all("""
@@ -228,7 +228,7 @@ def test_1407(conn, test_env):
             """)
 
 
-def test_1408(conn, test_env):
+def test_dataframe_1408(conn, test_env):
     "1408 - test vector operations with different dimensions"
     data = [([1, 0, 3],), ([0, 5, -12.25, 0],), ([5.5, -6.25, 7, 8, 9],)]
 
@@ -243,7 +243,7 @@ def test_1408(conn, test_env):
     assert data == test_env.get_data_from_df(fetched_df)
 
 
-def test_1409(conn, test_env):
+def test_dataframe_1409(conn, test_env):
     "1409 - test vector operations with large arrays"
     large_array = list(range(1, 1001))
     data = [(large_array,), (large_array,)]
@@ -257,7 +257,7 @@ def test_1409(conn, test_env):
     assert data == test_env.get_data_from_df(fetched_df)
 
 
-def test_1410(skip_unless_sparse_vectors_supported, conn, test_env):
+def test_dataframe_1410(skip_unless_sparse_vectors_supported, conn, test_env):
     "1410 - test sparse vector operations with different dimensions"
     with test_env.assert_raises_full_code("DPY-2065"):
         conn.fetch_df_all("""
@@ -267,7 +267,7 @@ def test_1410(skip_unless_sparse_vectors_supported, conn, test_env):
             """)
 
 
-def test_1411(conn, test_env):
+def test_dataframe_1411(conn, test_env):
     "1411 - test mixed vector types in a single dataframe"
     data = [
         ([1.5, 2.5, 3.5], [1, 2, 3]),
@@ -286,7 +286,7 @@ def test_1411(conn, test_env):
     assert data == test_env.get_data_from_df(fetched_df)
 
 
-def test_1412(conn, test_env):
+def test_dataframe_1412(conn, test_env):
     "1412 - test vectors with very large dimensions"
     large_dim = 800
     large_vector = [2.25] * large_dim
@@ -301,7 +301,7 @@ def test_1412(conn, test_env):
     assert data == test_env.get_data_from_df(fetched_df)
 
 
-def test_1413(skip_unless_binary_vectors_supported, conn, test_env):
+def test_dataframe_1413(skip_unless_binary_vectors_supported, conn, test_env):
     "1413 - test binary vector edge case - max value"
     data = [
         ([255, 255, 255],),

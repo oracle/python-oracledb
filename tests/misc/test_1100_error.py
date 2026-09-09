@@ -32,7 +32,7 @@ import pickle
 import oracledb
 
 
-def test_1100(cursor):
+def test_misc_1100(cursor):
     "1100 - test parse error returns offset correctly"
     with pytest.raises(oracledb.Error) as excinfo:
         cursor.execute("begin t_Missing := 5; end;")
@@ -41,7 +41,7 @@ def test_1100(cursor):
     assert error_obj.offset == 6
 
 
-def test_1101(cursor):
+def test_misc_1101(cursor):
     "1101 - test picking/unpickling an error object"
     with pytest.raises(oracledb.Error) as excinfo:
         cursor.execute("""
@@ -65,7 +65,7 @@ def test_1101(cursor):
     assert new_error_obj.isrecoverable == error_obj.isrecoverable
 
 
-def test_1102(conn):
+def test_misc_1102(conn):
     "1102 - test generation of full_code for ORA, DPI and DPY errors"
     cursor = conn.cursor()
     with pytest.raises(oracledb.Error) as excinfo:
@@ -91,7 +91,7 @@ def test_1102(conn):
         assert error_obj.full_code == "DPI-1037"
 
 
-def test_1103(conn, test_env):
+def test_misc_1103(conn, test_env):
     "1103 - test generation of error help portal URL"
     if not test_env.has_client_version(23):
         pytest.skip("unsupported client")
@@ -103,7 +103,7 @@ def test_1103(conn, test_env):
     assert to_check in error_obj.message
 
 
-def test_1104(cursor):
+def test_misc_1104(cursor):
     "1104 - verify warning is generated when creating a procedure"
     proc_name = "bad_proc_1704"
     assert cursor.warning is None
@@ -124,7 +124,7 @@ def test_1104(cursor):
     cursor.execute(f"drop procedure {proc_name}")
 
 
-def test_1105(cursor):
+def test_misc_1105(cursor):
     "1105 - verify warning is generated when creating a function"
     func_name = "bad_func_1705"
     cursor.execute(f"""
@@ -139,7 +139,7 @@ def test_1105(cursor):
     assert cursor.warning is None
 
 
-def test_1106(cursor):
+def test_misc_1106(cursor):
     "1106 - verify warning is generated when creating a type"
     type_name = "bad_type_1706"
     cursor.execute(f"""
@@ -152,7 +152,7 @@ def test_1106(cursor):
     assert cursor.warning is None
 
 
-def test_1107(cursor):
+def test_misc_1107(cursor):
     "1107 - verify warning is generated with executemany()"
     proc_name = "bad_proc_1707"
     assert cursor.warning is None
@@ -176,7 +176,7 @@ def test_1107(cursor):
     cursor.execute(f"drop procedure {proc_name}")
 
 
-def test_1108(cursor):
+def test_misc_1108(cursor):
     "1108 - user defined errors do not generate error help portal URL"
     for code in (20000, 20500, 20999):
         with pytest.raises(oracledb.Error) as excinfo:
@@ -191,7 +191,7 @@ def test_1108(cursor):
         assert "Help:" not in error_obj.message
 
 
-def test_1109(skip_if_drcp, conn, test_env):
+def test_misc_1109(skip_if_drcp, conn, test_env):
     "1109 - error from killed connection is deemed recoverable"
     with test_env.get_admin_connection() as admin_conn:
         conn = test_env.get_connection()

@@ -52,7 +52,7 @@ def _verify_connection(conn, expected_user, expected_proxy_user=None):
         )
 
 
-def test_1900(test_env):
+def test_connection_1900(test_env):
     """
     5000 - test error on creating a pool with user and password specified
     and externalauth enabled
@@ -68,7 +68,7 @@ def test_1900(test_env):
         )
 
 
-def test_1901(test_env):
+def test_connection_1901(test_env):
     """
     5001 - test error on creating a pool without password and with user
     specified and externalauth enabled
@@ -85,7 +85,7 @@ def test_1901(test_env):
         )
 
 
-def test_1902(test_env):
+def test_connection_1902(test_env):
     """
     5002 - test error on creating a pool without user and with password
     specified and externalauth enabled
@@ -102,7 +102,7 @@ def test_1902(test_env):
         )
 
 
-def test_1903(test_env):
+def test_connection_1903(test_env):
     """
     5003 - test creating a pool with user and password specified and
     externalauth set to False
@@ -119,7 +119,7 @@ def test_1903(test_env):
         _verify_connection(conn, test_env.main_user)
 
 
-def test_1904(test_env):
+def test_connection_1904(test_env):
     """
     5004 - test error when connecting with user and password specified
     and externalauth enabled
@@ -133,7 +133,7 @@ def test_1904(test_env):
         )
 
 
-def test_1905(test_env):
+def test_connection_1905(test_env):
     """
     5005 - test error when connecting without username and with password
     specified and externalauth enabled
@@ -153,7 +153,7 @@ def test_1905(test_env):
         )
 
 
-def test_1906(test_env):
+def test_connection_1906(test_env):
     """
     5006 - test error when connecting without password and with user
     specified and externalauth enabled
@@ -170,7 +170,7 @@ def test_1906(test_env):
         oracledb.connect(user="[invalid_user]", dsn=test_env.connect_string)
 
 
-def test_1907(test_env):
+def test_connection_1907(test_env):
     "1907 - test external authentication with invalid proxy user"
     with test_env.assert_raises_full_code("DPI-1069"):
         oracledb.connect(
@@ -187,7 +187,7 @@ def test_1907(test_env):
         )
 
 
-def test_1908(test_env):
+def test_connection_1908(test_env):
     """
     5008 - test creating a connection with user and password specified and
     externalauth set to False
@@ -201,7 +201,7 @@ def test_1908(test_env):
     _verify_connection(conn, test_env.main_user)
 
 
-def test_1909(test_env):
+def test_connection_1909(test_env):
     """
     5009 - test creating standalone connection with externalauth set to
     True explicitly
@@ -210,7 +210,7 @@ def test_1909(test_env):
     _verify_connection(conn, test_env.external_user)
 
 
-def test_1910(test_env):
+def test_connection_1910(test_env):
     """
     5010 - test creating standalone connection with no user and password
     specified and externalauth not set
@@ -219,7 +219,7 @@ def test_1910(test_env):
     _verify_connection(conn, test_env.external_user)
 
 
-def test_1911(test_env):
+def test_connection_1911(test_env):
     "1911 - test creating a pool with external authentication"
     pool = oracledb.create_pool(
         dsn=test_env.connect_string,
@@ -235,7 +235,7 @@ def test_1911(test_env):
         _verify_connection(conn, test_env.external_user)
 
 
-def test_1912(test_env):
+def test_connection_1912(test_env):
     """
     5012 - test creating a pool without user and password specified and
     externalauth not set
@@ -252,7 +252,7 @@ def test_1912(test_env):
         pool.acquire()
 
 
-def test_1913(test_env):
+def test_connection_1913(test_env):
     "1913 - test pool min is always 0 under external authentication"
     pool = oracledb.create_pool(
         dsn=test_env.connect_string,
@@ -266,7 +266,7 @@ def test_1913(test_env):
     assert pool.opened == 0
 
 
-def test_1914(test_env):
+def test_connection_1914(test_env):
     "1914 - test pool increment is always 1 under external authentication"
     pool = oracledb.create_pool(
         dsn=test_env.connect_string,
@@ -285,7 +285,7 @@ def test_1914(test_env):
     conn2.close()
 
 
-def test_1915(test_env):
+def test_connection_1915(test_env):
     "1915 - test external authentication with proxy"
     proxy_user = test_env.external_user
     schema_user = test_env.main_user
@@ -301,7 +301,7 @@ def test_1915(test_env):
     _verify_connection(conn2, schema_user, proxy_user)
 
 
-def test_1916(test_env):
+def test_connection_1916(test_env):
     "1916 - test creating pool using external authentication with proxy"
     proxy_user = test_env.external_user
     schema_user = test_env.main_user

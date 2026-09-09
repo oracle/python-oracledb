@@ -27,7 +27,7 @@ Module for testing scrollable cursors
 """
 
 
-def test_1600(conn):
+def test_cursor_1600(conn):
     "1600 - test creating a scrollable cursor"
     cursor = conn.cursor()
     assert not cursor.scrollable
@@ -39,7 +39,7 @@ def test_1600(conn):
     assert not cursor.scrollable
 
 
-def test_1601(conn, test_env):
+def test_cursor_1601(conn, test_env):
     "1601 - test scrolling absolute yields an exception (after result set)"
     test_env.skip_unless_server_version(12, 2)
     cursor = conn.cursor(scrollable=True)
@@ -48,7 +48,7 @@ def test_1601(conn, test_env):
         cursor.scroll(12, "absolute")
 
 
-def test_1602(conn):
+def test_cursor_1602(conn):
     "1602 - test scrolling absolute (when in buffers)"
     cursor = conn.cursor(scrollable=True)
     cursor.prefetchrows = 0
@@ -63,7 +63,7 @@ def test_1602(conn):
     assert cursor.rowcount == 1
 
 
-def test_1603(conn, test_env):
+def test_cursor_1603(conn, test_env):
     "1603 - test scrolling absolute (when not in buffers)"
     test_env.skip_unless_server_version(12, 2)
     cursor = conn.cursor(scrollable=True)
@@ -74,7 +74,7 @@ def test_1603(conn, test_env):
     assert cursor.rowcount == 6
 
 
-def test_1604(conn):
+def test_cursor_1604(conn):
     "1604 - test scrolling to first row in result set (in buffers)"
     cursor = conn.cursor(scrollable=True)
     cursor.prefetchrows = 0
@@ -86,7 +86,7 @@ def test_1604(conn):
     assert cursor.rowcount == 1
 
 
-def test_1605(conn):
+def test_cursor_1605(conn):
     "1605 - test scrolling to first row in result set (not in buffers)"
     cursor = conn.cursor(scrollable=True)
     cursor.prefetchrows = 0
@@ -99,7 +99,7 @@ def test_1605(conn):
     assert cursor.rowcount == 1
 
 
-def test_1606(conn):
+def test_cursor_1606(conn):
     "1606 - test scrolling to last row in result set"
     cursor = conn.cursor(scrollable=True)
     cursor.execute("select NumberCol from TestNumbers order by IntCol")
@@ -109,7 +109,7 @@ def test_1606(conn):
     assert cursor.rowcount == 10
 
 
-def test_1607(conn, test_env):
+def test_cursor_1607(conn, test_env):
     "1607 - test scrolling relative yields an exception (after result set)"
     test_env.skip_unless_server_version(12, 2)
     cursor = conn.cursor(scrollable=True)
@@ -118,7 +118,7 @@ def test_1607(conn, test_env):
         cursor.scroll(15)
 
 
-def test_1608(conn, test_env):
+def test_cursor_1608(conn, test_env):
     "1608 - test scrolling relative yields exception (before result set)"
     cursor = conn.cursor(scrollable=True)
     cursor.execute("select NumberCol from TestNumbers order by IntCol")
@@ -126,7 +126,7 @@ def test_1608(conn, test_env):
         cursor.scroll(-5)
 
 
-def test_1609(conn):
+def test_cursor_1609(conn):
     "1609 - test scrolling relative (when in buffers)"
     cursor = conn.cursor(scrollable=True)
     cursor.prefetchrows = 0
@@ -140,7 +140,7 @@ def test_1609(conn):
     assert cursor.rowcount == 2
 
 
-def test_1610(conn):
+def test_cursor_1610(conn):
     "1610 - test scrolling relative (when not in buffers)"
     cursor = conn.cursor(scrollable=True)
     cursor.execute("select NumberCol from TestNumbers order by IntCol")
@@ -154,7 +154,7 @@ def test_1610(conn):
     assert cursor.rowcount == 3
 
 
-def test_1611(conn, cursor, test_env):
+def test_cursor_1611(conn, cursor, test_env):
     "1611 - test scrolling when there are no rows"
     test_env.skip_unless_server_version(12, 2)
     cursor.execute("truncate table TestTempTable")
@@ -168,7 +168,7 @@ def test_1611(conn, cursor, test_env):
         cursor.scroll(1, mode="absolute")
 
 
-def test_1612(conn, cursor, test_env):
+def test_cursor_1612(conn, cursor, test_env):
     "1612 - test scrolling with differing array and fetch array sizes"
     test_env.skip_unless_server_version(12, 2)
     cursor.execute("truncate table TestTempTable")
@@ -203,7 +203,7 @@ def test_1612(conn, cursor, test_env):
             assert cursor.rowcount == count
 
 
-def test_1613(conn, test_env):
+def test_cursor_1613(conn, test_env):
     "1613 - test calling scroll() with invalid mode"
     cursor = conn.cursor(scrollable=True)
     cursor.execute("select NumberCol from TestNumbers order by IntCol")
@@ -212,7 +212,7 @@ def test_1613(conn, test_env):
         cursor.scroll(mode="middle")
 
 
-def test_1614(conn):
+def test_cursor_1614(conn):
     "1614 - test scroll after fetching all rows"
     cursor = conn.cursor(scrollable=True)
     cursor.arraysize = 5
@@ -225,7 +225,7 @@ def test_1614(conn):
     assert cursor.rowcount == 5
 
 
-def test_1615(conn):
+def test_cursor_1615(conn):
     "1615 - test parse() on a scrollable cursor"
     cursor = conn.cursor(scrollable=True)
     statement = """
@@ -248,7 +248,7 @@ def test_1615(conn):
     assert fetched_value == 5
 
 
-def test_1616(conn):
+def test_cursor_1616(conn):
     "1616 - test scroll operation with bind values"
     cursor = conn.cursor(scrollable=True)
     base_value = 4215
@@ -267,7 +267,7 @@ def test_1616(conn):
     assert fetched_value == base_value + 3
 
 
-def test_1617(conn, test_env):
+def test_cursor_1617(conn, test_env):
     "1617 - test calling scroll() on a non-scrollable cursor"
     cursor = conn.cursor()
     cursor.execute("select NumberCol from TestNumbers order by IntCol")

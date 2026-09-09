@@ -82,7 +82,7 @@ def output_type_handler(cursor, metadata):
         )
 
 
-def test_1100(cursor, test_env):
+def test_hooks_1100(cursor, test_env):
     "1100 - binding unsupported python object without input type handler"
     cursor.execute("truncate table TestTempTable")
     sql = "insert into TestTempTable (IntCol, StringCol1) values (:1, :2)"
@@ -91,7 +91,7 @@ def test_1100(cursor, test_env):
         cursor.execute(sql, [building.building_id, building])
 
 
-def test_1101(cursor):
+def test_hooks_1101(cursor):
     "1101 - not callable input type handler"
     cursor.execute("truncate table TestTempTable")
     building = Building(1, "The First Building", 5)
@@ -102,7 +102,7 @@ def test_1101(cursor):
         cursor.execute(sql, (building.building_id, building))
 
 
-def test_1102(conn, cursor):
+def test_hooks_1102(conn, cursor):
     "1102 - binding unsupported python object with input type handler"
     cursor.execute("truncate table TestTempTable")
     building = Building(1, "The First Building", 5)
@@ -120,7 +120,7 @@ def test_1102(conn, cursor):
     assert cursor.fetchall() == [(building.building_id, building.to_json())]
 
 
-def test_1103(conn, cursor, test_env):
+def test_hooks_1103(conn, cursor, test_env):
     "1103 - input type handler and output type handler on cursor level"
     cursor.execute("truncate table TestTempTable")
     building_one = Building(1, "The First Building", 5)
@@ -147,7 +147,7 @@ def test_1103(conn, cursor, test_env):
     assert cursor_two.fetchall() == [(building_one.building_id, building_one)]
 
 
-def test_1104(cursor, test_env):
+def test_hooks_1104(cursor, test_env):
     "1104 - input type handler and output type handler on connection level"
     cursor.execute("truncate table TestTempTable")
     building_one = Building(1, "The First Building", 5)
@@ -180,7 +180,7 @@ def test_1104(cursor, test_env):
             other_cursor.execute(sql, (building_one.building_id, building_one))
 
 
-def test_1105(conn, cursor):
+def test_hooks_1105(conn, cursor):
     "1105 - output type handler with outconvert and null values"
     cursor.execute("truncate table TestTempTable")
     data_to_insert = [(1, "String 1"), (2, None), (3, "String 2")]
@@ -212,7 +212,7 @@ def test_1105(conn, cursor):
     assert cursor.fetchall() == expected_data
 
 
-def test_1106(cursor, test_env):
+def test_hooks_1106(cursor, test_env):
     "1106 - output type handler for fetching 21c JSON"
 
     def output_type_handler(cursor, metadata):
@@ -257,7 +257,7 @@ def test_1106(cursor, test_env):
     assert cursor.fetchall() == data_to_insert
 
 
-def test_1107(cursor, test_env):
+def test_hooks_1107(cursor, test_env):
     "1107 - output type handler for encoding errors"
 
     if test_env.charset != "AL32UTF8":
@@ -279,7 +279,7 @@ def test_1107(cursor, test_env):
     assert result == expected_result
 
 
-def test_1108(conn):
+def test_hooks_1108(conn):
     "1108 - output type handler with object implementing __call__()"
 
     class TimestampOutputTypeHandler:

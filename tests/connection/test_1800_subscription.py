@@ -84,7 +84,7 @@ def skip_unless_has_client_23(test_env):
         pytest.skip("crashes in older clients")
 
 
-def test_1800(skip_unless_has_client_23, cursor, test_env):
+def test_connection_1800(skip_unless_has_client_23, cursor, test_env):
     "1800 - test subscription for insert, update, delete and truncate"
 
     # skip if running on the Oracle Cloud, which does not support
@@ -171,7 +171,7 @@ def test_1800(skip_unless_has_client_23, cursor, test_env):
     conn.unsubscribe(sub)
 
 
-def test_1801(conn, test_env):
+def test_connection_1801(conn, test_env):
     "1801 - test to verify deprecations"
     with test_env.assert_raises_full_code("DPY-2014"):
         conn.subscribe(ip_address="www.oracle.in", ipAddress="www.oracle.in")
@@ -185,7 +185,7 @@ def test_1801(conn, test_env):
         conn.subscribe(client_initiated=True, clientInitiated=True)
 
 
-def test_1802(skip_unless_has_client_23, conn, test_env):
+def test_connection_1802(skip_unless_has_client_23, conn, test_env):
     "1802 - test subscription for AQ"
 
     # create queue and clear it of all messages
@@ -212,7 +212,7 @@ def test_1802(skip_unless_has_client_23, conn, test_env):
 
 
 @pytest.mark.skip("fails intermittently")
-def test_1803(skip_unless_has_client_23, test_env):
+def test_connection_1803(skip_unless_has_client_23, test_env):
     "1803 - test verifying what registerquery returns"
     data = DMLSubscriptionData(5)
     qos_constants = [
@@ -239,7 +239,7 @@ def test_1803(skip_unless_has_client_23, test_env):
         conn.close()
 
 
-def test_1804(skip_unless_has_client_23, test_env):
+def test_connection_1804(skip_unless_has_client_23, test_env):
     "1804 - test Subscription repr()"
     data = DMLSubscriptionData(5)
     with test_env.get_connection(events=True) as conn:
@@ -250,7 +250,7 @@ def test_1804(skip_unless_has_client_23, test_env):
         conn.unsubscribe(sub)
 
 
-def test_1805(skip_unless_has_client_23, test_env):
+def test_connection_1805(skip_unless_has_client_23, test_env):
     "1805 - test registerquery with invalid parameters"
     data = DMLSubscriptionData(5)
     with test_env.get_connection(events=True) as conn:
@@ -270,7 +270,7 @@ def test_1805(skip_unless_has_client_23, test_env):
         conn.unsubscribe(sub)
 
 
-def test_1806(skip_unless_has_client_23, test_env):
+def test_connection_1806(skip_unless_has_client_23, test_env):
     "1806 - test getting subscription attributes"
     data = DMLSubscriptionData(1)
     conn = test_env.get_connection(events=True)
@@ -298,7 +298,7 @@ def test_1806(skip_unless_has_client_23, test_env):
 
 
 @pytest.mark.skip("fails intermittently")
-def test_1807(skip_unless_has_client_23, test_env):
+def test_connection_1807(skip_unless_has_client_23, test_env):
     "1807 - test getting Message, MessageQuery, MessageTable attributes"
     event = threading.Event()
     conn = test_env.get_connection(events=True)
@@ -340,7 +340,7 @@ def test_1807(skip_unless_has_client_23, test_env):
     conn.unsubscribe(sub)
 
 
-def test_1808(skip_unless_has_client_23, test_env):
+def test_connection_1808(skip_unless_has_client_23, test_env):
     "1808 - test unsubscribe with invalid parameter"
     with test_env.get_connection(events=True) as conn:
         pytest.raises(TypeError, conn.unsubscribe, "not a sub object")
@@ -352,7 +352,7 @@ def test_1808(skip_unless_has_client_23, test_env):
             conn.unsubscribe(sub)
 
 
-def test_1810(skip_unless_has_client_23, test_env):
+def test_connection_1810(skip_unless_has_client_23, test_env):
     "1810 - test registerquery in the middle of an active transaction"
     with test_env.get_connection(events=True) as connection:
         cursor = connection.cursor()
@@ -368,7 +368,7 @@ def test_1810(skip_unless_has_client_23, test_env):
         connection.unsubscribe(sub)
 
 
-def test_1811(skip_unless_has_client_23, test_env):
+def test_connection_1811(skip_unless_has_client_23, test_env):
     "1811 - test registerquery with aq subscription"
     with test_env.get_connection(events=True) as connection:
         sub = connection.subscribe(
@@ -382,7 +382,7 @@ def test_1811(skip_unless_has_client_23, test_env):
         connection.unsubscribe(sub)
 
 
-def test_1813(skip_unless_has_client_23, cursor, test_env):
+def test_connection_1813(skip_unless_has_client_23, cursor, test_env):
     "1813 - test subscription with SUBSCR_QOS_DEREG_NFY deregisters"
     if test_env.is_on_oracle_cloud:
         pytest.skip("AQ notification not supported on the cloud")
@@ -410,7 +410,7 @@ def test_1813(skip_unless_has_client_23, cursor, test_env):
     assert event.wait(5)
 
 
-def test_1814(skip_unless_has_client_23, test_env):
+def test_connection_1814(skip_unless_has_client_23, test_env):
     "1814 - test adding a consumer to a single consumer queue (negative)"
     with test_env.get_connection(events=True) as conn:
         single_consumer_queue = "TEST_SHARDED_RAW_QUEUE"

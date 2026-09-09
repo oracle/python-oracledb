@@ -35,7 +35,7 @@ def module_checks(anyio_backend, skip_unless_thin_mode):
     pass
 
 
-async def test_2600(async_conn, async_cursor, test_env):
+async def test_data_types_2600(async_conn, async_cursor, test_env):
     "2600 - test binding in a cursor"
     ref_cursor = async_conn.cursor()
     assert ref_cursor.description is None
@@ -63,7 +63,7 @@ async def test_2600(async_conn, async_cursor, test_env):
     assert await ref_cursor.fetchall() == [("X",)]
 
 
-async def test_2601(async_conn, async_cursor, test_env):
+async def test_data_types_2601(async_conn, async_cursor, test_env):
     "2601 - test binding in a cursor from a package"
     ref_cursor = async_conn.cursor()
     assert ref_cursor.description is None
@@ -87,7 +87,7 @@ async def test_2601(async_conn, async_cursor, test_env):
     assert await ref_cursor.fetchall() == [(1, "String 1"), (2, "String 2")]
 
 
-async def test_2602(async_cursor, test_env):
+async def test_data_types_2602(async_cursor, test_env):
     "2602 - test that binding the cursor itself is not supported"
     sql = """
             begin
@@ -98,7 +98,7 @@ async def test_2602(async_cursor, test_env):
         await async_cursor.execute(sql, pcursor=async_cursor)
 
 
-async def test_2603(async_conn, async_cursor):
+async def test_data_types_2603(async_conn, async_cursor):
     "2603 - test returning a ref cursor after closing it"
     out_cursor = async_conn.cursor()
     sql = """
@@ -117,7 +117,7 @@ async def test_2603(async_conn, async_cursor):
     assert rows == rows2
 
 
-async def test_2604(async_cursor):
+async def test_data_types_2604(async_cursor):
     "2604 - test fetching a cursor"
     await async_cursor.execute("""
         select IntCol, cursor(select IntCol + 1 from dual) CursorValue
@@ -143,7 +143,7 @@ async def test_2604(async_cursor):
         assert await cursor.fetchall() == [(i + 1,)]
 
 
-async def test_2605(async_conn, async_cursor):
+async def test_data_types_2605(async_conn, async_cursor):
     "2605 - test that ref cursor binds cannot use optimised path"
     ref_cursor = async_conn.cursor()
     sql = """
@@ -168,7 +168,7 @@ async def test_2605(async_conn, async_cursor):
     assert await ref_cursor.fetchall() == expected_value
 
 
-async def test_2606(async_conn, round_trip_checker_async):
+async def test_data_types_2606(async_conn, round_trip_checker_async):
     "2606 - test round trips using a REF cursor"
 
     # simple DDL only requires a single round trip
@@ -203,7 +203,7 @@ async def test_2606(async_conn, round_trip_checker_async):
         assert await round_trip_checker_async.get_value_async() == 6
 
 
-async def test_2607(async_conn):
+async def test_data_types_2607(async_conn):
     "2607 - test executing different SQL after getting a REF cursor"
     with async_conn.cursor() as cursor:
         refcursor = async_conn.cursor()
@@ -213,7 +213,7 @@ async def test_2607(async_conn):
         assert var.getvalue() == 15
 
 
-async def test_2608(async_conn):
+async def test_data_types_2608(async_conn):
     "2608 - test calling a function that returns a REF cursor"
     with async_conn.cursor() as cursor:
         ref_cursor = await cursor.callfunc(
@@ -227,7 +227,7 @@ async def test_2608(async_conn):
         ]
 
 
-async def test_2609(async_conn, async_cursor):
+async def test_data_types_2609(async_conn, async_cursor):
     "2609 - test using an output type handler with a REF cursor"
 
     def type_handler(cursor, metadata):
@@ -244,7 +244,7 @@ async def test_2609(async_conn, async_cursor):
     assert await ref_cursor.fetchall() == [(string_val,)]
 
 
-async def test_2610(async_cursor, test_env):
+async def test_data_types_2610(async_cursor, test_env):
     "2610 - bind a REF cursor but never open it"
     ref_cursor_var = async_cursor.var(oracledb.DB_TYPE_CURSOR)
     await async_cursor.execute(
@@ -265,7 +265,7 @@ async def test_2610(async_cursor, test_env):
             await ref_cursor.fetchall()
 
 
-async def test_2611(test_env):
+async def test_data_types_2611(test_env):
     "2611 - test fetching a cursor with a custom class"
 
     class Counter:
@@ -292,7 +292,7 @@ async def test_2611(test_env):
     assert Counter.num_cursors_created == 3
 
 
-async def test_2612(async_cursor):
+async def test_data_types_2612(async_cursor):
     "2612 - test that nested cursors are fetched correctly"
     sql = """
         select
@@ -349,7 +349,7 @@ async def test_2612(async_cursor):
     assert rows == expected_value
 
 
-async def test_2613(async_cursor):
+async def test_data_types_2613(async_cursor):
     "2613 - test fetching nested cursors with more columns than parent"
     sql = """
         select
@@ -382,7 +382,7 @@ async def test_2613(async_cursor):
     assert rows == expected_value
 
 
-async def test_2614(async_conn, async_cursor):
+async def test_data_types_2614(async_conn, async_cursor):
     "2614 - test reusing a closed ref cursor for executing different sql"
     sql = "select 58141, 'String 58141' from dual"
     ref_cursor = async_conn.cursor()
@@ -397,7 +397,7 @@ async def test_2614(async_conn, async_cursor):
     ]
 
 
-async def test_2615(async_conn, async_cursor):
+async def test_data_types_2615(async_conn, async_cursor):
     "2615 - test reusing a closed ref cursor for executing same sql"
     sql = "select 5815, 'String 5815' from dual"
     ref_cursor = async_conn.cursor()

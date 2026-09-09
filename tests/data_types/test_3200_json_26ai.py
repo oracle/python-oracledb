@@ -64,7 +64,7 @@ def _test_round_trip_json(cursor, value):
     assert fetched_value == value
 
 
-def test_3200(cursor):
+def test_data_types_3200(cursor):
     "3200 - fetch JSON with a field name greater than 255 bytes"
     fname_long = "A" * 256
     value = {}
@@ -72,7 +72,7 @@ def test_3200(cursor):
     _test_fetch_json(cursor, value)
 
 
-def test_3201(cursor):
+def test_data_types_3201(cursor):
     "3201 - fetch JSON with field names greater and less than 255 bytes"
     fname_short = "short_name"
     fname_long = "A" * 256
@@ -82,7 +82,7 @@ def test_3201(cursor):
     _test_fetch_json(cursor, value)
 
 
-def test_3202(cursor):
+def test_data_types_3202(cursor):
     "3202 - fetch JSON with many field names greater than 255 bytes"
     value = {}
     for i in range(26):
@@ -92,7 +92,7 @@ def test_3202(cursor):
     _test_fetch_json(cursor, value)
 
 
-def test_3203(cursor):
+def test_data_types_3203(cursor):
     "3203 - fetch JSON with many field names (large and small)"
     value = {}
     for i in range(26):
@@ -104,7 +104,7 @@ def test_3203(cursor):
     _test_fetch_json(cursor, value)
 
 
-def test_3204(cursor):
+def test_data_types_3204(cursor):
     "3204 - fetch JSON with many field names (one large and many small)"
     value = {}
     long_name = "B" * 256
@@ -116,7 +116,7 @@ def test_3204(cursor):
     _test_fetch_json(cursor, value)
 
 
-def test_3205(cursor):
+def test_data_types_3205(cursor):
     "3205 - round trip JSON with a field name greater than 255 bytes"
     fname_long = "A" * 256
     value = {}
@@ -124,7 +124,7 @@ def test_3205(cursor):
     _test_round_trip_json(cursor, value)
 
 
-def test_3206(cursor):
+def test_data_types_3206(cursor):
     "3206 - round trip JSON with field names (small and large)"
     fname_short = "short_name"
     fname_long = "A" * 256
@@ -134,7 +134,7 @@ def test_3206(cursor):
     _test_round_trip_json(cursor, value)
 
 
-def test_3207(cursor):
+def test_data_types_3207(cursor):
     "3207 - round trip JSON with many field names greater than 255 bytes"
     value = {}
     for i in range(26):
@@ -144,7 +144,7 @@ def test_3207(cursor):
     _test_round_trip_json(cursor, value)
 
 
-def test_3208(cursor):
+def test_data_types_3208(cursor):
     "3208 - round trip JSON with many field names (large and small)"
     value = {}
     for i in range(26):
@@ -156,7 +156,7 @@ def test_3208(cursor):
     _test_round_trip_json(cursor, value)
 
 
-def test_3209(cursor):
+def test_data_types_3209(cursor):
     "3209 - round trip JSON with many field names (1 large and many small)"
     value = {}
     long_name = "B" * 256
@@ -168,7 +168,7 @@ def test_3209(cursor):
     _test_round_trip_json(cursor, value)
 
 
-def test_3210(cursor):
+def test_data_types_3210(cursor):
     "3210 - fetch JSON with relative offsets"
     value = {}
     fname_long = "C" * 256
@@ -178,7 +178,7 @@ def test_3210(cursor):
     _test_fetch_json(cursor, value, "TestCompressedJson")
 
 
-def test_3211(cursor):
+def test_data_types_3211(cursor):
     "3211 - fetch JSON with relative offsets and shared fields and values"
     value = []
     for i in range(15):
@@ -186,7 +186,7 @@ def test_3211(cursor):
     _test_fetch_json(cursor, value, "TestCompressedJson")
 
 
-def test_3212(cursor):
+def test_data_types_3212(cursor):
     "3212 - fetch JSON with relative offsets and shared fields, not values"
     value = []
     for i in range(15):

@@ -51,7 +51,7 @@ def _test_writable_parameter(name, value, params=None):
     assert getattr(params, name) == value
 
 
-def test_1400():
+def test_misc_1400():
     "1400 - test writable parameters"
     _test_writable_parameter("min", 8, oracledb.PoolParams(max=10))
     _test_writable_parameter("max", 12)
@@ -69,7 +69,7 @@ def test_1400():
     _test_writable_parameter("ping_timeout", 3000)
 
 
-def test_1401(test_env):
+def test_misc_1401(test_env):
     "1401 - test PoolParams repr()"
     values = [
         ("min", 3),
@@ -146,7 +146,7 @@ def test_1401(test_env):
     assert params.getmode is oracledb.PoolGetMode.WAIT
 
 
-def test_1402():
+def test_misc_1402():
     "1402 - test extended connect strings for ConnectParams"
     test_scenarios = [
         ("getmode", "NOWAIT", oracledb.POOL_GETMODE_NOWAIT),
@@ -256,7 +256,7 @@ class DummyConnection(oracledb.Connection):
         ("transaction_priority", oracledb.TransactionPriority.LOW),
     ],
 )
-def test_1403(attr_name, value):
+def test_misc_1403(attr_name, value):
     "1403 - test ConnectParams __eq__()"
     params = oracledb.PoolParams()
     other_params = oracledb.PoolParams()

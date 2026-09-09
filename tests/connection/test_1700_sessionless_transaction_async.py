@@ -29,8 +29,8 @@ server-side procedures with DBMS_TRANSACTION package and asyncio.
 
 import pytest
 
-TRANSACTION_ID_CLIENT = b"test_1700_client"
-TRANSACTION_ID_SERVER = b"test_1700_server"
+TRANSACTION_ID_CLIENT = b"test_connection_1700_client"
+TRANSACTION_ID_SERVER = b"test_connection_1700_server"
 
 
 @pytest.fixture(autouse=True)
@@ -57,7 +57,7 @@ def _get_server_start_stmt(mode):
     END;"""
 
 
-async def test_1700(async_cursor, test_env):
+async def test_connection_1700(async_cursor, test_env):
     "1700 - test sessionless transaction using client API"
     await async_cursor.execute("truncate table TestTempTable")
 
@@ -131,7 +131,7 @@ async def test_1700(async_cursor, test_env):
         assert len(await cursor.fetchall()) == 3
 
 
-async def test_1701(async_cursor, test_env):
+async def test_connection_1701(async_cursor, test_env):
     "1701 - test sessionless transaction using server-side procedures"
     await async_cursor.execute("truncate table TestTempTable")
 
@@ -180,7 +180,7 @@ async def test_1701(async_cursor, test_env):
     assert len(await async_cursor.fetchall()) == 2
 
 
-async def test_1702(async_cursor, test_env):
+async def test_connection_1702(async_cursor, test_env):
     "1702 - test error conditions with server API sessionless transactions"
     await async_cursor.execute("truncate table TestTempTable")
 
@@ -231,7 +231,7 @@ async def test_1702(async_cursor, test_env):
                 )
 
 
-async def test_1703(async_cursor, test_env):
+async def test_connection_1703(async_cursor, test_env):
     "1703 - test rollback of sessionless transaction"
     await async_cursor.execute("truncate table TestTempTable")
 
@@ -261,7 +261,7 @@ async def test_1703(async_cursor, test_env):
         assert await cursor.fetchall() == []
 
 
-async def test_1704(async_cursor, test_env):
+async def test_connection_1704(async_cursor, test_env):
     "1704 - test multiple operations within same sessionless transaction"
     await async_cursor.execute("truncate table TestTempTable")
 
@@ -307,7 +307,7 @@ async def test_1704(async_cursor, test_env):
         assert await cursor.fetchall() == [(1, "updated")]
 
 
-async def test_1705(async_cursor, test_env):
+async def test_connection_1705(async_cursor, test_env):
     "1705 - test concurrent sessionless transactions"
     await async_cursor.execute("truncate table TestTempTable")
 
@@ -364,7 +364,7 @@ async def test_1705(async_cursor, test_env):
         assert await cursor.fetchall() == expected_data
 
 
-async def test_1706(async_conn, async_cursor, test_env):
+async def test_connection_1706(async_conn, async_cursor, test_env):
     "1706 - test sessionless transaction with large data"
     await async_cursor.execute("delete from TestAllTypes")
     await async_conn.commit()
@@ -395,7 +395,7 @@ async def test_1706(async_conn, async_cursor, test_env):
         assert result == large_string
 
 
-async def test_1707(async_conn, async_cursor, test_env):
+async def test_connection_1707(async_conn, async_cursor, test_env):
     "1707 - test sessionless transaction with multiple suspends/resumes"
     await async_cursor.execute("truncate table TestTempTable")
 
@@ -452,7 +452,7 @@ async def test_1707(async_conn, async_cursor, test_env):
     assert await async_cursor.fetchall() == data
 
 
-async def test_1708(async_conn, async_cursor, test_env):
+async def test_connection_1708(async_conn, async_cursor, test_env):
     "1708 - Test sessionless transaction with invalid resume attempts"
     await async_cursor.execute("truncate table TestTempTable")
 
@@ -473,7 +473,7 @@ async def test_1708(async_conn, async_cursor, test_env):
         await conn.resume_sessionless_transaction(transaction_id)
 
 
-async def test_1709(async_conn, async_cursor):
+async def test_connection_1709(async_conn, async_cursor):
     "1709 - test getting transaction ID of active sessionless transaction"
     transaction_id = await async_conn.begin_sessionless_transaction()
     await async_cursor.execute("select dbms_transaction.get_transaction_id()")
@@ -482,7 +482,7 @@ async def test_1709(async_conn, async_cursor):
     await async_conn.commit()
 
 
-async def test_1710(async_conn, test_env):
+async def test_connection_1710(async_conn, test_env):
     "1710 - test auto-generated transaction ID uniqueness"
 
     # start first transaction
@@ -502,7 +502,7 @@ async def test_1710(async_conn, test_env):
     await async_conn.rollback()
 
 
-async def test_1711(async_cursor, test_env):
+async def test_connection_1711(async_cursor, test_env):
     "1711 - test sessionless transactions with connection pool"
     await async_cursor.execute("truncate table TestTempTable")
 
@@ -549,7 +549,7 @@ async def test_1711(async_cursor, test_env):
     await pool.close()
 
 
-async def test_1712(async_conn, async_cursor, test_env):
+async def test_connection_1712(async_conn, async_cursor, test_env):
     "1712 - Test sessionless transaction with special transaction ids"
     await async_cursor.execute("truncate table TestTempTable")
 
@@ -599,16 +599,16 @@ async def test_1712(async_conn, async_cursor, test_env):
     assert await async_cursor.fetchall() == data
 
 
-async def test_1713(async_conn, test_env):
+async def test_connection_1713(async_conn, test_env):
     "1713 - duplicate transaction id across different connections"
-    transaction_id = "test_1713_transaction_id"
+    transaction_id = "test_connection_1713_transaction_id"
     await async_conn.begin_sessionless_transaction(transaction_id)
     async with test_env.get_connection_async() as conn:
         with test_env.assert_raises_full_code("ORA-26217"):
             await conn.begin_sessionless_transaction(transaction_id)
 
 
-async def test_1714(async_conn, test_env):
+async def test_connection_1714(async_conn, test_env):
     "1714 - zero timeout behaviour in resume"
     transaction_id = await async_conn.begin_sessionless_transaction()
     async with test_env.get_connection_async() as conn:
@@ -624,11 +624,11 @@ async def test_1714(async_conn, test_env):
         await conn.rollback()
 
 
-async def test_1715(async_conn, async_cursor, test_env):
+async def test_connection_1715(async_conn, async_cursor, test_env):
     "1715 - transaction behaviour with DDL operations"
 
     # create temp table
-    temp_table_name = "temp_test_1715"
+    temp_table_name = "temp_test_connection_1715"
     await async_cursor.execute(f"drop table if exists {temp_table_name}")
     await async_cursor.execute(f"""
         create table {temp_table_name} (
@@ -669,7 +669,7 @@ async def test_1715(async_conn, async_cursor, test_env):
     await async_cursor.execute(f"drop table {temp_table_name} purge")
 
 
-async def test_1716(test_env):
+async def test_connection_1716(test_env):
     "1716 - test suspend_on_success with batch_size < total rows inserted"
     async with test_env.get_connection_async() as conn:
         cursor = conn.cursor()

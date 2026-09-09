@@ -382,7 +382,7 @@ def _validate_df(ora_df, data, test_env):
     assert fetched_data == raw_data
 
 
-async def test_1100(async_conn, async_cursor):
+async def test_dataframe_1100(async_conn, async_cursor):
     "1100 - test basic fetch of data frame"
     await _populate_table(async_cursor, DATASET_1)
     ora_df = await async_conn.fetch_df_all(QUERY_SQL)
@@ -390,59 +390,59 @@ async def test_1100(async_conn, async_cursor):
     assert ora_df.num_columns() == len(DATASET_1[0])
 
 
-async def test_1101(async_cursor, test_env):
+async def test_dataframe_1101(async_cursor, test_env):
     "1101 - test conversion to external dataframe"
     await _test_df_interop(test_env, async_cursor, DATASET_1)
 
 
-async def test_1102(async_cursor, test_env):
+async def test_dataframe_1102(async_cursor, test_env):
     "1101 - test null and negative values"
     await _test_df_interop(test_env, async_cursor, DATASET_2)
 
 
-async def test_1103(async_cursor, test_env):
+async def test_dataframe_1103(async_cursor, test_env):
     "1102 - test with fetch_decimals"
     with test_env.defaults_context_manager("fetch_decimals", True):
         await _test_df_interop(test_env, async_cursor, DATASET_1)
 
 
-async def test_1104(async_cursor, test_env):
+async def test_dataframe_1104(async_cursor, test_env):
     "1103 - test null and negative values with fetch_decimals"
     with test_env.defaults_context_manager("fetch_decimals", True):
         await _test_df_interop(test_env, async_cursor, DATASET_2)
 
 
-async def test_1105(async_cursor, test_env):
+async def test_dataframe_1105(async_cursor, test_env):
     "1105 - test null and values with leading zeros"
     await _test_df_interop(test_env, async_cursor, DATASET_3)
 
 
-async def test_1106(async_cursor, test_env):
+async def test_dataframe_1106(async_cursor, test_env):
     "1105 - test null and values with leading zeros with fetch_decimals"
     with test_env.defaults_context_manager("fetch_decimals", True):
         await _test_df_interop(test_env, async_cursor, DATASET_3)
 
 
-async def test_1107(async_cursor, test_env):
+async def test_dataframe_1107(async_cursor, test_env):
     "1107 - duplicate values in the rows"
     await _test_df_interop(test_env, async_cursor, DATASET_4)
 
 
-async def test_1108(async_cursor, test_env):
+async def test_dataframe_1108(async_cursor, test_env):
     "1108 - batches without specification of size"
     await _test_df_batches_interop(
         test_env, async_cursor, DATASET_4, batch_size=None, num_batches=1
     )
 
 
-async def test_1109(async_cursor, test_env):
+async def test_dataframe_1109(async_cursor, test_env):
     "1109 - batches with specification of size"
     await _test_df_batches_interop(
         test_env, async_cursor, DATASET_4, batch_size=5, num_batches=2
     )
 
 
-async def test_1110(async_conn, async_cursor, test_env):
+async def test_dataframe_1110(async_conn, async_cursor, test_env):
     "1110 - verify passing Arrow arrays twice works"
     await _populate_table(async_cursor, DATASET_1)
     ora_df = await async_conn.fetch_df_all(QUERY_SQL)
@@ -450,7 +450,7 @@ async def test_1110(async_conn, async_cursor, test_env):
     _validate_df(ora_df, DATASET_1, test_env)
 
 
-async def test_1111(async_conn, async_cursor):
+async def test_dataframe_1111(async_conn, async_cursor):
     "1111 - verify empty data set"
     await _populate_table(async_cursor, DATASET_1)
     statement = "select * from TestDataFrame where Id = 4"
@@ -458,7 +458,7 @@ async def test_1111(async_conn, async_cursor):
     assert ora_df.num_rows() == 0
 
 
-async def test_1112(async_conn, async_cursor):
+async def test_dataframe_1112(async_conn, async_cursor):
     "1112 - verify empty data set with batches"
     await _populate_table(async_cursor, DATASET_1)
     statement = "select * from TestDataFrame where Id = 4"
@@ -466,7 +466,7 @@ async def test_1112(async_conn, async_cursor):
         assert ora_df.num_rows() == 0
 
 
-async def test_1113(async_conn, async_cursor):
+async def test_dataframe_1113(async_conn, async_cursor):
     "1113 - negative checks on attributes"
     await _populate_table(async_cursor, DATASET_1)
     ora_df = await async_conn.fetch_df_all(QUERY_SQL)
@@ -478,14 +478,14 @@ async def test_1113(async_conn, async_cursor):
         ora_df.get_column_by_name("missing_column")
 
 
-async def test_1114(async_conn, test_env):
+async def test_dataframe_1114(async_conn, test_env):
     "1114 - check unsupported error"
     statement = "select cursor(select user from dual) from dual"
     with test_env.assert_raises_full_code("DPY-3030"):
         await async_conn.fetch_df_all(statement)
 
 
-async def test_1115(async_cursor, test_env):
+async def test_dataframe_1115(async_cursor, test_env):
     "1115 - batches with specification of size matching number of rows"
     await _test_df_batches_interop(
         test_env,
@@ -496,14 +496,14 @@ async def test_1115(async_cursor, test_env):
     )
 
 
-async def test_1116(async_cursor, test_env):
+async def test_dataframe_1116(async_cursor, test_env):
     "1116 - batches with size that has duplicate rows across batches"
     await _test_df_batches_interop(
         test_env, async_cursor, DATASET_4, batch_size=3, num_batches=2
     )
 
 
-async def test_1117(async_conn, test_env):
+async def test_dataframe_1117(async_conn, test_env):
     "1117 - fetch_decimals without precision and scale specified"
     data = [(1.0,)]
     with test_env.defaults_context_manager("fetch_decimals", True):
@@ -513,7 +513,7 @@ async def test_1117(async_conn, test_env):
         assert fetched_data == data
 
 
-async def test_1118(async_conn, test_env):
+async def test_dataframe_1118(async_conn, test_env):
     "1118 - fetch clob"
     data = [("test_1123",)]
     ora_df = await async_conn.fetch_df_all(
@@ -524,7 +524,7 @@ async def test_1118(async_conn, test_env):
     assert fetched_data == data
 
 
-async def test_1119(async_conn, test_env):
+async def test_dataframe_1119(async_conn, test_env):
     "1119 - fetch blob"
     data = [(b"test_1124",)]
     ora_df = await async_conn.fetch_df_all(
@@ -535,7 +535,7 @@ async def test_1119(async_conn, test_env):
     assert fetched_data == data
 
 
-async def test_1120(
+async def test_dataframe_1120(
     skip_unless_native_boolean_supported, async_conn, test_env
 ):
     "1120 - fetch boolean"
@@ -556,7 +556,9 @@ async def test_1120(
     assert fetched_data == data
 
 
-async def test_1121(skip_unless_vectors_supported, async_conn, test_env):
+async def test_dataframe_1121(
+    skip_unless_vectors_supported, async_conn, test_env
+):
     "1121 - fetch float32 vector"
     data = [
         (array.array("f", [34.6, 77.8]).tolist(),),
@@ -573,7 +575,7 @@ async def test_1121(skip_unless_vectors_supported, async_conn, test_env):
     assert data == test_env.get_data_from_df(fetched_df)
 
 
-async def test_1122(
+async def test_dataframe_1122(
     skip_unless_sparse_vectors_supported, async_conn, test_env
 ):
     "1122 - fetch float64 sparse vectors"
@@ -614,7 +616,7 @@ async def test_1122(
     assert data == test_env.get_data_from_df(fetched_df)
 
 
-async def test_1123(async_conn, test_env):
+async def test_dataframe_1123(async_conn, test_env):
     "1123 - fetch data with multiple rows containing null values"
     ora_df = await async_conn.fetch_df_all("""
         select to_date('2025-06-12', 'YYYY-MM-DD') as data from dual
@@ -651,7 +653,7 @@ async def test_1123(async_conn, test_env):
     assert fetched_data == data
 
 
-async def test_1124(async_conn, async_cursor):
+async def test_dataframe_1124(async_conn, async_cursor):
     "1124 - test metadata of all data types"
     now = datetime.datetime.now()
     data = [
@@ -696,7 +698,7 @@ async def test_1124(async_conn, async_cursor):
     assert actual_types == expected_types
 
 
-async def test_1125(async_conn, async_cursor, test_env):
+async def test_dataframe_1125(async_conn, async_cursor, test_env):
     "1125 - test metadata of all data types with fetch_decimals = True"
     now = datetime.datetime.now()
     data = [
@@ -742,7 +744,9 @@ async def test_1125(async_conn, async_cursor, test_env):
         assert actual_types == expected_types
 
 
-async def test_1126(skip_unless_native_boolean_supported, async_cursor):
+async def test_dataframe_1126(
+    skip_unless_native_boolean_supported, async_cursor
+):
     "1126 - test metadata with boolean type"
     await async_cursor.execute("delete from TestBooleans")
     data = [(1, True, False, None), (2, False, True, True)]
@@ -768,7 +772,7 @@ async def test_1126(skip_unless_native_boolean_supported, async_cursor):
     assert actual_types == expected_types
 
 
-async def test_1127(async_conn, async_cursor, test_env):
+async def test_dataframe_1127(async_conn, async_cursor, test_env):
     "1127 - test NULL rows with all null values"
     data = [
         (1, None, None, None, None, None, None, None, None),
@@ -777,7 +781,7 @@ async def test_1127(async_conn, async_cursor, test_env):
     await _test_df_interop(test_env, async_cursor, data)
 
 
-async def test_1128(async_conn, async_cursor):
+async def test_dataframe_1128(async_conn, async_cursor):
     "1128 - test repeated pyarrow table construction"
     data = [
         (
@@ -800,7 +804,7 @@ async def test_1128(async_conn, async_cursor):
     assert table1.to_pydict() == table2.to_pydict()
 
 
-async def test_1129(async_conn, async_cursor, test_env):
+async def test_dataframe_1129(async_conn, async_cursor, test_env):
     "1129 - test dataframe query with multiple bind variables"
     await _populate_table(async_cursor, DATASET_2)
     statement = QUERY_SQL_WITH_WHERE_CLAUSE.format(
@@ -819,7 +823,7 @@ async def test_1129(async_conn, async_cursor, test_env):
     assert fetched_data == raw_data
 
 
-async def test_1130(async_conn, test_env):
+async def test_dataframe_1130(async_conn, test_env):
     "1130 - test error handling with invalid SQL in fetch_df_batches()"
     with test_env.assert_raises_full_code("ORA-00942"):
         async for batch in async_conn.fetch_df_batches(
@@ -828,7 +832,7 @@ async def test_1130(async_conn, test_env):
             pass
 
 
-async def test_1131(async_cursor, test_env):
+async def test_dataframe_1131(async_cursor, test_env):
     "1131 - test partial batch (last batch smaller than batch size)"
     test_data = [
         (
@@ -849,7 +853,7 @@ async def test_1131(async_cursor, test_env):
     )
 
 
-async def test_1132(async_conn, async_cursor):
+async def test_dataframe_1132(async_conn, async_cursor):
     "1132 - test with date functions"
     await _populate_table(async_cursor, DATASET_1)
     ora_df = await async_conn.fetch_df_all("""
@@ -866,7 +870,7 @@ async def test_1132(async_conn, async_cursor):
     assert array.to_pylist() == [1955, 1955]
 
 
-async def test_1133(async_conn, async_cursor):
+async def test_dataframe_1133(async_conn, async_cursor):
     "1133 - test column access by index bounds"
     await _populate_table(async_cursor, DATASET_1)
     ora_df = await async_conn.fetch_df_all(QUERY_SQL)
@@ -874,7 +878,7 @@ async def test_1133(async_conn, async_cursor):
         ora_df.get_column(ora_df.num_columns())
 
 
-async def test_1134(async_cursor, test_env):
+async def test_dataframe_1134(async_cursor, test_env):
     "1134 - test with different batch sizes"
     await _test_df_batches_interop(
         test_env, async_cursor, DATASET_4, batch_size=1, num_batches=6
@@ -884,20 +888,20 @@ async def test_1134(async_cursor, test_env):
     )
 
 
-async def test_1135(async_cursor, test_env):
+async def test_dataframe_1135(async_cursor, test_env):
     "1135 - test with very large batch size"
     await _test_df_batches_interop(
         test_env, async_cursor, DATASET_1, batch_size=1000, num_batches=1
     )
 
 
-async def test_1136(async_conn, test_env):
+async def test_dataframe_1136(async_conn, test_env):
     "1136 - test error handling with invalid SQL"
     with test_env.assert_raises_full_code("ORA-00942"):
         await async_conn.fetch_df_all("select * from NonExistentTable")
 
 
-async def test_1137(async_conn, async_cursor, test_env):
+async def test_dataframe_1137(async_conn, async_cursor, test_env):
     "1137 - test error handling with invalid bind variable"
     await _populate_table(async_cursor, DATASET_1)
     with test_env.assert_raises_full_code("DPY-4010", "ORA-01008"):
@@ -906,7 +910,7 @@ async def test_1137(async_conn, async_cursor, test_env):
         )
 
 
-async def test_1138(async_conn, async_cursor, test_env):
+async def test_dataframe_1138(async_conn, async_cursor, test_env):
     "1138 - test with single row result"
     await _populate_table(async_cursor, DATASET_1)
     statement = QUERY_SQL_WITH_WHERE_CLAUSE.format(where_clause="where Id = 1")
@@ -915,7 +919,7 @@ async def test_1138(async_conn, async_cursor, test_env):
     _validate_df(ora_df, [DATASET_1[0]], test_env)
 
 
-async def test_1139(async_conn, async_cursor, test_env):
+async def test_dataframe_1139(async_conn, async_cursor, test_env):
     "1139 - test with calculated columns"
     await _populate_table(async_cursor, DATASET_1)
     now = datetime.datetime.now().replace(microsecond=0)
@@ -948,7 +952,7 @@ async def test_1139(async_conn, async_cursor, test_env):
     assert fetched_data == expected_data
 
 
-async def test_1140(async_conn, async_cursor, test_env):
+async def test_dataframe_1140(async_conn, async_cursor, test_env):
     "1140 - test fetch_df_batches with bind variables"
     batch_size = 2
     await _populate_table(async_cursor, DATASET_4)
@@ -965,7 +969,7 @@ async def test_1140(async_conn, async_cursor, test_env):
         offset += batch_size
 
 
-async def test_1141(async_conn, async_cursor, test_env):
+async def test_dataframe_1141(async_conn, async_cursor, test_env):
     "1141 - test with large data"
     data = [
         (1, "A" * 41_000, b"Very long description " * 5_000),
@@ -994,7 +998,7 @@ async def test_1141(async_conn, async_cursor, test_env):
     assert fetched_data == data
 
 
-async def test_1142(async_conn, async_cursor):
+async def test_dataframe_1142(async_conn, async_cursor):
     "1142 - test fetching from an empty table with fetch_df_batches"
     await async_cursor.execute("delete from TestDataFrame")
     batches = [
@@ -1004,7 +1008,7 @@ async def test_1142(async_conn, async_cursor):
     assert batches[0].num_rows() == 0
 
 
-async def test_1143(async_conn, async_cursor, test_env):
+async def test_dataframe_1143(async_conn, async_cursor, test_env):
     "1143 - fetch clob in batches"
     await async_cursor.execute("delete from TestDataFrame")
     test_string = "A" * 10000
@@ -1028,7 +1032,7 @@ async def test_1143(async_conn, async_cursor, test_env):
         offset += batch_size
 
 
-async def test_1144(async_conn, async_cursor, test_env):
+async def test_dataframe_1144(async_conn, async_cursor, test_env):
     "1144 - fetch blob in batches"
     await async_cursor.execute("delete from TestDataFrame")
     test_string = b"B" * 10000
@@ -1052,7 +1056,7 @@ async def test_1144(async_conn, async_cursor, test_env):
         offset += batch_size
 
 
-async def test_1145(async_conn, async_cursor, test_env):
+async def test_dataframe_1145(async_conn, async_cursor, test_env):
     "1145 - test with empty strings"
     data = [
         (
@@ -1088,7 +1092,7 @@ async def test_1145(async_conn, async_cursor, test_env):
     assert fetched_data == expected_data
 
 
-async def test_1146(async_cursor, test_env):
+async def test_dataframe_1146(async_cursor, test_env):
     "1146 - test with unicode characters"
     data = [
         (
@@ -1117,7 +1121,7 @@ async def test_1146(async_cursor, test_env):
     await _test_df_interop(test_env, async_cursor, data)
 
 
-async def test_1147(async_cursor, test_env):
+async def test_dataframe_1147(async_cursor, test_env):
     "1147 - test with very old dates"
     data = [
         (
@@ -1146,7 +1150,7 @@ async def test_1147(async_cursor, test_env):
     await _test_df_interop(test_env, async_cursor, data)
 
 
-async def test_1148(async_cursor, test_env):
+async def test_dataframe_1148(async_cursor, test_env):
     "1148 - test with future dates"
     data = [
         (
@@ -1175,7 +1179,7 @@ async def test_1148(async_cursor, test_env):
     await _test_df_interop(test_env, async_cursor, data)
 
 
-async def test_1149(async_cursor, test_env):
+async def test_dataframe_1149(async_cursor, test_env):
     "1149 - test with exactly arraysize rows"
     test_date = datetime.date(2000, 1, 1)
     now = datetime.datetime.now()
@@ -1196,7 +1200,7 @@ async def test_1149(async_cursor, test_env):
     await _test_df_interop(test_env, async_cursor, data)
 
 
-async def test_1150(async_cursor, test_env):
+async def test_dataframe_1150(async_cursor, test_env):
     "1150 - test with arraysize+1 rows"
     test_date = datetime.date(2000, 1, 1)
     now = datetime.datetime.now()
@@ -1217,7 +1221,7 @@ async def test_1150(async_cursor, test_env):
     await _test_df_interop(test_env, async_cursor, data)
 
 
-async def test_1151(async_cursor, test_env):
+async def test_dataframe_1151(async_cursor, test_env):
     "1151 - test with odd arraysize"
     test_date = datetime.date(2000, 1, 1)
     now = datetime.datetime.now()
@@ -1238,7 +1242,7 @@ async def test_1151(async_cursor, test_env):
     await _test_df_interop(test_env, async_cursor, data)
 
 
-async def test_1152(async_cursor, test_env):
+async def test_dataframe_1152(async_cursor, test_env):
     "1152 - test with single row"
     data = [
         (
@@ -1256,7 +1260,7 @@ async def test_1152(async_cursor, test_env):
     await _test_df_interop(test_env, async_cursor, data)
 
 
-async def test_1153(async_cursor, test_env):
+async def test_dataframe_1153(async_cursor, test_env):
     "1153 - test multiple rows with NULL values in different columns"
     now = datetime.datetime.now()
     test_date = datetime.datetime(2000, 1, 1)
@@ -1269,7 +1273,7 @@ async def test_1153(async_cursor, test_env):
     await _test_df_interop(test_env, async_cursor, data)
 
 
-async def test_1154(async_cursor, test_env):
+async def test_dataframe_1154(async_cursor, test_env):
     "1154 - test single column with all NULL values"
     data = [
         (
@@ -1309,7 +1313,7 @@ async def test_1154(async_cursor, test_env):
     await _test_df_interop(test_env, async_cursor, data)
 
 
-async def test_1155(async_cursor, test_env):
+async def test_dataframe_1155(async_cursor, test_env):
     "1155 - test last column NULL in each row"
     data = [
         (
@@ -1349,7 +1353,7 @@ async def test_1155(async_cursor, test_env):
     await _test_df_interop(test_env, async_cursor, data)
 
 
-async def test_1156(async_cursor, test_env):
+async def test_dataframe_1156(async_cursor, test_env):
     "1156 - test alternating NULL/non-NULL values in a column"
     data = [
         (
@@ -1380,7 +1384,7 @@ async def test_1156(async_cursor, test_env):
     await _test_df_interop(test_env, async_cursor, data)
 
 
-async def test_1157(async_cursor, test_env):
+async def test_dataframe_1157(async_cursor, test_env):
     "1157 - test all columns NULL except one"
     now = datetime.datetime.now()
     test_date = datetime.date(2001, 1, 1)
@@ -1393,7 +1397,7 @@ async def test_1157(async_cursor, test_env):
     await _test_df_interop(test_env, async_cursor, data)
 
 
-async def test_1158(async_cursor, test_env):
+async def test_dataframe_1158(async_cursor, test_env):
     "1158 - test all date columns with all NULL values"
     data = [
         (1, "First1", "Last1", "City1", "Country1", None, 1000, 100, None),
@@ -1403,7 +1407,7 @@ async def test_1158(async_cursor, test_env):
     await _test_df_interop(test_env, async_cursor, data)
 
 
-async def test_1159(async_cursor, test_env):
+async def test_dataframe_1159(async_cursor, test_env):
     "1159 - test NULL values in numeric columns"
     data = [
         (
@@ -1443,7 +1447,7 @@ async def test_1159(async_cursor, test_env):
     await _test_df_interop(test_env, async_cursor, data)
 
 
-async def test_1160(async_cursor, test_env):
+async def test_dataframe_1160(async_cursor, test_env):
     "1160 - test multiple consecutive NULL rows"
     data = [
         (1, None, None, None, None, None, None, None, None),
@@ -1464,7 +1468,7 @@ async def test_1160(async_cursor, test_env):
     await _test_df_interop(test_env, async_cursor, data)
 
 
-async def test_1161(async_cursor, test_env):
+async def test_dataframe_1161(async_cursor, test_env):
     "1161 - test NULL rows interspersed with data rows"
     data = [
         (1, None, None, None, None, None, None, None, None),
@@ -1496,7 +1500,7 @@ async def test_1161(async_cursor, test_env):
     await _test_df_interop(test_env, async_cursor, data)
 
 
-async def test_1162(async_cursor, test_env):
+async def test_dataframe_1162(async_cursor, test_env):
     "1162 - test multiple NULL rows with different NULL columns"
     data = [
         (1, None, "Last1", "City1", "Country1", None, 1000, 100, None),
@@ -1537,7 +1541,7 @@ async def test_1162(async_cursor, test_env):
     await _test_df_interop(test_env, async_cursor, data)
 
 
-async def test_1163(async_cursor, test_env):
+async def test_dataframe_1163(async_cursor, test_env):
     "1163 - test NULL rows with alternating NULL patterns"
     data = [
         (
@@ -1588,7 +1592,7 @@ async def test_1163(async_cursor, test_env):
     await _test_df_interop(test_env, async_cursor, data)
 
 
-async def test_1164(async_cursor, test_env):
+async def test_dataframe_1164(async_cursor, test_env):
     "1164 - test multiple NULL rows with partial NULL groups"
     data = [
         (
@@ -1639,7 +1643,7 @@ async def test_1164(async_cursor, test_env):
     await _test_df_interop(test_env, async_cursor, data)
 
 
-async def test_1165(async_cursor, test_env):
+async def test_dataframe_1165(async_cursor, test_env):
     "1165 - test multiple NULL rows with varying NULL counts"
     data = [
         (1, None, None, None, None, None, None, None, None),
@@ -1670,7 +1674,7 @@ async def test_1165(async_cursor, test_env):
     await _test_df_interop(test_env, async_cursor, data)
 
 
-async def test_1166(async_conn, test_env):
+async def test_dataframe_1166(async_conn, test_env):
     "1166 - test fetching large integers"
     data = (-(2**40), 2**41)
     ora_df = await async_conn.fetch_df_all(
@@ -1686,9 +1690,9 @@ async def test_1166(async_conn, test_env):
     assert [data] == test_env.get_data_from_df(fetched_df)
 
 
-async def test_1167(async_conn, test_env):
+async def test_dataframe_1167(async_conn, test_env):
     "1167 - test fetching NCHAR and NVARCHAR data"
-    value = "test_1167"
+    value = "test_dataframe_1167"
     value_len = len(value)
     ora_df = await async_conn.fetch_df_all(f"""
         select
@@ -1700,7 +1704,7 @@ async def test_1167(async_conn, test_env):
     assert test_env.get_data_from_df(fetched_df) == [(value, value)]
 
 
-async def test_1168(async_conn, test_env):
+async def test_dataframe_1168(async_conn, test_env):
     "1168 - test fetching JSON constrained data via Arrow backed data frame"
     expected_data = [("[1, 2, 3]", "[4, 5, 6]", b"[7, 8, 9]")]
     ora_df = await async_conn.fetch_df_all("""
@@ -1714,7 +1718,7 @@ async def test_1168(async_conn, test_env):
     assert test_env.get_data_from_df(fetched_df) == expected_data
 
 
-async def test_1169(test_env, async_conn, async_cursor):
+async def test_dataframe_1169(test_env, async_conn, async_cursor):
     "1169 - test fetching interval types"
     await async_cursor.execute("delete from TestAllTypes")
     data = [
@@ -1751,7 +1755,7 @@ async def test_1169(test_env, async_conn, async_cursor):
     assert test_env.get_data_from_df(fetched_df) == data
 
 
-async def test_1170(test_env, async_conn):
+async def test_dataframe_1170(test_env, async_conn):
     "1170 - test fetching data that is null by describe"
     data = [(None, None), (None, None), (None, None)]
     ora_df = await async_conn.fetch_df_all(
@@ -1761,7 +1765,7 @@ async def test_1170(test_env, async_conn):
     assert test_env.get_data_from_df(fetched_df) == data
 
 
-async def test_1171(async_conn, async_cursor):
+async def test_dataframe_1171(async_conn, async_cursor):
     "1171 - test executemany() with decimal256 data frame"
     expected_values = [
         decimal.Decimal("9007199254740993"),

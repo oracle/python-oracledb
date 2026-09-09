@@ -264,7 +264,7 @@ def _validate_query(rows, lob_type):
             assert lob.read(offset, 10) == string
 
 
-def test_1500(conn, cursor):
+def test_data_types_1500(conn, cursor):
     "1500 - test binding a LOB value directly"
     cursor.execute("delete from TestCLOBs")
     cursor.execute("""
@@ -285,7 +285,7 @@ def test_1500(conn, cursor):
     )
 
 
-def test_1501(cursor):
+def test_data_types_1501(cursor):
     "1501 - test cursor description is accurate for BLOBs"
     cursor.execute("select IntCol, BlobCol from TestBLOBs")
     expected_value = [
@@ -295,22 +295,22 @@ def test_1501(cursor):
     assert cursor.description == expected_value
 
 
-def test_1502(cursor):
+def test_data_types_1502(cursor):
     "1502 - test binding and fetching BLOB data (directly)"
     _perform_test(cursor, "BLOB", oracledb.DB_TYPE_BLOB)
 
 
-def test_1503(cursor):
+def test_data_types_1503(cursor):
     "1503 - test binding and fetching BLOB data (indirectly)"
     _perform_test(cursor, "BLOB", oracledb.DB_TYPE_LONG_RAW)
 
 
-def test_1504(cursor, test_env):
+def test_data_types_1504(cursor, test_env):
     "1504 - test operations on BLOBs"
     _test_lob_operations(cursor, test_env, "BLOB")
 
 
-def test_1505(cursor):
+def test_data_types_1505(cursor):
     "1505 - test cursor description is accurate for CLOBs"
     cursor.execute("select IntCol, ClobCol from TestCLOBs")
     expected_value = [
@@ -320,43 +320,43 @@ def test_1505(cursor):
     assert cursor.description == expected_value
 
 
-def test_1506(cursor):
+def test_data_types_1506(cursor):
     "1506 - test binding and fetching CLOB data (directly)"
     _perform_test(cursor, "CLOB", oracledb.DB_TYPE_CLOB)
 
 
-def test_1507(cursor):
+def test_data_types_1507(cursor):
     "1507 - test binding and fetching CLOB data (indirectly)"
     _perform_test(cursor, "CLOB", oracledb.DB_TYPE_LONG)
 
 
-def test_1508(cursor, test_env):
+def test_data_types_1508(cursor, test_env):
     "1508 - test operations on CLOBs"
     _test_lob_operations(cursor, test_env, "CLOB")
 
 
-def test_1509(conn, cursor):
+def test_data_types_1509(conn, cursor):
     "1509 - test creating a temporary BLOB"
     _test_temporary_lob(conn, cursor, "BLOB")
 
 
-def test_1510(conn, cursor):
+def test_data_types_1510(conn, cursor):
     "1510 - test creating a temporary CLOB"
     _test_temporary_lob(conn, cursor, "CLOB")
 
 
-def test_1511(conn, cursor):
+def test_data_types_1511(conn, cursor):
     "1511 - test creating a temporary NCLOB"
     _test_temporary_lob(conn, cursor, "NCLOB")
 
 
-def test_1512(cursor):
+def test_data_types_1512(cursor):
     "1512 - test retrieving data from a CLOB after multiple fetches"
     cursor.arraysize = 1
     _perform_test(cursor, "CLOB", oracledb.DB_TYPE_CLOB)
 
 
-def test_1513(cursor):
+def test_data_types_1513(cursor):
     "1513 - test cursor description is accurate for NCLOBs"
     cursor.execute("select IntCol, NClobCol from TestNCLOBs")
     expected_value = [
@@ -366,12 +366,12 @@ def test_1513(cursor):
     assert cursor.description == expected_value
 
 
-def test_1514(cursor):
+def test_data_types_1514(cursor):
     "1514 - test binding and fetching NCLOB data (directly)"
     _perform_test(cursor, "NCLOB", oracledb.DB_TYPE_NCLOB)
 
 
-def test_1515(conn, cursor):
+def test_data_types_1515(conn, cursor):
     "1515 - test binding and fetching NCLOB data (with non-ASCII chars)"
     value = "\u03b4\u4e2a"
     cursor.execute("delete from TestNCLOBs")
@@ -395,17 +395,19 @@ def test_1515(conn, cursor):
     assert nclob.read() == value + value
 
 
-def test_1516(cursor):
+def test_data_types_1516(cursor):
     "1516 - test binding and fetching NCLOB data (indirectly)"
     _perform_test(cursor, "NCLOB", oracledb.DB_TYPE_LONG)
 
 
-def test_1517(cursor, test_env):
+def test_data_types_1517(cursor, test_env):
     "1517 - test operations on NCLOBs"
     _test_lob_operations(cursor, test_env, "NCLOB")
 
 
-def test_1518(skip_if_implicit_pooling, skip_unless_refcounting, conn, cursor):
+def test_data_types_1518(
+    skip_if_implicit_pooling, skip_unless_refcounting, conn, cursor
+):
     "1518 - test temporary LOBs"
     cursor.execute("select sys_context('USERENV', 'SID') from dual")
     (sid,) = cursor.fetchone()
@@ -421,13 +423,13 @@ def test_1518(skip_if_implicit_pooling, skip_unless_refcounting, conn, cursor):
     assert temp_lobs == 0
 
 
-def test_1519(cursor):
+def test_data_types_1519(cursor):
     "1519 - test assign string to NCLOB beyond array size"
     nclobVar = cursor.var(oracledb.DB_TYPE_NCLOB)
     pytest.raises(IndexError, nclobVar.setvalue, 1, "test char")
 
 
-def test_1520(conn, cursor, test_env):
+def test_data_types_1520(conn, cursor, test_env):
     "1520 - test read/write temporary LOBs using supplemental characters"
     if test_env.charset != "AL32UTF8":
         pytest.skip("Database character set must be AL32UTF8")
@@ -452,7 +454,7 @@ def test_1520(conn, cursor, test_env):
     assert lob.read() == supplemental_chars
 
 
-def test_1521(cursor, test_env):
+def test_data_types_1521(cursor, test_env):
     "1521 - test automatic conversion to CLOB for PL/SQL"
     test_env.skip_unless_server_version(12, 2)
     var = cursor.var(str, outconverter=lambda v: v[-15:])
@@ -472,7 +474,7 @@ def test_1521(cursor, test_env):
     assert var.getvalue() == "A" * 10 + "B" * 5
 
 
-def test_1522(cursor, test_env):
+def test_data_types_1522(cursor, test_env):
     "1522 - test automatic conversion to NCLOB for PL/SQL"
     test_env.skip_unless_server_version(12, 2)
     var = cursor.var(oracledb.DB_TYPE_NCHAR, outconverter=lambda v: v[-12:])
@@ -492,7 +494,7 @@ def test_1522(cursor, test_env):
     assert var.getvalue() == "N" * 5 + "P" * 7
 
 
-def test_1523(cursor, test_env):
+def test_data_types_1523(cursor, test_env):
     "1523 - test automatic conversion to BLOB for PL/SQL"
     test_env.skip_unless_server_version(12, 2)
     var = cursor.var(bytes, outconverter=lambda v: v[-14:])
@@ -512,52 +514,52 @@ def test_1523(cursor, test_env):
     assert var.getvalue() == b"L" * 8 + b"Q" * 6
 
 
-def test_1524(conn):
+def test_data_types_1524(conn):
     "1524 - test pickling of BLOB"
     _test_pickle(conn, "BLOB")
 
 
-def test_1525(conn):
+def test_data_types_1525(conn):
     "1525 - test pickling of CLOB"
     _test_pickle(conn, "CLOB")
 
 
-def test_1526(conn):
+def test_data_types_1526(conn):
     "1525 - test pickling of NCLOB"
     _test_pickle(conn, "NCLOB")
 
 
-def test_1527(cursor, disable_fetch_lobs):
+def test_data_types_1527(cursor, disable_fetch_lobs):
     "1527 - test fetching BLOB as bytes"
     _test_fetch_lobs_direct(cursor, "BLOB")
 
 
-def test_1528(cursor, disable_fetch_lobs):
+def test_data_types_1528(cursor, disable_fetch_lobs):
     "1528 - test fetching CLOB as str"
     _test_fetch_lobs_direct(cursor, "CLOB")
 
 
-def test_1529(cursor, disable_fetch_lobs):
+def test_data_types_1529(cursor, disable_fetch_lobs):
     "1529 - test fetching NCLOB as str"
     _test_fetch_lobs_direct(cursor, "NCLOB")
 
 
-def test_1530(conn, cursor):
+def test_data_types_1530(conn, cursor):
     "1530 - test bind ordering with BLOB"
     _test_bind_ordering(conn, cursor, "BLOB")
 
 
-def test_1531(conn, cursor):
+def test_data_types_1531(conn, cursor):
     "1531 - test bind ordering with CLOB"
     _test_bind_ordering(conn, cursor, "CLOB")
 
 
-def test_1532(conn, cursor):
+def test_data_types_1532(conn, cursor):
     "1532 - test bind ordering with NCLOB"
     _test_bind_ordering(conn, cursor, "NCLOB")
 
 
-def test_1533(conn):
+def test_data_types_1533(conn):
     "1533 - test creating a lob with an invalid type"
     with pytest.raises(TypeError):
         conn.createlob(oracledb.DB_TYPE_NUMBER)
@@ -565,7 +567,7 @@ def test_1533(conn):
         conn.createlob(oracledb.DB_TYPE_BFILE)
 
 
-def test_1534(conn):
+def test_data_types_1534(conn):
     "1534 - test creation of temporary LOBs with varying data"
     cases = [
         (oracledb.DB_TYPE_BLOB, b"test_1534A", b"!", b"test_1534A!"),
@@ -581,7 +583,7 @@ def test_1534(conn):
         assert lob.read() == expected_result
 
 
-def test_1535(test_env):
+def test_data_types_1535(test_env):
     "1535 - test reading and writing a LOB with a closed connection"
     types = [
         oracledb.DB_TYPE_BLOB,
@@ -598,7 +600,7 @@ def test_1535(test_env):
             lob.write("x")
 
 
-def test_1536(cursor, test_env):
+def test_data_types_1536(cursor, test_env):
     "1536 - test reading a non-existent directory"
     directory_name = "test_1536_MISSING_DIR"
     file_name = "test_1536_missing_file.txt"
@@ -613,7 +615,7 @@ def test_1536(cursor, test_env):
         bfile.read()
 
 
-def test_1537(conn, test_env):
+def test_data_types_1537(conn, test_env):
     "1537 - test using BFILE methods on non-BFILE LOBs"
     types = [
         oracledb.DB_TYPE_BLOB,
@@ -630,7 +632,7 @@ def test_1537(conn, test_env):
             lob.fileexists()
 
 
-def test_1538(conn, cursor):
+def test_data_types_1538(conn, cursor):
     "1538 - confirm that LOB objects are retained across getvalue() calls"
     for typ in (
         oracledb.DB_TYPE_BLOB,
@@ -643,7 +645,7 @@ def test_1538(conn, cursor):
         assert var.getvalue() is lob
 
 
-def test_1539(cursor):
+def test_data_types_1539(cursor):
     "1539 - temporary LOB in/out without modification"
     value = "test - 1939"
     var = cursor.var(oracledb.DB_TYPE_CLOB)
@@ -653,7 +655,7 @@ def test_1539(cursor):
     assert var.getvalue().read() == value
 
 
-def test_1540(cursor):
+def test_data_types_1540(cursor):
     "1540 - temporary LOB in/out with modification"
     search_value = "test"
     replace_value = "replaced"
@@ -669,7 +671,7 @@ def test_1540(cursor):
     assert var.getvalue().read() == final_value
 
 
-def test_1541(cursor):
+def test_data_types_1541(cursor):
     "1541 - repeated query with LOB that is transformed to a different type"
     for i in range(3):
         cursor.execute("select JsonClob from TestJsonCols where IntCol = 1")

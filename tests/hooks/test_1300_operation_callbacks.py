@@ -55,7 +55,7 @@ class RoundTripRecorder:
         return self.results.append
 
 
-def test_1300(conn, test_env):
+def test_hooks_1300(conn, test_env):
     "1300 - test connection callback properties"
     operation_callback = OperationRecorder()
     round_trip_callback = RoundTripRecorder()
@@ -74,7 +74,7 @@ def test_1300(conn, test_env):
             setattr(conn, name, 1)
 
 
-def test_1301(cursor):
+def test_hooks_1301(cursor):
     "1301 - test operation callback arguments and successful completion"
     callback = OperationRecorder()
     cursor.connection.operation_callback = callback
@@ -90,7 +90,7 @@ def test_1301(cursor):
     assert callback.results == [cursor]
 
 
-def test_1302(cursor):
+def test_hooks_1302(cursor):
     "1302 - test operation failure is passed to completion callback"
     callback = OperationRecorder()
     cursor.connection.operation_callback = callback
@@ -99,7 +99,7 @@ def test_1302(cursor):
     assert callback.results == [exc_info.value]
 
 
-def test_1303(cursor):
+def test_hooks_1303(cursor):
     "1303 - test operation callback can skip completion"
     callback = OperationRecorder(completion=None)
     cursor.connection.operation_callback = callback
@@ -108,7 +108,7 @@ def test_1303(cursor):
     assert callback.results == []
 
 
-def test_1304(cursor, test_env):
+def test_hooks_1304(cursor, test_env):
     "1304 - test operation callback must return callable or None"
     cursor.connection.operation_callback = OperationRecorder(completion=1)
     with test_env.assert_raises_full_code("DPY-2070"):
@@ -117,7 +117,7 @@ def test_1304(cursor, test_env):
     cursor.execute("select 1 from dual")
 
 
-def test_1305(test_env):
+def test_hooks_1305(test_env):
     "1305 - test pooled connections restore pool callback defaults"
     pool_callback = OperationRecorder()
     pool = test_env.get_pool(
@@ -134,7 +134,7 @@ def test_1305(test_env):
         pool.close()
 
 
-def test_1306(conn, skip_unless_thin_mode):
+def test_hooks_1306(conn, skip_unless_thin_mode):
     "1306 - test successful Thin mode round trip callbacks"
     callback = RoundTripRecorder()
     conn.round_trip_callback = callback
@@ -151,7 +151,7 @@ def test_1306(conn, skip_unless_thin_mode):
     assert all(result is None for result in callback.results)
 
 
-def test_1307(conn, skip_unless_thin_mode):
+def test_hooks_1307(conn, skip_unless_thin_mode):
     "1307 - test failed Thin mode round trip callbacks"
     callback = RoundTripRecorder()
     conn.round_trip_callback = callback
@@ -161,7 +161,7 @@ def test_1307(conn, skip_unless_thin_mode):
     assert any(result is exc_info.value for result in callback.results)
 
 
-def test_1308(cursor):
+def test_hooks_1308(cursor):
     "1308 - test cursor callbacks do not contain duplicate nested operations"
     callback = OperationRecorder()
     cursor.connection.operation_callback = callback
@@ -170,7 +170,7 @@ def test_1308(cursor):
     assert [name for name, _ in callback.calls] == ["execute", "fetchall"]
 
 
-def test_1309(conn, skip_unless_thin_mode, test_env):
+def test_hooks_1309(conn, skip_unless_thin_mode, test_env):
     "1309 - test round trip callback must return callable or None"
     conn.round_trip_callback = lambda name: 1
     try:
@@ -180,7 +180,7 @@ def test_1309(conn, skip_unless_thin_mode, test_env):
         conn.round_trip_callback = None
 
 
-def test_1310(cursor):
+def test_hooks_1310(cursor):
     "1310 - test callproc is reported as one canonical operation"
     callback = OperationRecorder()
     cursor.connection.operation_callback = callback
@@ -188,7 +188,7 @@ def test_1310(cursor):
     assert [name for name, _ in callback.calls] == ["callproc"]
 
 
-def test_1311(test_env):
+def test_hooks_1311(test_env):
     "1311 - test pool management methods do not invoke callbacks"
     callback = OperationRecorder()
     pool = test_env.get_pool(
@@ -200,7 +200,7 @@ def test_1311(test_env):
     assert callback.calls == []
 
 
-def test_1312(test_env):
+def test_hooks_1312(test_env):
     "1312 - test callback configured with connection parameters"
     callback = OperationRecorder()
     params = test_env.get_connect_params()
@@ -214,7 +214,7 @@ def test_1312(test_env):
         assert callback.results == [conn, cursor]
 
 
-def test_1313(cursor):
+def test_hooks_1313(cursor):
     "1313 - test completion failure after successful operation"
 
     def complete(result):
@@ -228,7 +228,7 @@ def test_1313(cursor):
         cursor.connection.operation_callback = None
 
 
-def test_1314(cursor):
+def test_hooks_1314(cursor):
     "1314 - test completion failure after failed operation"
 
     def complete(result):
@@ -243,7 +243,7 @@ def test_1314(cursor):
         cursor.connection.operation_callback = None
 
 
-def test_1315(cursor):
+def test_hooks_1315(cursor):
     "1315 - test before callback failure prevents the operation"
 
     def callback(name, arguments):

@@ -35,7 +35,7 @@ def module_checks(skip_unless_native_json_supported):
     pass
 
 
-def test_3300(cursor):
+def test_data_types_3300(cursor):
     "3300 - test OSON metadata"
     cursor.execute("select * from TestOsonCols")
     int_col_metadata, oson_col_metadata = cursor.description
@@ -43,7 +43,7 @@ def test_3300(cursor):
     assert oson_col_metadata.is_oson
 
 
-def test_3301(conn, cursor):
+def test_data_types_3301(conn, cursor):
     "3301 - test simple query of OSON encoded bytes"
     cursor.execute("delete from TestOsonCols")
     cursor.execute("""
@@ -56,7 +56,7 @@ def test_3301(conn, cursor):
     assert oson_val == expected_val
 
 
-def test_3302(conn, cursor):
+def test_data_types_3302(conn, cursor):
     "3302 - test round trip of OSON encoded bytes"
     value = dict(id=6902, value="string 6902")
     cursor.execute("delete from TestOsonCols")
@@ -70,21 +70,21 @@ def test_3302(conn, cursor):
     assert oson_val == value
 
 
-def test_3303(conn):
+def test_data_types_3303(conn):
     "3303 - test encoding and decoding a value"
     value = dict(id=6903, value="string 6903")
     out_value = conn.decode_oson(conn.encode_oson(value))
     assert out_value == value
 
 
-def test_3304(conn, test_env):
+def test_data_types_3304(conn, test_env):
     "3304 - test decoding a non encoded value"
     value = b"{'not a previous encoded value': 3}"
     with test_env.assert_raises_full_code("DPY-5004"):
         conn.decode_oson(value)
 
 
-def test_3305(conn, cursor):
+def test_data_types_3305(conn, cursor):
     "3305 - test inserting oson inside a lob"
     value = dict(id=6905, value="string 6905")
     cursor.execute("delete from TestOsonCols")
@@ -97,7 +97,7 @@ def test_3305(conn, cursor):
     assert oson_val == value
 
 
-def test_3306(conn, cursor):
+def test_data_types_3306(conn, cursor):
     "3306 - test inserting oson as json"
     cursor.execute("delete from TestOsonCols")
     value = dict(id=6906, value="string 6906")

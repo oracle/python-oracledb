@@ -60,7 +60,7 @@ class RoundTripRecorder:
         return self.results.append
 
 
-async def test_1400(async_conn, test_env):
+async def test_hooks_1400(async_conn, test_env):
     "1400 - test asynchronous connection callback properties"
     operation_callback = OperationRecorder()
     round_trip_callback = RoundTripRecorder()
@@ -79,7 +79,7 @@ async def test_1400(async_conn, test_env):
             setattr(async_conn, name, 1)
 
 
-async def test_1401(async_cursor):
+async def test_hooks_1401(async_cursor):
     "1401 - test asynchronous callback arguments and successful completion"
     callback = OperationRecorder()
     async_cursor.connection.operation_callback = callback
@@ -95,7 +95,7 @@ async def test_1401(async_cursor):
     assert callback.results == [async_cursor]
 
 
-async def test_1402(async_cursor):
+async def test_hooks_1402(async_cursor):
     "1402 - test asynchronous operation failure callback"
     callback = OperationRecorder()
     async_cursor.connection.operation_callback = callback
@@ -104,7 +104,7 @@ async def test_1402(async_cursor):
     assert callback.results == [exc_info.value]
 
 
-async def test_1403(async_cursor):
+async def test_hooks_1403(async_cursor):
     "1403 - test asynchronous callback can skip completion"
     callback = OperationRecorder(completion=None)
     async_cursor.connection.operation_callback = callback
@@ -113,7 +113,7 @@ async def test_1403(async_cursor):
     assert callback.results == []
 
 
-async def test_1404(async_cursor, test_env):
+async def test_hooks_1404(async_cursor, test_env):
     "1404 - test asynchronous callback must return callable or None"
     async_cursor.connection.operation_callback = OperationRecorder(
         completion=1
@@ -124,7 +124,7 @@ async def test_1404(async_cursor, test_env):
     await async_cursor.execute("select 1 from dual")
 
 
-async def test_1405(test_env):
+async def test_hooks_1405(test_env):
     "1405 - test asynchronous pools restore callback defaults"
     pool_callback = OperationRecorder()
     pool = test_env.get_pool_async(
@@ -141,7 +141,7 @@ async def test_1405(test_env):
         await pool.close()
 
 
-async def test_1406(async_conn):
+async def test_hooks_1406(async_conn):
     "1406 - test successful asynchronous round trip callbacks"
     callback = RoundTripRecorder()
     async_conn.round_trip_callback = callback
@@ -158,7 +158,7 @@ async def test_1406(async_conn):
     assert all(result is None for result in callback.results)
 
 
-async def test_1407(async_conn):
+async def test_hooks_1407(async_conn):
     "1407 - test failed asynchronous round trip callbacks"
     callback = RoundTripRecorder()
     async_conn.round_trip_callback = callback
@@ -168,7 +168,7 @@ async def test_1407(async_conn):
     assert any(result is exc_info.value for result in callback.results)
 
 
-async def test_1408(async_cursor):
+async def test_hooks_1408(async_cursor):
     "1408 - test asynchronous callbacks have no duplicate operations"
     callback = OperationRecorder()
     async_cursor.connection.operation_callback = callback
@@ -177,7 +177,7 @@ async def test_1408(async_cursor):
     assert [name for name, _ in callback.calls] == ["execute", "fetchall"]
 
 
-async def test_1409(async_conn, test_env):
+async def test_hooks_1409(async_conn, test_env):
     "1409 - test asynchronous round trip completion must be callable"
     async_conn.round_trip_callback = lambda name: 1
     try:
@@ -187,7 +187,7 @@ async def test_1409(async_conn, test_env):
         async_conn.round_trip_callback = None
 
 
-async def test_1410(async_cursor):
+async def test_hooks_1410(async_cursor):
     "1410 - test asynchronous callproc is one canonical operation"
     callback = OperationRecorder()
     async_cursor.connection.operation_callback = callback
@@ -195,7 +195,7 @@ async def test_1410(async_cursor):
     assert [name for name, _ in callback.calls] == ["callproc"]
 
 
-async def test_1411(test_env):
+async def test_hooks_1411(test_env):
     "1411 - test asynchronous pool methods do not invoke callbacks"
     callback = OperationRecorder()
     pool = test_env.get_pool_async(
@@ -207,7 +207,7 @@ async def test_1411(test_env):
     assert callback.calls == []
 
 
-async def test_1412(test_env):
+async def test_hooks_1412(test_env):
     "1412 - test callback configured with async connection parameters"
     callback = OperationRecorder()
     params = test_env.get_connect_params()
@@ -224,7 +224,7 @@ async def test_1412(test_env):
         assert callback.results == [conn, cursor]
 
 
-async def test_1413(async_cursor):
+async def test_hooks_1413(async_cursor):
     "1413 - test asynchronous completion failure after success"
 
     def complete(result):
@@ -238,7 +238,7 @@ async def test_1413(async_cursor):
         async_cursor.connection.operation_callback = None
 
 
-async def test_1414(async_cursor):
+async def test_hooks_1414(async_cursor):
     "1414 - test asynchronous completion failure after operation failure"
 
     def complete(result):
@@ -253,7 +253,7 @@ async def test_1414(async_cursor):
         async_cursor.connection.operation_callback = None
 
 
-async def test_1415(async_cursor):
+async def test_hooks_1415(async_cursor):
     "1415 - test asynchronous before callback failure"
 
     def callback(name, arguments):
@@ -267,7 +267,7 @@ async def test_1415(async_cursor):
         async_cursor.connection.operation_callback = None
 
 
-async def test_1416(async_conn):
+async def test_hooks_1416(async_conn):
     "1416 - test connection helpers use canonical cursor callbacks"
     callback = OperationRecorder()
     async_conn.operation_callback = callback
@@ -275,7 +275,7 @@ async def test_1416(async_conn):
     assert [name for name, _ in callback.calls] == ["execute"]
 
 
-async def test_1417(async_conn):
+async def test_hooks_1417(async_conn):
     "1417 - test a pipeline is reported as one operation"
     callback = OperationRecorder()
     async_conn.operation_callback = callback

@@ -169,7 +169,7 @@ def _verify_create_arg(test_env, arg_name, arg_value, sql):
     pool.close()
 
 
-def test_1000(test_env):
+def test_pool_1000(test_env):
     "1000 - test getting default pool parameters"
     pool = test_env.get_pool()
     assert pool.busy == 0
@@ -198,7 +198,7 @@ def test_1000(test_env):
     pool.close()
 
 
-def test_1001(skip_unless_thick_mode, test_env):
+def test_pool_1001(skip_unless_thick_mode, test_env):
     "1001 - test that proxy authentication is possible"
     pool = test_env.get_pool(
         min=2, max=8, increment=3, getmode=oracledb.POOL_GETMODE_WAIT
@@ -224,7 +224,7 @@ def test_1001(skip_unless_thick_mode, test_env):
     pool.close()
 
 
-def test_1002(test_env):
+def test_pool_1002(test_env):
     "1002 - test setting pool attributes"
     pool = test_env.get_pool()
     test_values = [
@@ -252,7 +252,7 @@ def test_1002(test_env):
     pool.close()
 
 
-def test_1003(test_env):
+def test_pool_1003(test_env):
     "1003 - connection rolls back before released back to the pool"
     pool = test_env.get_pool(getmode=oracledb.POOL_GETMODE_WAIT)
     conn = pool.acquire()
@@ -273,7 +273,7 @@ def test_1003(test_env):
     pool.close()
 
 
-def test_1004(test_env):
+def test_pool_1004(test_env):
     "1004 - test session pool with multiple threads"
     pool = test_env.get_pool(
         min=5, max=20, increment=2, getmode=oracledb.POOL_GETMODE_WAIT
@@ -288,7 +288,7 @@ def test_1004(test_env):
     pool.close()
 
 
-def test_1005(test_env):
+def test_pool_1005(test_env):
     "1005 - test session pool with multiple threads (with errors)"
     pool = test_env.get_pool(
         min=5, max=20, increment=2, getmode=oracledb.POOL_GETMODE_WAIT
@@ -305,7 +305,7 @@ def test_1005(test_env):
     pool.close()
 
 
-def test_1006(skip_if_drcp, test_env):
+def test_pool_1006(skip_if_drcp, test_env):
     "1006 - test session pool with various types of purity"
     pool = test_env.get_pool(
         min=1, max=8, increment=1, getmode=oracledb.POOL_GETMODE_WAIT
@@ -342,7 +342,7 @@ def test_1006(skip_if_drcp, test_env):
     pool.close()
 
 
-def test_1007(skip_if_drcp, skip_unless_thick_mode, test_env):
+def test_pool_1007(skip_if_drcp, skip_unless_thick_mode, test_env):
     "1007 - test heterogeneous pool with user and password specified"
     pool = test_env.get_pool(
         min=2,
@@ -371,7 +371,7 @@ def test_1007(skip_if_drcp, skip_unless_thick_mode, test_env):
     pool.close()
 
 
-def test_1008(skip_if_drcp, skip_unless_thick_mode, test_env):
+def test_pool_1008(skip_if_drcp, skip_unless_thick_mode, test_env):
     "1008 - test heterogeneous pool without user and password specified"
     pool = test_env.get_pool(
         user="",
@@ -395,7 +395,7 @@ def test_1008(skip_if_drcp, skip_unless_thick_mode, test_env):
     pool.close()
 
 
-def test_1009(skip_unless_thick_mode, test_env):
+def test_pool_1009(skip_unless_thick_mode, test_env):
     "1009 - test heterogeneous pool with wrong password specified"
     pool = test_env.get_pool(
         min=2,
@@ -409,7 +409,7 @@ def test_1009(skip_unless_thick_mode, test_env):
     pool.close()
 
 
-def test_1010(skip_unless_thick_mode, test_env):
+def test_pool_1010(skip_unless_thick_mode, test_env):
     "1010 - test tagging a session"
     pool = test_env.get_pool(
         min=2, max=8, increment=3, getmode=oracledb.POOL_GETMODE_NOWAIT
@@ -436,7 +436,7 @@ def test_1010(skip_unless_thick_mode, test_env):
     pool.close()
 
 
-def test_1011(skip_unless_thick_mode, test_env):
+def test_pool_1011(skip_unless_thick_mode, test_env):
     "1011 - test PL/SQL session callbacks"
     test_env.skip_unless_client_version(12, 2)
     callback = "pkg_SessionCallback.TheCallback"
@@ -483,7 +483,7 @@ def test_1011(skip_unless_thick_mode, test_env):
     pool.close()
 
 
-def test_1012(skip_unless_thick_mode, test_env):
+def test_pool_1012(skip_unless_thick_mode, test_env):
     "1012 - testTagging with Invalid key"
     pool = test_env.get_pool(getmode=oracledb.POOL_GETMODE_NOWAIT)
     conn = pool.acquire()
@@ -493,7 +493,7 @@ def test_1012(skip_unless_thick_mode, test_env):
     pool.close(force=True)
 
 
-def test_1013(test_env):
+def test_pool_1013(test_env):
     "1013 - test dropping/closing a connection from the pool"
     pool = test_env.get_pool(min=1, max=5, increment=2)
     conns1 = [pool.acquire() for _ in range(2)]
@@ -513,7 +513,7 @@ def test_1013(test_env):
     pool.close()
 
 
-def test_1014(test_env):
+def test_pool_1014(test_env):
     "1014 - test to ensure pure connections are being created correctly"
     pool = test_env.get_pool(
         min=1, max=2, increment=1, getmode=oracledb.POOL_GETMODE_WAIT
@@ -529,7 +529,7 @@ def test_1014(test_env):
     pool.close()
 
 
-def test_1015(skip_unless_thick_mode, test_env):
+def test_pool_1015(skip_unless_thick_mode, test_env):
     "1015 - test the reconfigure values are changed and rest unchanged"
     _perform_reconfigure_test(test_env, "min", 5)
     _perform_reconfigure_test(test_env, "max", 20)
@@ -547,7 +547,7 @@ def test_1015(skip_unless_thick_mode, test_env):
         _perform_reconfigure_test(test_env, "soda_metadata_cache", True)
 
 
-def test_1017(skip_unless_thick_mode, test_env):
+def test_pool_1017(skip_unless_thick_mode, test_env):
     "1017 - test that session callbacks are being called correctly"
     callback_obj = CallableSessionCallback()
 
@@ -605,7 +605,7 @@ def test_1017(skip_unless_thick_mode, test_env):
     pool.close()
 
 
-def test_1018(test_env):
+def test_pool_1018(test_env):
     "1018 - test closing a pool normally with no connections checked out"
     pool = test_env.get_pool(
         min=1, max=8, increment=1, getmode=oracledb.POOL_GETMODE_WAIT
@@ -613,7 +613,7 @@ def test_1018(test_env):
     pool.close()
 
 
-def test_1019(test_env):
+def test_pool_1019(test_env):
     "1019 - test closing a pool normally with connections checked out"
     pool = test_env.get_pool(
         min=1, max=8, increment=1, getmode=oracledb.POOL_GETMODE_WAIT
@@ -624,7 +624,7 @@ def test_1019(test_env):
     pool.close()
 
 
-def test_1020(test_env):
+def test_pool_1020(test_env):
     "1020 - test closing a pool forcibly"
     pool = test_env.get_pool(
         min=1, max=8, increment=1, getmode=oracledb.POOL_GETMODE_WAIT
@@ -633,7 +633,7 @@ def test_1020(test_env):
         pool.close(force=True)
 
 
-def test_1021(test_env):
+def test_pool_1021(test_env):
     "1021 - using the pool after it is closed raises an exception"
     pool = test_env.get_pool(
         min=1, max=8, increment=1, getmode=oracledb.POOL_GETMODE_WAIT
@@ -643,7 +643,7 @@ def test_1021(test_env):
         pool.acquire()
 
 
-def test_1022(test_env):
+def test_pool_1022(test_env):
     "1022 - using the pool beyond max limit raises an error"
     if not test_env.has_client_version(19):
         pytest.skip("not supported on this client")
@@ -657,7 +657,7 @@ def test_1022(test_env):
     pool.close()
 
 
-def test_1023(test_env):
+def test_pool_1023(test_env):
     "1023 - callable session callback is executed for new connections"
 
     class Counter:
@@ -681,7 +681,7 @@ def test_1023(test_env):
     pool.close()
 
 
-def test_1024(skip_if_drcp, admin_conn, test_env):
+def test_pool_1024(skip_if_drcp, admin_conn, test_env):
     "1024 - drop the pooled connection on receiving dead connection error"
     test_env.skip_unless_server_version(19)
     pool = test_env.get_pool(min=2, max=2, increment=2)
@@ -715,7 +715,7 @@ def test_1024(skip_if_drcp, admin_conn, test_env):
     pool.close()
 
 
-def test_1025(test_env):
+def test_pool_1025(test_env):
     "1025 - acquire a connection from an empty pool (min=0)"
     pool = test_env.get_pool(min=0, max=2, increment=2)
     with pool.acquire() as conn:
@@ -726,7 +726,7 @@ def test_1025(test_env):
     pool.close()
 
 
-def test_1026(test_env):
+def test_pool_1026(test_env):
     "1026 - get different object types from different connections"
     pool = test_env.get_pool(min=1, max=2, increment=1)
     with pool.acquire() as conn:
@@ -738,7 +738,7 @@ def test_1026(test_env):
     pool.close()
 
 
-def test_1027(test_env):
+def test_pool_1027(test_env):
     "1027 - test creating a pool using a proxy user"
     user_str = f"{test_env.main_user}[{test_env.proxy_user}]"
     pool = test_env.get_pool(user=user_str)
@@ -747,7 +747,7 @@ def test_1027(test_env):
     pool.close()
 
 
-def test_1028(skip_if_drcp, test_env):
+def test_pool_1028(skip_if_drcp, test_env):
     "1028 - test acquiring conn from pool in LIFO order"
     pool = test_env.get_pool(
         min=5, max=10, increment=1, getmode=oracledb.POOL_GETMODE_WAIT
@@ -763,7 +763,7 @@ def test_1028(skip_if_drcp, test_env):
     pool.close()
 
 
-def test_1029(test_env):
+def test_pool_1029(test_env):
     "1029 - verify that dynamic pool cannot have an increment of zero"
     pool = test_env.get_pool(min=1, max=3, increment=0)
     assert pool.increment == 1
@@ -772,7 +772,7 @@ def test_1029(test_env):
     pool.close()
 
 
-def test_1030(test_env):
+def test_pool_1030(test_env):
     "1030 - verify that static pool can have an increment of zero"
     pool = test_env.get_pool(min=1, max=1, increment=0)
     assert pool.increment == 0
@@ -781,7 +781,7 @@ def test_1030(test_env):
     pool.close()
 
 
-def test_1031(test_env):
+def test_pool_1031(test_env):
     "1031 - verify that connection with different cclass is reused"
     test_env.skip_unless_server_version(19)
     cclass = "cclass2431"
@@ -801,13 +801,13 @@ def test_1031(test_env):
     pool.close()
 
 
-def test_1032(test_env):
+def test_pool_1032(test_env):
     "1032 - test creating a pool invalid params"
     with test_env.assert_raises_full_code("DPY-2027"):
         oracledb.create_pool(params="bad params")
 
 
-def test_1033(test_env):
+def test_pool_1033(test_env):
     "1033 - test releasing and dropping an invalid connection"
     pool = test_env.get_pool()
     pytest.raises(TypeError, pool.release, ["invalid connection"])
@@ -815,13 +815,13 @@ def test_1033(test_env):
     pool.close()
 
 
-def test_1034(test_env):
+def test_pool_1034(test_env):
     "1034 - test creating a pool with invalid pool_class"
     with test_env.assert_raises_full_code("DPY-2026"):
         oracledb.create_pool(pool_class=int)
 
 
-def test_1035(test_env):
+def test_pool_1035(test_env):
     "1035 - test creating a pool with a subclassed connection type"
 
     class MyConnection(oracledb.Connection):
@@ -833,7 +833,7 @@ def test_1035(test_env):
     pool.close()
 
 
-def test_1036(test_env):
+def test_pool_1036(test_env):
     "1036 - test creating a pool with a subclassed pool type"
 
     class MyPool(oracledb.ConnectionPool):
@@ -844,7 +844,7 @@ def test_1036(test_env):
     pool.close()
 
 
-def test_1037(test_env):
+def test_pool_1037(test_env):
     "1037 - test connectiontype with an invalid connection class"
     with test_env.assert_raises_full_code("DPY-2023"):
         test_env.get_pool(connectiontype=oracledb.AsyncConnection)
@@ -852,7 +852,7 @@ def test_1037(test_env):
         test_env.get_pool(connectiontype=int)
 
 
-def test_1038(skip_unless_pool_timed_wait_supported, test_env):
+def test_pool_1038(skip_unless_pool_timed_wait_supported, test_env):
     "1038 - ensure that timed wait times out with appropriate exception"
     pool = test_env.get_pool(
         getmode=oracledb.POOL_GETMODE_TIMEDWAIT, min=0, wait_timeout=1
@@ -862,7 +862,7 @@ def test_1038(skip_unless_pool_timed_wait_supported, test_env):
     pool.close(force=True)
 
 
-def test_1039(test_env):
+def test_pool_1039(test_env):
     "1039 - ensure call timeout is reset on connections returned by pool"
     pool = test_env.get_pool(ping_timeout=1000, ping_interval=0)
     with pool.acquire() as conn:
@@ -872,13 +872,13 @@ def test_1039(test_env):
     pool.close()
 
 
-def test_1040(test_env):
+def test_pool_1040(test_env):
     "1040 - test connection with an invalid pool"
     with pytest.raises(TypeError):
         oracledb.connect(pool="not a pool object")
 
 
-def test_1041(test_env):
+def test_pool_1041(test_env):
     "1041 - test oracledb.POOL_GETMODE_FORCEGET"
     pool = test_env.get_pool(
         min=1, max=3, increment=1, getmode=oracledb.POOL_GETMODE_FORCEGET
@@ -895,7 +895,7 @@ def test_1041(test_env):
     pool.close()
 
 
-def test_1042(skip_unless_thin_mode, test_env):
+def test_pool_1042(skip_unless_thin_mode, test_env):
     "1042 - test passing program when creating a pool"
     sql = (
         "select program from v$session "
@@ -904,7 +904,7 @@ def test_1042(skip_unless_thin_mode, test_env):
     _verify_create_arg(test_env, "program", "newprogram", sql)
 
 
-def test_1043(skip_unless_thin_mode, test_env):
+def test_pool_1043(skip_unless_thin_mode, test_env):
     "1043 - test passing machine when creating a pool"
     sql = (
         "select machine from v$session "
@@ -913,7 +913,7 @@ def test_1043(skip_unless_thin_mode, test_env):
     _verify_create_arg(test_env, "machine", "newmachine", sql)
 
 
-def test_1044(skip_unless_thin_mode, test_env):
+def test_pool_1044(skip_unless_thin_mode, test_env):
     "1044 - test passing terminal when creating a pool"
     sql = (
         "select terminal from v$session "
@@ -922,7 +922,7 @@ def test_1044(skip_unless_thin_mode, test_env):
     _verify_create_arg(test_env, "terminal", "newterminal", sql)
 
 
-def test_1045(skip_unless_thin_mode, test_env):
+def test_pool_1045(skip_unless_thin_mode, test_env):
     "1045 - test passing osuser when creating a pool"
     sql = (
         "select osuser from v$session "
@@ -931,7 +931,7 @@ def test_1045(skip_unless_thin_mode, test_env):
     _verify_create_arg(test_env, "osuser", "newosuser", sql)
 
 
-def test_1046(test_env):
+def test_pool_1046(test_env):
     "1046 - test passing driver_name when creating a pool"
     sql = (
         "select distinct client_driver from v$session_connect_info "
@@ -940,7 +940,7 @@ def test_1046(test_env):
     _verify_create_arg(test_env, "driver_name", "newdriver", sql)
 
 
-def test_1047(skip_unless_thin_mode, test_env):
+def test_pool_1047(skip_unless_thin_mode, test_env):
     "1047 - test register_parameter with pooled connection"
     sdu = 4096
     params = test_env.get_pool_params()
@@ -965,7 +965,7 @@ def test_1047(skip_unless_thin_mode, test_env):
         oracledb.register_protocol(protocol, None)
 
 
-def test_1048(test_env):
+def test_pool_1048(test_env):
     "1048 - test create_pool() with edition"
     edition = test_env.edition_name
     pool = test_env.get_pool(edition=edition)
@@ -974,7 +974,7 @@ def test_1048(test_env):
     pool.close()
 
 
-def test_1049(test_env):
+def test_pool_1049(test_env):
     "1049 - test create_pool() and get_pool() with alias"
     alias = "pool_alias_2449"
     pool = test_env.get_pool(pool_alias=alias)
@@ -982,7 +982,7 @@ def test_1049(test_env):
     pool.close()
 
 
-def test_1050(test_env):
+def test_pool_1050(test_env):
     "1050 - test create_pool() twice with the same alias"
     alias = "pool_alias_2450"
     pool = test_env.get_pool(pool_alias=alias)
@@ -992,7 +992,7 @@ def test_1050(test_env):
     assert oracledb.get_pool(alias) is None
 
 
-def test_1051(test_env):
+def test_pool_1051(test_env):
     "1051 - test connect() with pool alias"
     alias = "pool_alias_2451"
     pool = test_env.get_pool(pool_alias=alias)
@@ -1008,7 +1008,7 @@ def test_1051(test_env):
         oracledb.connect(pool_alias=alias)
 
 
-def test_1052(test_env):
+def test_pool_1052(test_env):
     "1052 - test acquire() with pool alias and stmtcachesize"
     alias = "pool_2452"
     stmtcachesize = 35
@@ -1018,7 +1018,7 @@ def test_1052(test_env):
     oracledb.get_pool(alias).close()
 
 
-def test_1053(test_env):
+def test_pool_1053(test_env):
     "1053 - test pool alias is case sensitive"
     alias = "pool_2458"
     test_env.get_pool(pool_alias=alias)
@@ -1028,7 +1028,7 @@ def test_1053(test_env):
     oracledb.get_pool(alias).close()
 
 
-def test_1054(test_env):
+def test_pool_1054(test_env):
     "1054 - test pool alias with invalid types"
     aliases = [5, set(), dict(), bytearray(1)]
     for alias in aliases:
@@ -1036,7 +1036,7 @@ def test_1054(test_env):
             test_env.get_pool(pool_alias=alias)
 
 
-def test_1055(test_env):
+def test_pool_1055(test_env):
     "1055 - test create_pool() with parameters hook"
     pool = test_env.get_pool()
     with pool.acquire() as conn:
@@ -1062,13 +1062,13 @@ def test_1055(test_env):
     pool.close()
 
 
-def test_1056(test_env):
+def test_pool_1056(test_env):
     "1056 - test creation of pool with min > max"
     with test_env.assert_raises_full_code("DPY-2064"):
         test_env.get_pool(min=3, max=2)
 
 
-def test_1057(skip_if_drcp, test_env):
+def test_pool_1057(skip_if_drcp, test_env):
     "1057 - ping pooled connection on receiving dead connection error"
     test_env.skip_unless_server_version(18)
     with test_env.get_admin_connection() as admin_conn:
@@ -1090,14 +1090,14 @@ def test_1057(skip_if_drcp, test_env):
         pool.close()
 
 
-def test_1058(test_env):
+def test_pool_1058(test_env):
     "1058 - connection to database with bad password"
     with test_env.assert_raises_full_code("ORA-01017"):
         pool = test_env.get_pool(password=test_env.main_password + "X")
         pool.acquire()
 
 
-def test_1059(test_env):
+def test_pool_1059(test_env):
     "1059 - verify call_timeout is unchanged after internal ping performed"
     desired_value = 5000
 
@@ -1112,7 +1112,7 @@ def test_1059(test_env):
     pool.close()
 
 
-def test_1060(test_env):
+def test_pool_1060(test_env):
     "1060 - test on_connect_callback is triggered for each pool acquire()"
     counter = 0
 
@@ -1127,7 +1127,7 @@ def test_1060(test_env):
     pool.close()
 
 
-def test_1061(test_env):
+def test_pool_1061(test_env):
     "1061 - release a connection twice"
     pool = test_env.get_pool(min=0, max=1, increment=1)
     conn = pool.acquire()
@@ -1138,7 +1138,7 @@ def test_1061(test_env):
     pool.close()
 
 
-def test_1062(test_env):
+def test_pool_1062(test_env):
     "1062 - test thread waiting for a connection unblocks when it is released"
     pool = test_env.get_pool(min=1, max=1)
 
@@ -1156,7 +1156,7 @@ def test_1062(test_env):
     pool.close()
 
 
-def test_1063(test_env):
+def test_pool_1063(test_env):
     "1063 - Test that pool `wait_timeout` getter uses milliseconds."
     wait_ms = 4500
     pool = test_env.get_pool(
@@ -1171,7 +1171,7 @@ def test_1063(test_env):
     pool.close()
 
 
-def test_1064(test_env, skip_unless_thin_mode):
+def test_pool_1064(test_env, skip_unless_thin_mode):
     "1064 - test force closing a pool wakes waiting acquire() calls"
     pool = test_env.get_pool(min=1, max=1)
 

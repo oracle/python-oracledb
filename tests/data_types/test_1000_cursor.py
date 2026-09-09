@@ -29,7 +29,7 @@ Module for testing cursor variables
 import oracledb
 
 
-def test_1000(conn, test_env):
+def test_data_types_1000(conn, test_env):
     "1000 - test binding in a cursor"
     ref_cursor = conn.cursor()
     assert ref_cursor.description is None
@@ -58,7 +58,7 @@ def test_1000(conn, test_env):
     assert ref_cursor.fetchall() == [("X",)]
 
 
-def test_1001(conn, test_env):
+def test_data_types_1001(conn, test_env):
     "1001 - test binding in a cursor from a package"
     ref_cursor = conn.cursor()
     assert ref_cursor.description is None
@@ -81,7 +81,7 @@ def test_1001(conn, test_env):
     assert ref_cursor.fetchall() == [(1, "String 1"), (2, "String 2")]
 
 
-def test_1002(conn, test_env):
+def test_data_types_1002(conn, test_env):
     "1002 - test that binding the cursor itself is not supported"
     cursor = conn.cursor()
     sql = """
@@ -93,7 +93,7 @@ def test_1002(conn, test_env):
         cursor.execute(sql, pcursor=cursor)
 
 
-def test_1003(conn):
+def test_data_types_1003(conn):
     "1003 - test returning a ref cursor after closing it"
     out_cursor = conn.cursor()
     sql = """
@@ -113,7 +113,7 @@ def test_1003(conn):
     assert rows == rows2
 
 
-def test_1004(conn):
+def test_data_types_1004(conn):
     "1004 - test fetching a cursor"
     cursor = conn.cursor()
     cursor.execute("""
@@ -140,7 +140,7 @@ def test_1004(conn):
         assert child_cursor.fetchall() == [(i + 1,)]
 
 
-def test_1005(conn):
+def test_data_types_1005(conn):
     "1005 - test that ref cursor binds cannot use optimised path"
     ref_cursor = conn.cursor()
     sql = """
@@ -162,7 +162,7 @@ def test_1005(conn):
     assert ref_cursor.fetchall() == expected_value
 
 
-def test_1006(conn, round_trip_checker):
+def test_data_types_1006(conn, round_trip_checker):
     "1006 - test round trips using a REF cursor"
 
     # simple DDL only requires a single round trip
@@ -197,7 +197,7 @@ def test_1006(conn, round_trip_checker):
         assert round_trip_checker.get_value() == 6
 
 
-def test_1007(conn):
+def test_data_types_1007(conn):
     "1007 - test executing different SQL after getting a REF cursor"
     with conn.cursor() as cursor:
         refcursor = conn.cursor()
@@ -207,7 +207,7 @@ def test_1007(conn):
         assert var.getvalue() == 15
 
 
-def test_1008(conn):
+def test_data_types_1008(conn):
     "1008 - test calling a function that returns a REF cursor"
     with conn.cursor() as cursor:
         ref_cursor = cursor.callfunc(
@@ -218,7 +218,7 @@ def test_1008(conn):
         assert ref_cursor.fetchall() == [(1, "String 1"), (2, "String 2")]
 
 
-def test_1009(conn):
+def test_data_types_1009(conn):
     "1009 - test using an output type handler with a REF cursor"
 
     def type_handler(cursor, metadata):
@@ -234,7 +234,7 @@ def test_1009(conn):
     assert var.getvalue() is ref_cursor
 
 
-def test_1010(conn, test_env):
+def test_data_types_1010(conn, test_env):
     "1010 - bind a REF cursor but never open it"
     cursor = conn.cursor()
     ref_cursor_var = cursor.var(oracledb.DB_TYPE_CURSOR)
@@ -256,7 +256,7 @@ def test_1010(conn, test_env):
             ref_cursor.fetchall()
 
 
-def test_1011(test_env):
+def test_data_types_1011(test_env):
     "1011 - test fetching a cursor with a custom class"
 
     class Counter:
@@ -283,7 +283,7 @@ def test_1011(test_env):
         assert Counter.num_cursors_created == 3
 
 
-def test_1012(conn):
+def test_data_types_1012(conn):
     "1012 - test that nested cursors are fetched correctly"
     sql = """
         select
@@ -341,7 +341,7 @@ def test_1012(conn):
     assert rows == expected_value
 
 
-def test_1013(conn):
+def test_data_types_1013(conn):
     "1013 - test fetching nested cursors with more columns than parent"
     sql = """
         select
@@ -375,7 +375,7 @@ def test_1013(conn):
     assert rows == expected_value
 
 
-def test_1014(conn):
+def test_data_types_1014(conn):
     "1014 - test reusing a closed ref cursor for executing different sql"
     sql = "select 13141, 'String 13141' from dual"
     ref_cursor = conn.cursor()
@@ -389,7 +389,7 @@ def test_1014(conn):
     assert ref_cursor.fetchall() == [(13142, "String 13142")]
 
 
-def test_1015(conn):
+def test_data_types_1015(conn):
     "1015 - test reusing a closed ref cursor for executing same sql"
     sql = "select 1315, 'String 1315' from dual"
     ref_cursor = conn.cursor()
@@ -402,7 +402,7 @@ def test_1015(conn):
     assert ref_cursor.fetchall() == [(1315, "String 1315")]
 
 
-def test_1016(conn, test_env):
+def test_data_types_1016(conn, test_env):
     "1016 - test using a closed ref cursor for OUT bind"
     value = "test 1316a"
     sql = """
@@ -425,7 +425,7 @@ def test_1016(conn, test_env):
         cursor.execute(sql, [value, var])
 
 
-def test_1017(conn, cursor, test_env):
+def test_data_types_1017(conn, cursor, test_env):
     "1017 - test binding a closed cursor"
     ref_cursor = conn.cursor()
     ref_cursor.close()
@@ -433,7 +433,7 @@ def test_1017(conn, cursor, test_env):
         cursor.callfunc("pkg_testRefCursors.TestInCursor", str, [ref_cursor])
 
 
-def test_1018(test_env):
+def test_data_types_1018(test_env):
     "1018 - test ref cursor doesn't work after connection is closed"
     conn = test_env.get_connection()
     cursor = conn.cursor()
@@ -445,7 +445,7 @@ def test_1018(test_env):
         ref_cursor.fetchall()
 
 
-def test_1019(cursor, test_env):
+def test_data_types_1019(cursor, test_env):
     "1019 - test binding cursor that is not from the same connection"
     sql = """
         declare
@@ -463,7 +463,7 @@ def test_1019(cursor, test_env):
             cursor.execute(sql, [ref_cursor])
 
 
-def test_1020(conn):
+def test_data_types_1020(conn):
     "1020 - test fetching nested cursors repeatedly"
     sql = """
         select

@@ -31,7 +31,7 @@ import decimal
 import oracledb
 
 
-def test_1800(cursor):
+def test_cursor_1800(cursor):
     "1800 - test preparing a statement and executing it multiple times"
     assert cursor.statement is None
     statement = "begin :value := :value + 5; end;"
@@ -47,7 +47,7 @@ def test_1800(cursor):
     assert var.getvalue() == 3
 
 
-def test_1801(conn, test_env):
+def test_cursor_1801(conn, test_env):
     "1801 - confirm an exception is raised after closing a cursor"
     cursor = conn.cursor()
     cursor.close()
@@ -55,7 +55,7 @@ def test_1801(conn, test_env):
         cursor.execute("select 1 from dual")
 
 
-def test_1802(cursor):
+def test_cursor_1802(cursor):
     "1802 - test iterators"
     cursor.execute("""
         select IntCol
@@ -67,7 +67,7 @@ def test_1802(cursor):
     assert rows == [1, 2, 3]
 
 
-def test_1803(cursor, test_env):
+def test_cursor_1803(cursor, test_env):
     "1803 - test iterators (with intermediate execute)"
     cursor.execute("truncate table TestTempTable")
     cursor.execute("""
@@ -83,7 +83,7 @@ def test_1803(cursor, test_env):
         next(test_iter)
 
 
-def test_1804(cursor, test_env):
+def test_cursor_1804(cursor, test_env):
     "1804 - test that bindnames() works correctly."
     with test_env.assert_raises_full_code("DPY-2002"):
         cursor.bindnames()
@@ -108,7 +108,7 @@ def test_1804(cursor, test_env):
     assert cursor.bindnames() == ["ÉLEVÉ", "FENÊTRE"]
 
 
-def test_1805(cursor, test_env):
+def test_cursor_1805(cursor, test_env):
     "1805 - test cursor.setinputsizes() with invalid parameters"
     val = decimal.Decimal(5)
     with test_env.assert_raises_full_code("DPY-2005"):
@@ -117,14 +117,14 @@ def test_1805(cursor, test_env):
         cursor.setinputsizes(val)
 
 
-def test_1806(cursor):
+def test_cursor_1806(cursor):
     "1806 - test setting input sizes without any parameters"
     cursor.setinputsizes()
     cursor.execute("select :val from dual", val="Test Value")
     assert cursor.fetchall() == [("Test Value",)]
 
 
-def test_1807(cursor):
+def test_cursor_1807(cursor):
     "1807 - test setting input sizes with an empty dictionary"
     empty_dict = {}
     cursor.prepare("select 236 from dual")
@@ -133,7 +133,7 @@ def test_1807(cursor):
     assert cursor.fetchall() == [(236,)]
 
 
-def test_1808(cursor):
+def test_cursor_1808(cursor):
     "1808 - test setting input sizes with an empty list"
     empty_list = []
     cursor.prepare("select 239 from dual")
@@ -142,7 +142,7 @@ def test_1808(cursor):
     assert cursor.fetchall() == [(239,)]
 
 
-def test_1809(cursor):
+def test_cursor_1809(cursor):
     "1809 - test setting input sizes with positional args"
     var = cursor.var(oracledb.STRING, 100)
     cursor.setinputsizes(None, 5, None, 10, None, oracledb.NUMBER)
@@ -157,14 +157,14 @@ def test_1809(cursor):
     assert var.getvalue() == "test_5_second_37"
 
 
-def test_1810(conn, cursor):
+def test_cursor_1810(conn, cursor):
     "1810 - test Cursor repr()"
     expected_value = f"<oracledb.Cursor on {conn}>"
     assert str(cursor) == expected_value
     assert repr(cursor) == expected_value
 
 
-def test_1811(cursor):
+def test_cursor_1811(cursor):
     "1811 - test parsing query statements"
     sql = "select LongIntCol from TestNumbers where IntCol = :val"
     cursor.parse(sql)
@@ -174,24 +174,24 @@ def test_1811(cursor):
     ]
 
 
-def test_1812(cursor):
+def test_cursor_1812(cursor):
     "1812 - test cursor.setoutputsize() does not fail (but does nothing)"
     cursor.setoutputsize(100, 2)
 
 
-def test_1813(cursor, test_env):
+def test_cursor_1813(cursor, test_env):
     "1813 - test cursor.var() with invalid parameters"
     with test_env.assert_raises_full_code("DPY-2007"):
         cursor.var(5)
 
 
-def test_1814(cursor, test_env):
+def test_cursor_1814(cursor, test_env):
     "1814 - test cursor.arrayvar() with invalid parameters"
     with test_env.assert_raises_full_code("DPY-2007"):
         cursor.arrayvar(5, 1)
 
 
-def test_1815(cursor):
+def test_cursor_1815(cursor):
     "1815 - test binding boolean data without the use of PL/SQL"
     cursor.execute("truncate table TestTempTable")
     sql = "insert into TestTempTable (IntCol, StringCol1) values (:1, :2)"
@@ -204,7 +204,7 @@ def test_1815(cursor):
     assert cursor.fetchall() == expected_value
 
 
-def test_1816(conn, test_env):
+def test_cursor_1816(conn, test_env):
     "1816 - test using a cursor as a context manager"
     with conn.cursor() as cursor:
         cursor.execute("truncate table TestTempTable")
@@ -215,7 +215,7 @@ def test_1816(conn, test_env):
         cursor.close()
 
 
-def test_1817(cursor):
+def test_cursor_1817(cursor):
     "1817 - test that rowcount attribute is reset to zero on query execute"
     for num in [0, 1, 1, 0]:
         cursor.execute("select * from dual where 1 = :s", [num])
@@ -223,7 +223,7 @@ def test_1817(cursor):
         assert cursor.rowcount == num
 
 
-def test_1818(cursor):
+def test_cursor_1818(cursor):
     "1818 - test that the typename attribute can be passed a value of None"
     value_to_set = 5
     var = cursor.var(int, typename=None)
@@ -231,7 +231,7 @@ def test_1818(cursor):
     assert var.getvalue() == value_to_set
 
 
-def test_1819(conn, cursor):
+def test_cursor_1819(conn, cursor):
     "1819 - test that an object type can be used as type in cursor.var()"
     obj_type = conn.gettype("UDT_OBJECT")
     var = cursor.var(obj_type)
@@ -244,7 +244,7 @@ def test_1819(conn, cursor):
     assert result == exp
 
 
-def test_1820(cursor):
+def test_cursor_1820(cursor):
     "1820 - test that fetching an XMLType returns a string"
     int_val = 5
     label = "IntCol"
@@ -261,7 +261,7 @@ def test_1820(cursor):
     assert result == expected_result
 
 
-def test_1821(cursor):
+def test_cursor_1821(cursor):
     "1821 - test last rowid"
 
     # no statement executed: no rowid
@@ -325,7 +325,7 @@ def test_1821(cursor):
     assert cursor.fetchone()[0] == "Row %s" % rows[-3]
 
 
-def test_1822(conn, round_trip_checker):
+def test_cursor_1822(conn, round_trip_checker):
     "1822 - test prefetch rows"
 
     # perform simple query and verify only one round trip is needed
@@ -373,7 +373,7 @@ def test_1822(conn, round_trip_checker):
         assert round_trip_checker.get_value() == 2
 
 
-def test_1823(conn, round_trip_checker):
+def test_cursor_1823(conn, round_trip_checker):
     "1823 - test prefetch rows using existing cursor"
 
     # Set prefetch rows on an existing cursor
@@ -393,7 +393,7 @@ def test_1823(conn, round_trip_checker):
         assert round_trip_checker.get_value() == 7
 
 
-def test_1824(cursor):
+def test_cursor_1824(cursor):
     "1824 - test parsing plsql statements"
     sql = "begin :value := 5; end;"
     cursor.parse(sql)
@@ -401,7 +401,7 @@ def test_1824(cursor):
     assert cursor.description is None
 
 
-def test_1825(cursor):
+def test_cursor_1825(cursor):
     "1825 - test parsing ddl statements"
     sql = "truncate table TestTempTable"
     cursor.parse(sql)
@@ -409,7 +409,7 @@ def test_1825(cursor):
     assert cursor.description is None
 
 
-def test_1826(cursor):
+def test_cursor_1826(cursor):
     "1826 - test parsing dml statements"
     sql = "insert into TestTempTable (IntCol) values (1)"
     cursor.parse(sql)
@@ -417,7 +417,7 @@ def test_1826(cursor):
     assert cursor.description is None
 
 
-def test_1827(cursor, test_env):
+def test_cursor_1827(cursor, test_env):
     "1827 - test to verify encodingErrors is deprecated"
     errors = "strict"
     with test_env.assert_raises_full_code("DPY-2014"):
@@ -426,26 +426,26 @@ def test_1827(cursor, test_env):
         )
 
 
-def test_1828(cursor, test_env):
+def test_cursor_1828(cursor, test_env):
     "1828 - test arrays of arrays not supported"
     simple_var = cursor.arrayvar(oracledb.NUMBER, 3)
     with test_env.assert_raises_full_code("DPY-3005"):
         simple_var.setvalue(1, [1, 2, 3])
 
 
-def test_1829(cursor, test_env):
+def test_cursor_1829(cursor, test_env):
     "1829 - test cursor.setinputsizes() with invalid list parameters"
     with test_env.assert_raises_full_code("DPY-2011"):
         cursor.setinputsizes([int, 2, 10])
 
 
-def test_1830(cursor, test_env):
+def test_cursor_1830(cursor, test_env):
     "1830 - test unsupported python type on cursor"
     with test_env.assert_raises_full_code("DPY-3003"):
         cursor.var(list)
 
 
-def test_1831(cursor):
+def test_cursor_1831(cursor):
     "1831 - test binding by name with leading colon"
     params = {":arg1": 5}
     cursor.execute("select :arg1 from dual", params)
@@ -453,7 +453,7 @@ def test_1831(cursor):
     assert result == params[":arg1"]
 
 
-def test_1832(cursor):
+def test_cursor_1832(cursor):
     "1832 - test binding mixed null and not null values in a PL/SQL block"
     out_vars = [cursor.var(str) for i in range(4)]
     cursor.execute(
@@ -471,7 +471,7 @@ def test_1832(cursor):
     assert values == [None, "Value 1", None, "Value 2"]
 
 
-def test_1833(conn, parse_count_checker):
+def test_cursor_1833(conn, parse_count_checker):
     "1833 - test excluding statement from statement cache"
     num_iters = 10
     sql = "select user from dual"
@@ -491,7 +491,7 @@ def test_1833(conn, parse_count_checker):
     assert parse_count_checker.get_value() == num_iters - 1
 
 
-def test_1834(cursor):
+def test_cursor_1834(cursor):
     "1834 - test repeated DDL"
     cursor.execute("truncate table TestTempTable")
     cursor.execute("insert into TestTempTable (IntCol) values (1)")
@@ -499,34 +499,34 @@ def test_1834(cursor):
     cursor.execute("insert into TestTempTable (IntCol) values (1)")
 
 
-def test_1835(cursor):
+def test_cursor_1835(cursor):
     "1835 - test executing SQL with non-ASCII characters"
     cursor.execute("select 'FÖÖ' from dual")
     (result,) = cursor.fetchone()
     assert result in ("FÖÖ", "F¿¿")
 
 
-def test_1836(cursor):
+def test_cursor_1836(cursor):
     "1836 - test case sensitivity of unquoted bind names"
     cursor.execute("select :test from dual", {"TEST": "a"})
     (result,) = cursor.fetchone()
     assert result == "a"
 
 
-def test_1837(cursor, test_env):
+def test_cursor_1837(cursor, test_env):
     "1837 - test case sensitivity of quoted bind names"
     with test_env.assert_raises_full_code("ORA-01036", "DPY-4008"):
         cursor.execute('select :"test" from dual', {'"TEST"': "a"})
 
 
-def test_1838(cursor, test_env):
+def test_cursor_1838(cursor, test_env):
     "1838 - test using a reserved keywords as a bind name"
     sql = "select :ROWID from dual"
     with test_env.assert_raises_full_code("ORA-01745"):
         cursor.parse(sql)
 
 
-def test_1839(conn):
+def test_cursor_1839(conn):
     "1839 - test array size less than prefetch rows"
     for i in range(2):
         with conn.cursor() as cursor:
@@ -535,7 +535,7 @@ def test_1839(conn):
             assert cursor.fetchall() == [(1,), (2,)]
 
 
-def test_1840(conn, cursor):
+def test_cursor_1840(conn, cursor):
     "1840 - test re-executing a query with blob as bytes"
 
     def type_handler(cursor, metadata):
@@ -561,7 +561,7 @@ def test_1840(conn, cursor):
     assert cursor.fetchall() == [(1, blob_data)]
 
 
-def test_1841(cursor, test_env):
+def test_cursor_1841(cursor, test_env):
     "1841 - test re-executing a statement after raising an error"
     sql = "select * from TestFakeTable"
     with test_env.assert_raises_full_code("ORA-00942"):
@@ -576,7 +576,7 @@ def test_1841(cursor, test_env):
         cursor.execute(sql)
 
 
-def test_1842(conn):
+def test_cursor_1842(conn):
     "1842 - test executing a statement that raises ORA-01007"
     with conn.cursor() as cursor:
         cursor.execute("""
@@ -600,7 +600,7 @@ def test_1842(conn):
         assert cursor.fetchone() == (1, "Another String")
 
 
-def test_1843(cursor):
+def test_cursor_1843(cursor):
     "1843 - test updating an empty row"
     int_var = cursor.var(int)
     cursor.execute("truncate table TestTempTable")
@@ -617,7 +617,7 @@ def test_1843(cursor):
     assert int_var.values == [None]
 
 
-def test_1844(conn):
+def test_cursor_1844(conn):
     "1844 - fetch duplicate data from query in statement cache"
     sql = """
             select 'A', 'B', 'C' from dual
@@ -636,7 +636,7 @@ def test_1844(conn):
         assert cursor.fetchall() == expected_data
 
 
-def test_1845(cursor):
+def test_cursor_1845(cursor):
     "1845 - fetch duplicate data with outconverter"
 
     def out_converter(value):
@@ -661,7 +661,7 @@ def test_1845(cursor):
     assert cursor.fetchall() == expected_data
 
 
-def test_1846(cursor):
+def test_cursor_1846(cursor):
     "1846 - test setinputsizes() with defaults specified"
     cursor.setinputsizes(None, str)
     assert cursor.bindvars[0] is None
@@ -671,7 +671,7 @@ def test_1846(cursor):
     assert isinstance(cursor.bindvars["b"], oracledb.Var)
 
 
-def test_1847(skip_if_drcp, test_env):
+def test_cursor_1847(skip_if_drcp, test_env):
     "4547 - kill connection with open cursor"
     with test_env.get_admin_connection() as admin_conn:
         conn = test_env.get_connection()
@@ -686,7 +686,7 @@ def test_1847(skip_if_drcp, test_env):
         assert not conn.is_healthy()
 
 
-def test_1848(skip_if_drcp, test_env):
+def test_cursor_1848(skip_if_drcp, test_env):
     "1848 - kill connection in cursor context manager"
     with test_env.get_admin_connection() as admin_conn:
         conn = test_env.get_connection()
@@ -700,7 +700,7 @@ def test_1848(skip_if_drcp, test_env):
         assert not conn.is_healthy()
 
 
-def test_1849(conn, test_env):
+def test_cursor_1849(conn, test_env):
     "1849 - fetchmany() with and without parameters"
     sql_part = "select user from dual"
     sql = " union all ".join([sql_part] * 10)
@@ -720,7 +720,7 @@ def test_1849(conn, test_env):
             cursor.fetchmany(size=2, numRows=4)
 
 
-def test_1850(conn):
+def test_cursor_1850(conn):
     "1850 - access cursor.rowcount after closing cursor"
     with conn.cursor() as cursor:
         cursor.execute("select user from dual")
@@ -729,7 +729,7 @@ def test_1850(conn):
     assert cursor.rowcount == -1
 
 
-def test_1851(disable_fetch_lobs, cursor, test_env):
+def test_cursor_1851(disable_fetch_lobs, cursor, test_env):
     "1851 - changing bind type with define needed"
     cursor.execute("delete from TestClobs")
     row_for_1 = (1, "Short value 1")
@@ -748,7 +748,7 @@ def test_1851(disable_fetch_lobs, cursor, test_env):
     assert cursor.fetchone() == row_for_1
 
 
-def test_1852(cursor):
+def test_cursor_1852(cursor):
     "1852 - test calling cursor.parse() twice with the same statement"
     cursor.execute("truncate table TestTempTable")
     data = (4363, "Value for test 4363")
@@ -762,9 +762,9 @@ def test_1852(cursor):
         cursor.execute(sql, ("Updated value", data[0]))
 
 
-def test_1853(conn, cursor):
+def test_cursor_1853(conn, cursor):
     "1853 - test addition of column to cached query"
-    table_name = "test_1865"
+    table_name = "test_cursor_1865"
     try:
         cursor.execute(f"drop table {table_name}")
     except oracledb.DatabaseError:
@@ -782,14 +782,14 @@ def test_1853(conn, cursor):
     assert cursor.fetchall() == [data]
 
 
-def test_1854(cursor, test_env):
+def test_cursor_1854(cursor, test_env):
     "1854 - test population of array var with too many elements"
     var = cursor.arrayvar(int, 3)
     with test_env.assert_raises_full_code("DPY-2016"):
         var.setvalue(0, [1, 2, 3, 4])
 
 
-def test_1855(cursor):
+def test_cursor_1855(cursor):
     "1855 - test executemany() with PL/SQL and increasing data lengths"
     sql = "begin :1 := length(:2); end;"
     var = cursor.var(int, arraysize=3)
@@ -801,7 +801,7 @@ def test_1855(cursor):
     assert var.values == [4, 3, 3]
 
 
-def test_1856(cursor):
+def test_cursor_1856(cursor):
     "1856 - test cursor.rowcount values for queries"
     max_rows = 93
     cursor.arraysize = 10
@@ -822,7 +822,7 @@ def test_1856(cursor):
     assert cursor.rowcount == max_rows
 
 
-def test_1857(disable_fetch_lobs, conn, cursor, test_env):
+def test_cursor_1857(disable_fetch_lobs, conn, cursor, test_env):
     "1857 - test bind order for PL/SQL"
     cursor.execute("delete from TestClobs")
     sql = """
@@ -842,9 +842,9 @@ def test_1857(disable_fetch_lobs, conn, cursor, test_env):
     assert cursor.fetchall() == rows
 
 
-def test_1858(disable_fetch_lobs, cursor, test_env):
+def test_cursor_1858(disable_fetch_lobs, cursor, test_env):
     "1858 - test rebuild of table with LOB in cached query (as string)"
-    table_name = "test_1870"
+    table_name = "test_cursor_1870"
     drop_sql = f"drop table {table_name} purge"
     create_sql = f"""
         create table {table_name} (
@@ -871,9 +871,9 @@ def test_1858(disable_fetch_lobs, cursor, test_env):
     assert cursor.fetchall() == data
 
 
-def test_1859(cursor):
+def test_cursor_1859(cursor):
     "1859 - test rebuild of table with LOB in cached query (as LOB)"
-    table_name = "test_1871"
+    table_name = "test_cursor_1871"
     drop_sql = f"drop table {table_name} purge"
     create_sql = f"""
         create table {table_name} (
@@ -902,7 +902,7 @@ def test_1859(cursor):
     assert fetched_data == data
 
 
-def test_1860(skip_unless_json_supported, cursor, test_env):
+def test_cursor_1860(skip_unless_json_supported, cursor, test_env):
     "1860 - fetch JSON columns as Python objects"
     test_env.skip_unless_server_version(21)
     expected_data = [
@@ -913,7 +913,7 @@ def test_1860(skip_unless_json_supported, cursor, test_env):
     assert cursor.fetchall() == expected_data
 
 
-def test_1861(skip_unless_domains_supported, cursor, test_env):
+def test_cursor_1861(skip_unless_domains_supported, cursor, test_env):
     "1861 - fetch table with domain and annotations"
     cursor.execute("select * from TableWithDomainAndAnnotations")
     assert cursor.fetchall() == [(1, 25)]
@@ -932,14 +932,14 @@ def test_1861(skip_unless_domains_supported, cursor, test_env):
     assert column_2.annotations == expected_annotations
 
 
-def test_1862(cursor):
+def test_cursor_1862(cursor):
     "1862 - test getting statement after it was executed"
     sql = "select 1 from dual"
     cursor.execute(sql)
     assert cursor.statement == sql
 
 
-def test_1863(cursor):
+def test_cursor_1863(cursor):
     "1863 - test getting cursor fetchvars"
     assert cursor.fetchvars is None
 
@@ -954,7 +954,7 @@ def test_1863(cursor):
     assert cursor.fetchvars[1].getvalue() == "12"
 
 
-def test_1864(cursor):
+def test_cursor_1864(cursor):
     "1864 - test fetchmany() with non-default cursor.arraysize"
     cursor.arraysize = 20
     values = [(i,) for i in range(30)]
@@ -972,7 +972,7 @@ def test_1864(cursor):
     assert fetched_values == values[cursor.arraysize :]
 
 
-def test_1865(cursor, test_env):
+def test_cursor_1865(cursor, test_env):
     "1865 - negative tests for cursor.arraysize"
     with test_env.assert_raises_full_code("DPY-2045"):
         cursor.arraysize = 0
@@ -982,7 +982,7 @@ def test_1865(cursor, test_env):
         cursor.arraysize = "not valid"
 
 
-def test_1866(cursor, test_env):
+def test_cursor_1866(cursor, test_env):
     "1866 - test fetching LOBs after an error"
     sql = """
         select
@@ -998,7 +998,7 @@ def test_1866(cursor, test_env):
     assert num_val == 1
 
 
-def test_1867(conn):
+def test_cursor_1867(conn):
     "1867 - test parse() with autocommit enabled"
     conn.autocommit = True
     cursor = conn.cursor()
@@ -1007,7 +1007,7 @@ def test_1867(conn):
     cursor.execute(None, [1])
 
 
-def test_1868(cursor, test_env):
+def test_cursor_1868(cursor, test_env):
     "1868 - test cursor.setinputsizes() with early failed execute"
     cursor.setinputsizes(a=int, b=str)
     with test_env.assert_raises_full_code("DPY-2006"):
@@ -1018,19 +1018,19 @@ def test_1868(cursor, test_env):
     assert fetched_value == value
 
 
-def test_1869(test_env):
+def test_cursor_1869(test_env):
     "1869 - access cursor.rowcount after closing connection"
     with test_env.get_connection() as conn:
         cursor = conn.cursor()
     assert cursor.rowcount == -1
 
 
-def test_1870(conn, cursor):
+def test_cursor_1870(conn, cursor):
     "1870 - execute PL/SQL with out vars after query with duplicate data"
     cursor.execute("truncate table TestTempTable")
     cursor.executemany(
         "insert into TestTempTable (IntCol, StringCol1) values (:1, :2)",
-        [(i + 1, "test_1870") for i in range(20)],
+        [(i + 1, "test_cursor_1870") for i in range(20)],
     )
     conn.commit()
     cursor.execute("select IntCol, StringCol1 from TestTempTable")
@@ -1039,7 +1039,7 @@ def test_1870(conn, cursor):
     assert var.getvalue() == 4370
 
 
-def test_1871(cursor):
+def test_cursor_1871(cursor):
     "1871 - test cursor with fetch_decimals=True specified"
     value = 4371
     cursor.execute("select :1 from dual", [value], fetch_decimals=True)
@@ -1047,7 +1047,7 @@ def test_1871(cursor):
     assert isinstance(rows[0][0], decimal.Decimal)
 
 
-def test_1872(cursor):
+def test_cursor_1872(cursor):
     "1872 - test cursor.parse() uses oracledb.defaults.fetch_lobs"
     cursor.parse("select to_clob('some_value') from dual")
     fetch_info = cursor.description[0]

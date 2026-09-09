@@ -74,7 +74,7 @@ def _test_skip(coll, num_to_skip, expected_content):
     assert content == expected_content
 
 
-def test_1100(soda_db, test_env):
+def test_soda_1100(soda_db, test_env):
     "1100 - test inserting invalid JSON value into SODA collection"
     invalid_json = "{testKey:testValue}"
     coll = soda_db.createCollection("InvalidJSON")
@@ -83,7 +83,7 @@ def test_1100(soda_db, test_env):
         coll.insertOne(doc)
 
 
-def test_1101(soda_db, conn):
+def test_soda_1101(soda_db, conn):
     "1101 - test inserting documents into a SODA collection"
     coll = soda_db.createCollection("TestInsertDocs")
     values_to_insert = [
@@ -104,7 +104,7 @@ def test_1101(soda_db, conn):
         assert doc == value
 
 
-def test_1102(soda_db, conn):
+def test_soda_1102(soda_db, conn):
     "1102 - test skipping documents in a SODA collection"
     coll = soda_db.createCollection("TestSkipDocs")
     values_to_insert = [
@@ -123,7 +123,7 @@ def test_1102(soda_db, conn):
     _test_skip(coll, 125, None)
 
 
-def test_1103(soda_db, conn):
+def test_soda_1103(soda_db, conn):
     "1103 - test replace documents in SODA collection"
     coll = soda_db.createCollection("TestReplaceDoc")
     content = {"name": "John", "address": {"city": "Sydney"}}
@@ -137,7 +137,7 @@ def test_1103(soda_db, conn):
     assert doc == new_content
 
 
-def test_1104(soda_db, conn):
+def test_soda_1104(soda_db, conn):
     "1104 - test search documents with different QBEs"
     coll = soda_db.createCollection("TestSearchDocContent")
     data = [
@@ -209,7 +209,7 @@ def test_1104(soda_db, conn):
         ), filter_spec
 
 
-def test_1105(soda_db, conn):
+def test_soda_1105(soda_db, conn):
     "1105 - test removing documents"
     coll = soda_db.createCollection("TestRemoveDocs")
     data = [
@@ -232,7 +232,7 @@ def test_1105(soda_db, conn):
     conn.commit()
 
 
-def test_1106(soda_db, conn, test_env):
+def test_soda_1106(soda_db, conn, test_env):
     "1106 - test create and drop Index"
     index_name = "TestIndexes_ix_1"
     index_spec = {
@@ -252,7 +252,7 @@ def test_1106(soda_db, conn, test_env):
     assert not coll.dropIndex(index_name)
 
 
-def test_1107(soda_db, conn):
+def test_soda_1107(soda_db, conn):
     "1107 - test getting documents from Collection"
     conn.autocommit = True
     coll = soda_db.createCollection("TestGetDocs")
@@ -268,7 +268,7 @@ def test_1107(soda_db, conn):
     assert fetched_keys == inserted_keys
 
 
-def test_1108(soda_db, conn):
+def test_soda_1108(soda_db, conn):
     "1108 - test fetching documents from a cursor"
     conn.autocommit = True
     coll = soda_db.createCollection("TestFindViaCursor")
@@ -282,7 +282,7 @@ def test_1108(soda_db, conn):
     assert fetched_keys == inserted_keys
 
 
-def test_1109(soda_db, conn):
+def test_soda_1109(soda_db, conn):
     "1109 - test removing multiple documents using multiple keys"
     coll = soda_db.createCollection("TestRemoveMultipleDocs")
     data = [
@@ -301,7 +301,7 @@ def test_1109(soda_db, conn):
     conn.commit()
 
 
-def test_1110(soda_db, conn):
+def test_soda_1110(soda_db, conn):
     "1110 - test using version to get documents and remove them"
     coll = soda_db.createCollection("TestDocumentVersion")
     content = {"name": "John", "address": {"city": "Bangalore"}}
@@ -325,7 +325,7 @@ def test_1110(soda_db, conn):
     conn.commit()
 
 
-def test_1111(soda_db, conn):
+def test_soda_1111(soda_db, conn):
     "1111 - test keys with GetCursor"
     coll = soda_db.createCollection("TestKeysWithGetCursor")
     values_to_insert = [
@@ -343,7 +343,7 @@ def test_1111(soda_db, conn):
     conn.commit()
 
 
-def test_1112(soda_db):
+def test_soda_1112(soda_db):
     "1112 - test createdOn attribute of Document"
     coll = soda_db.createCollection("CreatedOn")
     data = {"name": "John", "address": {"city": "Bangalore"}}
@@ -351,7 +351,7 @@ def test_1112(soda_db):
     assert doc.createdOn == doc.lastModified
 
 
-def test_1113(soda_db, conn, test_env):
+def test_soda_1113(soda_db, conn, test_env):
     "1113 - test Soda truncate"
     if not test_env.has_client_version(20):
         pytest.skip("unsupported client")
@@ -370,7 +370,7 @@ def test_1113(soda_db, conn, test_env):
     assert coll.find().count() == 0
 
 
-def test_1114(soda_db, cursor, test_env):
+def test_soda_1114(soda_db, cursor, test_env):
     "1114 - verify hints are reflected in the executed SQL statement"
     if not test_env.has_client_version(19, 11):
         pytest.skip("client version not supported")
@@ -404,7 +404,7 @@ def test_1114(soda_db, cursor, test_env):
     assert "NO_MONITOR" in result.read()
 
 
-def test_1115(soda_db):
+def test_soda_1115(soda_db):
     "1115 - test error for invalid type for soda hint"
     coll = soda_db.createCollection("InvalidSodaHint")
     pytest.raises(
@@ -422,7 +422,7 @@ def test_1115(soda_db):
     pytest.raises(TypeError, coll.find().hint, 2)
 
 
-def test_1116(soda_db):
+def test_soda_1116(soda_db):
     "1116 - test name and metadata attribute"
     collection_name = "TestCollectionMetadata"
     coll = soda_db.createCollection(collection_name)
@@ -430,7 +430,7 @@ def test_1116(soda_db):
     assert coll.metadata["tableName"] == collection_name
 
 
-def test_1117(soda_db, conn, test_env):
+def test_soda_1117(soda_db, conn, test_env):
     "1117 - test insertMany"
     coll = soda_db.createCollection("TestInsertMany")
     values_to_insert = [
@@ -449,7 +449,7 @@ def test_1117(soda_db, conn, test_env):
         coll.insertMany([])
 
 
-def test_1118(skip_if_save_not_supported, soda_db, conn, test_env):
+def test_soda_1118(skip_if_save_not_supported, soda_db, conn, test_env):
     "1118 - test save"
     coll = soda_db.createCollection("TestSodaSave")
     values_to_save = [
@@ -467,7 +467,7 @@ def test_1118(skip_if_save_not_supported, soda_db, conn, test_env):
         assert fetched_doc.getContent() == expected_doc.getContent()
 
 
-def test_1119(skip_if_save_not_supported, soda_db, cursor, test_env):
+def test_soda_1119(skip_if_save_not_supported, soda_db, cursor, test_env):
     "1119 - test saveAndGet with hint"
     statement = """
             SELECT
@@ -493,7 +493,7 @@ def test_1119(skip_if_save_not_supported, soda_db, cursor, test_env):
         assert hint in result.read()
 
 
-def test_1120(skip_if_save_not_supported, soda_db, conn):
+def test_soda_1120(skip_if_save_not_supported, soda_db, conn):
     "1120 - test saveAndGet"
     coll = soda_db.createCollection("TestSodaSaveAndGet")
     values_to_save = [
@@ -513,7 +513,7 @@ def test_1120(skip_if_save_not_supported, soda_db, conn):
         assert doc.getContent() == fetched_doc.getContent()
 
 
-def test_1121(soda_db, conn, test_env):
+def test_soda_1121(soda_db, conn, test_env):
     "1121 - test insert many and get"
     for name in soda_db.getCollectionNames():
         soda_db.openCollection(name).drop()
@@ -534,7 +534,7 @@ def test_1121(soda_db, conn, test_env):
         assert doc == expected_doc.getContent()
 
 
-def test_1122(soda_db, test_env):
+def test_soda_1122(soda_db, test_env):
     "1122 - close document cursor and confirm exception is raised"
     coll = soda_db.createCollection("TestCloseSodaDocCursor")
     cursor = coll.find().getCursor()
@@ -545,7 +545,7 @@ def test_1122(soda_db, test_env):
         next(cursor)
 
 
-def test_1123(soda_db, conn):
+def test_soda_1123(soda_db, conn):
     "1123 - test limit to get specific amount of documents"
     coll = soda_db.createCollection("TestSodaLimit")
     values_to_insert = [{"group": "Camila"} for i in range(20)]
@@ -557,7 +557,7 @@ def test_1123(soda_db, conn):
     assert len(docs) == 3
 
 
-def test_1124(soda_db, conn, test_env):
+def test_soda_1124(soda_db, conn, test_env):
     "1124 - get count exceptions when using limit and skip"
     coll = soda_db.createCollection("TestSodaCountExceptions")
     data = [{"song": "WYMCA"} for i in range(20)]
@@ -569,7 +569,7 @@ def test_1124(soda_db, conn, test_env):
         coll.find().skip(10).count()
 
 
-def test_1125(skip_if_map_mode_not_supported, soda_db, conn, test_env):
+def test_soda_1125(skip_if_map_mode_not_supported, soda_db, conn, test_env):
     "1125 - test mapMode parameter"
     data = [{"price": 4900}, {"price": 8}]
     expected_data = data * 2
@@ -592,13 +592,13 @@ def test_1125(skip_if_map_mode_not_supported, soda_db, conn, test_env):
     assert not mapped_coll.drop()
 
 
-def test_1126(skip_if_map_mode_not_supported, soda_db, test_env):
+def test_soda_1126(skip_if_map_mode_not_supported, soda_db, test_env):
     "1126 - test mapping a new collection from an non-existent table"
     with test_env.assert_raises_full_code("ORA-40623"):
         soda_db.createCollection("TestSodaMapNonExistent", mapMode=True)
 
 
-def test_1127(soda_db):
+def test_soda_1127(soda_db):
     "1127 - test negative cases for SodaOperation methods"
     coll = soda_db.createCollection("TestSodaOperationNegative")
     pytest.raises(TypeError, coll.find().filter, 5)
@@ -610,7 +610,7 @@ def test_1127(soda_db):
     pytest.raises(TypeError, coll.find().limit, "a word")
 
 
-def test_1128(soda_db, conn, round_trip_checker, test_env):
+def test_soda_1128(soda_db, conn, round_trip_checker, test_env):
     "1128 - test fetchArraySize"
     if not test_env.has_client_version(19, 5):
         pytest.skip("unsupported client")
@@ -656,7 +656,7 @@ def test_1128(soda_db, conn, round_trip_checker, test_env):
     pytest.raises(TypeError, coll.find().fetchArraySize, -1)
 
 
-def test_1129(soda_db, test_env):
+def test_soda_1129(soda_db, test_env):
     "1129 - test getting indexes on a collection"
     test_env.skip_unless_client_version(19, 13)
     coll = soda_db.createCollection("TestSodaListIndexes")
@@ -685,7 +685,7 @@ def test_1129(soda_db, test_env):
     assert indexes[1]["fields"][0]["path"] == "address.postal_code"
 
 
-def test_1130(soda_db, test_env):
+def test_soda_1130(soda_db, test_env):
     "1130 - test locking documents on fetch"
     if not test_env.has_client_version(19, 11):
         pytest.skip("unsupported client")
@@ -699,7 +699,7 @@ def test_1130(soda_db, test_env):
     coll.find().lock().getDocuments()
 
 
-def test_1131(soda_db):
+def test_soda_1131(soda_db):
     "1131 - test that drop returns the correct boolean"
     coll = soda_db.createCollection("TestDropCollection")
     assert coll.drop()
@@ -708,7 +708,7 @@ def test_1131(soda_db):
     assert not coll.drop()
 
 
-def test_1132(skip_if_map_mode_not_supported, soda_db):
+def test_soda_1132(skip_if_map_mode_not_supported, soda_db):
     "1132 - test drop with an empty mapped collection"
     original_coll = soda_db.createCollection("TestDropMapMode")
     mapped_coll = soda_db.createCollection("TestDropMapMode", mapMode=True)
@@ -716,7 +716,7 @@ def test_1132(skip_if_map_mode_not_supported, soda_db):
     assert not original_coll.drop()
 
 
-def test_1133(soda_db, conn):
+def test_soda_1133(soda_db, conn):
     "1133 - test that replaceOne() returns a correct boolean"
     coll = soda_db.createCollection("TestReplaceDocReturns")
     doc = coll.insertOneAndGet({"address": {"city": "Sydney"}})
@@ -729,7 +729,7 @@ def test_1133(soda_db, conn):
     conn.commit()
 
 
-def test_1134(soda_db, test_env):
+def test_soda_1134(soda_db, test_env):
     "1134 - replaceOne() and replaceOneAndGet() with invalid scenarios"
     coll = soda_db.createCollection("TestReplaceOneNegative")
     coll.insertMany([{"Wisdom": 1.7} for d in range(2)])
@@ -740,7 +740,7 @@ def test_1134(soda_db, test_env):
         coll.find().keys(keys).replaceOneAndGet({"data": "new"})
 
 
-def test_1135(soda_db, test_env):
+def test_soda_1135(soda_db, test_env):
     "1135 - test writting a read-only collection"
     if not test_env.has_client_version(19, 9):
         pytest.skip("client version not supported")
@@ -763,7 +763,7 @@ def test_1135(soda_db, test_env):
             method({"Song 1": "No end"})
 
 
-def test_1136(soda_db):
+def test_soda_1136(soda_db):
     "1136 - createCollection() with the same name and metadata"
     coll_name = "TestCollSameMetadata"
     coll1 = soda_db.createCollection(coll_name, {"readOnly": True})
@@ -772,7 +772,7 @@ def test_1136(soda_db):
     assert not coll2.drop()
 
 
-def test_1137(soda_db, test_env):
+def test_soda_1137(soda_db, test_env):
     "1137 - createCollection() with the same name but different metadata"
     coll_name = "TestCollDifferentMetadata"
     coll = soda_db.createCollection(coll_name)
@@ -785,7 +785,7 @@ def test_1137(soda_db, test_env):
         soda_db.createCollection(coll_name, {"readOnly": False})
 
 
-def test_1138(soda_db, conn, test_env):
+def test_soda_1138(soda_db, conn, test_env):
     "1138 - test getDataGuide() with an index with data-guide support"
     coll = soda_db.createCollection("TestSodaDataGuideEnabled")
     data = [
@@ -832,7 +832,7 @@ def test_1138(soda_db, conn, test_env):
         assert re.fullmatch(regex, val) is not None
 
 
-def test_1139(soda_db, conn, test_env):
+def test_soda_1139(soda_db, conn, test_env):
     "1139 - test getDataGuide() with an index without data-guide support"
     coll = soda_db.createCollection("TestSodaDataGuideDisabled")
 
@@ -847,21 +847,21 @@ def test_1139(soda_db, conn, test_env):
         coll.getDataGuide()
 
 
-def test_1140(soda_db):
+def test_soda_1140(soda_db):
     "1140 - test getDataGuide() with an empty collection"
     coll = soda_db.createCollection("TestDataGuideWithEmptyColl")
     coll.createIndex({"name": "ix_3440", "dataguide": "on"})
     assert coll.getDataGuide() is None
 
 
-def test_1141(soda_db, test_env):
+def test_soda_1141(soda_db, test_env):
     "1141 - test getDataGuide() without a json search index"
     coll = soda_db.createCollection("TestSodaDataGuideWithoutIndex")
     with test_env.assert_raises_full_code("ORA-40582"):
         coll.getDataGuide()
 
 
-def test_1142(soda_db, conn, test_env):
+def test_soda_1142(soda_db, conn, test_env):
     "1142 - test mapMode parameter with metadata"
     data = [{"price": 4900}, {"price": 8}]
     expected_data = data * 2
@@ -898,7 +898,7 @@ def test_1142(soda_db, conn, test_env):
     assert not mapped_coll.drop()
 
 
-def test_1143(soda_db, test_env):
+def test_soda_1143(soda_db, test_env):
     "1143 - test mapping a new collection from an non-existent table"
     metadata = {"tableName": "TestNone"}
     with test_env.assert_raises_full_code("ORA-40623"):
@@ -907,7 +907,7 @@ def test_1143(soda_db, test_env):
         )
 
 
-def test_1144(soda_db):
+def test_soda_1144(soda_db):
     "1144 - test collections with mixture of media types"
     metadata = dict(mediaTypeColumn=dict(name="media_type"))
     coll = soda_db.createCollection("TestMixedMedia", metadata=metadata)
@@ -936,7 +936,7 @@ def test_1144(soda_db):
             pytest.raises(UnicodeDecodeError, fetched_doc.getContentAsString)
 
 
-def test_1145(soda_db, test_env):
+def test_soda_1145(soda_db, test_env):
     "1145 - test fetching documents with JSON data using extended types"
     if not test_env.has_client_and_server_version(23, 4):
         pytest.skip("unsupported data types")
@@ -957,7 +957,7 @@ def test_1145(soda_db, test_env):
     assert doc.getContent() == val
 
 
-def test_1146(soda_db, conn, test_env):
+def test_soda_1146(soda_db, conn, test_env):
     "1146 - test round-trip of JsonId"
     if not test_env.has_client_and_server_version(23, 4):
         pytest.skip("unsupported data types")
@@ -984,7 +984,7 @@ def test_1146(soda_db, conn, test_env):
     assert fetched_doc.getContent() == content
 
 
-def test_1147(soda_db):
+def test_soda_1147(soda_db):
     "1147 - test getting documents with client-assigned keys"
     metadata = {"keyColumn": {"assignmentMethod": "client"}}
     coll = soda_db.createCollection("TestSearchByClientAssignedKeys", metadata)

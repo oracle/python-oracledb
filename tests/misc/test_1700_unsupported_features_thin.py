@@ -35,7 +35,7 @@ def module_checks(skip_unless_thin_mode):
     pass
 
 
-def test_1700(test_env):
+def test_misc_1700(test_env):
     "1700 - test getting and setting thick attributes"
     pool = test_env.get_pool()
     with test_env.assert_raises_full_code("DPY-3001"):
@@ -49,7 +49,7 @@ def test_1700(test_env):
     pool.close()
 
 
-def test_1702(test_env):
+def test_misc_1702(test_env):
     "1702 - test connection with sharding and supersharding keys"
     with test_env.assert_raises_full_code("DPY-3001"):
         test_env.get_connection(shardingkey=[27])
@@ -57,7 +57,7 @@ def test_1702(test_env):
         test_env.get_connection(supershardingkey=[17, 23])
 
 
-def test_1703(test_env):
+def test_misc_1703(test_env):
     "1703 - test connect() without a connect string (bequeath)"
     with test_env.assert_raises_full_code("DPY-3001"):
         oracledb.connect(
@@ -66,7 +66,7 @@ def test_1703(test_env):
         )
 
 
-def test_1704(test_env):
+def test_misc_1704(test_env):
     "1704 - test acquire() from a pool with a session tag"
     pool = test_env.get_pool()
     with test_env.assert_raises_full_code("DPY-3001"):
@@ -74,26 +74,26 @@ def test_1704(test_env):
     pool.close()
 
 
-def test_1705(conn, test_env):
+def test_misc_1705(conn, test_env):
     "1705 - test error while passing OCIStmt handle in thin mode"
     with test_env.assert_raises_full_code("DPY-3001"):
         conn.cursor(handle=1)
 
 
-def test_1706(conn, test_env):
+def test_misc_1706(conn, test_env):
     "1706 - test error getting an OCIStmt handle in thin mode"
     with test_env.assert_raises_full_code("DPY-3001"):
         cursor = conn.cursor()
         cursor.handle
 
 
-def test_1707(conn, test_env):
+def test_misc_1707(conn, test_env):
     "1707 - test passing OCIStmt handle in thin mode raises DPY-3001"
     with test_env.assert_raises_full_code("DPY-3001"):
         conn.fetch_df_all(handle=1)
 
 
-def test_1708(conn, test_env):
+def test_misc_1708(conn, test_env):
     "1708 - test passing OCIStmt handle in thin mode raises DPY-3001"
     with test_env.assert_raises_full_code("DPY-3001"):
         for _ in conn.fetch_df_batches(handle=1):

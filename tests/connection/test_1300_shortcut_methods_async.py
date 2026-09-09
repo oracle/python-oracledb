@@ -37,7 +37,7 @@ def module_checks(anyio_backend, skip_unless_thin_mode):
     pass
 
 
-async def test_1300(async_conn):
+async def test_connection_1300(async_conn):
     "1300 - test execute() and fetchall()"
     await async_conn.execute("truncate table TestTempTable")
     await async_conn.execute(
@@ -54,7 +54,7 @@ async def test_1300(async_conn):
     assert res == [(15,), (77,)]
 
 
-async def test_1301(async_conn):
+async def test_connection_1301(async_conn):
     "1301 - test executemany()"
     await async_conn.execute("truncate table TestTempTable")
     await async_conn.executemany(
@@ -71,7 +71,7 @@ async def test_1301(async_conn):
     assert res == [(2,), (3,), (4,), (5,)]
 
 
-async def test_1302(async_conn, round_trip_checker_async):
+async def test_connection_1302(async_conn, round_trip_checker_async):
     "1302 - test fetchall() with arraysize"
     await async_conn.execute("truncate table TestTempTable")
     data = [(1,), (2,), (3,), (4,)]
@@ -96,12 +96,12 @@ async def test_1302(async_conn, round_trip_checker_async):
     assert await round_trip_checker_async.get_value_async() == 2
 
 
-async def test_1303(async_conn):
+async def test_connection_1303(async_conn):
     "1303 - test fetchall() with rowfactory"
     await async_conn.execute("truncate table TestTempTable")
     await async_conn.execute("""
         insert into TestTempTable (IntCol, StringCol1)
-        values (1, 'test_1303')
+        values (1, 'test_connection_1303')
         """)
     await async_conn.commit()
 
@@ -114,11 +114,11 @@ async def test_1303(async_conn):
         "select IntCol, StringCol1 from TestTempTable",
         rowfactory=rowfactory,
     )
-    expected_value = [{"INTCOL": 1, "STRINGCOL1": "test_1303"}]
+    expected_value = [{"INTCOL": 1, "STRINGCOL1": "test_connection_1303"}]
     assert res == expected_value
 
 
-async def test_1304(async_conn):
+async def test_connection_1304(async_conn):
     "1304 - test fetchone()"
     await async_conn.execute("truncate table TestTempTable")
     await async_conn.executemany(
@@ -138,7 +138,7 @@ async def test_1304(async_conn):
     assert res == (5,)
 
 
-async def test_1305(async_conn):
+async def test_connection_1305(async_conn):
     "1305 - test fetchone() with rowfactory"
     await async_conn.execute("truncate table TestTempTable")
     await async_conn.executemany(
@@ -162,7 +162,7 @@ async def test_1305(async_conn):
     assert res == {"INT": 3, "STRING": "Mac"}
 
 
-async def test_1306(async_conn):
+async def test_connection_1306(async_conn):
     "1306 - test fetchmany()"
     data = [(i,) for i in range(10)]
     await async_conn.execute("truncate table TestTempTable")
@@ -182,7 +182,7 @@ async def test_1306(async_conn):
     assert res == [(366,)]
 
 
-async def test_1307(async_conn):
+async def test_connection_1307(async_conn):
     "1307 - test fetchmany() with num_rows"
     data = [(i,) for i in range(10)]
     await async_conn.execute("truncate table TestTempTable")
@@ -197,7 +197,7 @@ async def test_1307(async_conn):
     assert res == data[:num_rows]
 
 
-async def test_1308(test_env):
+async def test_connection_1308(test_env):
     "1308 - test fetchmany() with rowfactory and num_rows"
     conn = await test_env.get_connection_async()
     await conn.execute("truncate table TestTempTable")
@@ -233,7 +233,7 @@ async def test_1308(test_env):
     assert res == [{"INT": 4, "STRING": "Monday"}]
 
 
-async def test_1309(async_conn):
+async def test_connection_1309(async_conn):
     "1309 - test callfunc()"
     # parameters
     res = await async_conn.callfunc("func_Test", oracledb.NUMBER, ("Yes", 7))
@@ -254,14 +254,14 @@ async def test_1309(async_conn):
     assert res == 30
 
 
-async def test_1310(async_conn, async_cursor):
+async def test_connection_1310(async_conn, async_cursor):
     "1310 - test callproc() with parameters"
     var = async_cursor.var(oracledb.NUMBER)
     results = await async_conn.callproc("proc_Test", ("hi", 5, var))
     assert results == ["hi", 10, 2.0]
 
 
-async def test_1311(async_conn, async_cursor):
+async def test_connection_1311(async_conn, async_cursor):
     "1311 - test callproc() with keyword_parameters"
     in_out_value = async_cursor.var(oracledb.NUMBER)
     in_out_value.setvalue(0, 7)
@@ -275,7 +275,7 @@ async def test_1311(async_conn, async_cursor):
     assert out_value.getvalue() == 5
 
 
-async def test_1312(async_conn, async_cursor):
+async def test_connection_1312(async_conn, async_cursor):
     "1312 - test callproc() with parameters and keyword_parameters"
     in_out_value = async_cursor.var(oracledb.NUMBER)
     in_out_value.setvalue(0, 8)
@@ -287,7 +287,7 @@ async def test_1312(async_conn, async_cursor):
     assert out_value.getvalue() == 10
 
 
-async def test_1313(async_conn):
+async def test_connection_1313(async_conn):
     "1313 - test fetchmany() num_rows with 0 and negative values"
     data = [(i,) for i in range(10)]
     await async_conn.execute("truncate table TestTempTable")
@@ -303,7 +303,7 @@ async def test_1313(async_conn):
         assert res == []
 
 
-async def test_1314(async_conn):
+async def test_connection_1314(async_conn):
     "1314 - test shortcut methods with transaction_in_progress"
     await async_conn.execute("truncate table TestTempTable")
     assert not async_conn.transaction_in_progress
@@ -315,34 +315,34 @@ async def test_1314(async_conn):
     assert not async_conn.transaction_in_progress
 
 
-async def test_1315(async_conn):
+async def test_connection_1315(async_conn):
     "1315 - test fetchone() with fetch_lobs=False"
-    value = "test_1315"
+    value = "test_connection_1315"
     (result,) = await async_conn.fetchone(
         "select to_clob(:1) from dual", [value], fetch_lobs=False
     )
     assert result == value
 
 
-async def test_1316(async_conn):
+async def test_connection_1316(async_conn):
     "1316 - test fetchmany() with fetch_lobs=False"
-    value = "test_1316"
+    value = "test_connection_1316"
     rows = await async_conn.fetchmany(
         "select to_clob(:1) from dual", [value], fetch_lobs=False
     )
     assert rows == [(value,)]
 
 
-async def test_1317(async_conn):
+async def test_connection_1317(async_conn):
     "1317 - test fetchall() with fetch_lobs=False"
-    value = "test_1317"
+    value = "test_connection_1317"
     rows = await async_conn.fetchall(
         "select to_clob(:1) from dual", [value], fetch_lobs=False
     )
     assert rows == [(value,)]
 
 
-async def test_1318(async_conn):
+async def test_connection_1318(async_conn):
     "1318 - test fetchone() with fetch_decimals=True"
     value = 7018
     (result,) = await async_conn.fetchone(
@@ -351,7 +351,7 @@ async def test_1318(async_conn):
     assert isinstance(result, decimal.Decimal)
 
 
-async def test_1319(async_conn):
+async def test_connection_1319(async_conn):
     "1319 - test fetchmany() with fetch_decimals=True"
     value = 7019
     rows = await async_conn.fetchmany(
@@ -360,7 +360,7 @@ async def test_1319(async_conn):
     assert isinstance(rows[0][0], decimal.Decimal)
 
 
-async def test_1320(async_conn):
+async def test_connection_1320(async_conn):
     "1320 - test fetchall() with fetch_decimals=True"
     value = 7020
     rows = await async_conn.fetchall(

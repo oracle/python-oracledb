@@ -92,7 +92,7 @@ def _deq_in_thread(test_env, results):
         conn.commit()
 
 
-def test_1200(conn, queue):
+def test_aq_1200(conn, queue):
     "1200 - test bulk enqueue and dequeue"
     messages = [conn.msgproperties(payload=data) for data in RAW_PAYLOAD_DATA]
     queue.enqmany(messages)
@@ -102,7 +102,7 @@ def test_1200(conn, queue):
     assert data == RAW_PAYLOAD_DATA
 
 
-def test_1201(conn, queue):
+def test_aq_1201(conn, queue):
     "1201 - test empty bulk dequeue"
     queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
     messages = queue.deqmany(5)
@@ -110,7 +110,7 @@ def test_1201(conn, queue):
     assert messages == []
 
 
-def test_1202(skip_unless_thick_mode, conn, queue, test_env):
+def test_aq_1202(skip_unless_thick_mode, conn, queue, test_env):
     "1202 - test bulk dequeue with wait"
     results = []
     thread = threading.Thread(
@@ -128,7 +128,7 @@ def test_1202(skip_unless_thick_mode, conn, queue, test_env):
     assert results == RAW_PAYLOAD_DATA
 
 
-def test_1203(conn, queue):
+def test_aq_1203(conn, queue):
     "1203 - test enqueue and dequeue multiple times"
     data_to_enqueue = RAW_PAYLOAD_DATA
     for num in (2, 6, 4):
@@ -146,7 +146,7 @@ def test_1203(conn, queue):
     assert all_data == RAW_PAYLOAD_DATA
 
 
-def test_1204(skip_unless_thick_mode, conn, queue, test_env):
+def test_aq_1204(skip_unless_thick_mode, conn, queue, test_env):
     "1204 - test visibility option for enqueue and dequeue"
 
     # first test with ENQ_ON_COMMIT (commit required)
@@ -176,14 +176,14 @@ def test_1204(skip_unless_thick_mode, conn, queue, test_env):
         assert len(messages) == 0
 
 
-def test_1205(conn, queue, test_env):
+def test_aq_1205(conn, queue, test_env):
     "1205 - test error for messages with no payload"
     messages = [conn.msgproperties() for _ in RAW_PAYLOAD_DATA]
     with test_env.assert_raises_full_code("DPY-2000"):
         queue.enqmany(messages)
 
 
-def test_1206(conn, cursor, queue):
+def test_aq_1206(conn, cursor, queue):
     "1206 - verify that the msgid property is returned correctly"
     messages = [conn.msgproperties(payload=data) for data in RAW_PAYLOAD_DATA]
     queue.enqmany(messages)
@@ -196,7 +196,7 @@ def test_1206(conn, cursor, queue):
     assert msgids == actual_msgids
 
 
-def test_1207(conn, json_queue):
+def test_aq_1207(conn, json_queue):
     "4800 - test enqueuing and dequeuing JSON message"
     props = [conn.msgproperties(payload=data) for data in JSON_DATA_PAYLOAD]
     json_queue.enqmany(props)
@@ -207,14 +207,14 @@ def test_1207(conn, json_queue):
     assert actual_data == JSON_DATA_PAYLOAD
 
 
-def test_1208(conn, json_queue, test_env):
+def test_aq_1208(conn, json_queue, test_env):
     "1208 - test enqueuing to a JSON queue without a JSON payload"
     props = conn.msgproperties(payload="string message")
     with test_env.assert_raises_full_code("DPY-2062"):
         json_queue.enqmany([props, props])
 
 
-def test_1209(conn, json_queue):
+def test_aq_1209(conn, json_queue):
     "1209 - test errors for invalid values for enqmany and deqmany"
     props = conn.msgproperties(payload="string message")
     pytest.raises(TypeError, json_queue.enqmany, props)
@@ -222,7 +222,7 @@ def test_1209(conn, json_queue):
     pytest.raises(TypeError, json_queue.deqmany, "5")
 
 
-def test_1210(conn, queue):
+def test_aq_1210(conn, queue):
     "1210 - test deprecated AQ methods (enqMany, deqMany)"
     data = [b"labrador", b"schnauzer", b"shih tzu"]
     queue.enqMany([conn.msgproperties(d) for d in data])

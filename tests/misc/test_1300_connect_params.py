@@ -78,7 +78,7 @@ def _verify_network_name_attr(test_env, name):
                 oracledb.ConnectParams(**args)
 
 
-def test_1300():
+def test_misc_1300():
     "1300 - test simple EasyConnect string parsing with port specified"
     params = oracledb.ConnectParams()
     params.parse_connect_string("my_host:1578/my_service_name")
@@ -87,7 +87,7 @@ def test_1300():
     assert params.service_name == "my_service_name"
 
 
-def test_1301():
+def test_misc_1301():
     "1301 - test simple Easy Connect string parsing with no port specified"
     params = oracledb.ConnectParams()
     params.parse_connect_string("my_host2/my_service_name2")
@@ -96,7 +96,7 @@ def test_1301():
     assert params.service_name == "my_service_name2"
 
 
-def test_1302():
+def test_misc_1302():
     "1302 - test simple EasyConnect string parsing with DRCP enabled"
     params = oracledb.ConnectParams()
     params.parse_connect_string("my_host3.org/my_service_name3:pooled")
@@ -107,7 +107,7 @@ def test_1302():
     assert params.server_type == "shared"
 
 
-def test_1303():
+def test_misc_1303():
     "1303 - test simple name-value pair format connect string"
     connect_string = """
         (DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=my_host4)(PORT=1589))
@@ -119,7 +119,7 @@ def test_1303():
     assert params.service_name == "my_service_name4"
 
 
-def test_1304():
+def test_misc_1304():
     "1304 - test EasyConnect with protocol"
     params = oracledb.ConnectParams()
     params.parse_connect_string("tcps://my_host6/my_service_name6")
@@ -128,7 +128,7 @@ def test_1304():
     assert params.protocol == "tcps"
 
 
-def test_1305(test_env):
+def test_misc_1305(test_env):
     "1305 - test EasyConnect with invalid protocol"
     params = oracledb.ConnectParams()
     with test_env.assert_raises_full_code("DPY-4021"):
@@ -137,7 +137,7 @@ def test_1305(test_env):
         )
 
 
-def test_1306(test_env):
+def test_misc_1306(test_env):
     "1306 - confirm an exception is raised if using ipc protocol"
     connect_string = """
         (DESCRIPTION=(ADDRESS=(PROTOCOL=ipc)(KEY=my_view8))
@@ -147,7 +147,7 @@ def test_1306(test_env):
         params.parse_connect_string(connect_string)
 
 
-def test_1307():
+def test_misc_1307():
     "1307 - connect descriptor with retry count and retry delay"
     connect_string = """
         (DESCRIPTION=(RETRY_COUNT=6)(RETRY_DELAY=5)
@@ -159,7 +159,7 @@ def test_1307():
     assert params.retry_delay == 5
 
 
-def test_1308():
+def test_misc_1308():
     "1308 - connect descriptor with expire_time setting"
     connect_string = """
         (DESCRIPTION=(EXPIRE_TIME=12)
@@ -171,7 +171,7 @@ def test_1308():
     assert params.expire_time == 12
 
 
-def test_1309():
+def test_misc_1309():
     "1309 - connect descriptor with purity parameters"
     for purity in oracledb.Purity:
         if purity is oracledb.Purity.DEFAULT:
@@ -193,7 +193,7 @@ def test_1309():
         assert gen_params.purity is purity
 
 
-def test_1310(test_env):
+def test_misc_1310(test_env):
     "1310 - connect descriptor with invalid pool purity"
     connect_string = """
         (DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=my_host13)(PORT=695))
@@ -204,7 +204,7 @@ def test_1310(test_env):
         params.parse_connect_string(connect_string)
 
 
-def test_1311():
+def test_misc_1311():
     "1311 - connect descriptor with transport connect timeout values"
     connect_string = """
         (DESCRIPTION=(TRANSPORT_CONNECT_TIMEOUT=500 ms)
@@ -224,7 +224,7 @@ def test_1311():
     assert params.tcp_connect_timeout == 34
 
 
-def test_1312():
+def test_misc_1312():
     "1312 - test EasyConnect string parsing with no service name specified"
     params = oracledb.ConnectParams()
     params.parse_connect_string("my_host15:1578/")
@@ -233,7 +233,7 @@ def test_1312():
     assert params.service_name is None
 
 
-def test_1313():
+def test_misc_1313():
     "1313 - test EasyConnect string parsing with port value missing"
     params = oracledb.ConnectParams()
     params.parse_connect_string("my_host17:/my_service_name17")
@@ -242,7 +242,7 @@ def test_1313():
     assert params.service_name == "my_service_name17"
 
 
-def test_1314(test_env):
+def test_misc_1314(test_env):
     "1314 - test connect descriptor with invalid number"
     params = oracledb.ConnectParams()
     connect_string = """
@@ -253,7 +253,7 @@ def test_1314(test_env):
         params.parse_connect_string(connect_string)
 
 
-def test_1315():
+def test_misc_1315():
     "1315 - test connect descriptor with security options"
     options = [
         ("CN=unknown19a", "/tmp/wallet_loc19a", "On", True),
@@ -277,7 +277,7 @@ def test_1315():
         assert params.ssl_server_dn_match == match_value
 
 
-def test_1316():
+def test_misc_1316():
     "1316 - test easy connect string with security options"
     options = [
         ("CN=unknown20a", "/tmp/wallet_loc20a", "On", True),
@@ -301,7 +301,7 @@ def test_1316():
         assert params.wallet_location == wallet_loc
 
 
-def test_1317():
+def test_misc_1317():
     "1317 - test easy connect string with description options"
     params = oracledb.ConnectParams()
     connect_string = """
@@ -317,7 +317,7 @@ def test_1317():
     assert params.tcp_connect_timeout == 2.5
 
 
-def test_1318(test_env):
+def test_misc_1318(test_env):
     "1318 - test easy connect string with invalid parameters"
     params = oracledb.ConnectParams()
     connect_string_prefix = "my_host22/my_server_name22?"
@@ -327,7 +327,7 @@ def test_1318(test_env):
             params.parse_connect_string(connect_string_prefix + suffix)
 
 
-def test_1319():
+def test_misc_1319():
     "1319 - test connect string containing spaces and newlines"
     params = oracledb.ConnectParams()
     connect_string = """
@@ -341,14 +341,14 @@ def test_1319():
     assert params.wallet_location == "my wallet dir 23"
 
 
-def test_1320(test_env):
+def test_misc_1320(test_env):
     "1320 - test missing configuration directory"
     params = oracledb.ConnectParams(config_dir="/missing")
     with test_env.assert_raises_full_code("DPY-4026"):
         params.parse_connect_string("tns_alias")
 
 
-def test_1321():
+def test_misc_1321():
     "1321 - test connect string with an address list"
     params = oracledb.ConnectParams()
     connect_string = (
@@ -368,7 +368,7 @@ def test_1321():
     assert params.get_connect_string() == connect_string
 
 
-def test_1322():
+def test_misc_1322():
     "1322 - test connect string with multiple address lists"
     params = oracledb.ConnectParams()
     connect_string = """
@@ -390,7 +390,7 @@ def test_1322():
     assert params.retry_delay == 2
 
 
-def test_1323():
+def test_misc_1323():
     "1323 - test connect string with multiple descriptions"
     params = oracledb.ConnectParams()
     connect_string = """
@@ -433,7 +433,7 @@ def test_1323():
     assert params.retry_delay == [1, 3]
 
 
-def test_1324():
+def test_misc_1324():
     "1324 - test connect strings with https_proxy defined"
     params = oracledb.ConnectParams()
     connect_string = """
@@ -452,7 +452,7 @@ def test_1324():
     assert params.https_proxy_port == 9524
 
 
-def test_1325(test_env):
+def test_misc_1325(test_env):
     "1325 - test connect strings with server_type defined"
     params = oracledb.ConnectParams()
     connect_string = """
@@ -466,7 +466,7 @@ def test_1325(test_env):
         params.parse_connect_string(connect_string)
 
 
-def test_1326():
+def test_misc_1326():
     "1326 - test writable parameters"
     _test_writable_parameter("appcontext", [("a", "b", "c")])
     _test_writable_parameter("config_dir", "config_dir_1326")
@@ -485,7 +485,7 @@ def test_1326():
     _test_writable_parameter("proxy_user", "PROXY_USER_1")
 
 
-def test_1327():
+def test_misc_1327():
     "1327 - test building connect string with TCP connect timeout"
     host = "my_host1327"
     service_name = "my_service1327"
@@ -512,7 +512,7 @@ def test_1327():
         assert params.get_connect_string() == connect_string
 
 
-def test_1328():
+def test_misc_1328():
     "1328 - test EasyConnect with pool parameters"
     options = [
         ("cclass_33a", "self", oracledb.PURITY_SELF),
@@ -533,7 +533,7 @@ def test_1328():
         assert params.purity == purity_int
 
 
-def test_1329():
+def test_misc_1329():
     "1329 - test connect descriptor with different containers (small 1st)"
     connect_string = """
         (DESCRIPTION=
@@ -548,7 +548,7 @@ def test_1329():
     assert params.host == ["host1", "host2a", "host2b", "host3"]
 
 
-def test_1330():
+def test_misc_1330():
     "1330 - test connect descriptor with different containers (small 2nd)"
     connect_string = """
         (DESCRIPTION=
@@ -565,7 +565,7 @@ def test_1330():
     assert params.host == ["host1a", "host1b", "host2", "host3a", "host3b"]
 
 
-def test_1331():
+def test_misc_1331():
     "1331 - test building connect string with source route designation"
     options = [
         ("on", True),
@@ -596,7 +596,7 @@ def test_1331():
         assert params.get_connect_string() == connect_string
 
 
-def test_1332():
+def test_misc_1332():
     "1332 - test connect parameters which generate no connect string"
     params = oracledb.ConnectParams()
     assert params.get_connect_string() is None
@@ -604,7 +604,7 @@ def test_1332():
     assert params.get_connect_string() is None
 
 
-def test_1333():
+def test_misc_1333():
     "1333 - test parsing a DSN with credentials and a connect string"
     params = oracledb.ConnectParams()
     dsn = "my_user1333/my_password1333@localhost:1525/my_service_name"
@@ -614,7 +614,7 @@ def test_1333():
     assert dsn == "localhost:1525/my_service_name"
 
 
-def test_1334():
+def test_misc_1334():
     "1334 - test parsing a DSN with only credentials"
     params = oracledb.ConnectParams()
     dsn = "my_user1334/my_password1334"
@@ -624,7 +624,7 @@ def test_1334():
     assert dsn is None
 
 
-def test_1335():
+def test_misc_1335():
     "1335 - test parsing a DSN with empty credentials"
     for dsn in ("", "/"):
         params = oracledb.ConnectParams()
@@ -634,7 +634,7 @@ def test_1335():
         assert dsn is None
 
 
-def test_1336():
+def test_misc_1336():
     "1336 - test parsing a DSN with no credentials"
     dsn_in = "my_alias_1336"
     params = oracledb.ConnectParams()
@@ -644,7 +644,7 @@ def test_1336():
     assert dsn_out == dsn_in
 
 
-def test_1337():
+def test_misc_1337():
     "1337 - test connect strings with connection_id_prefix defined"
     params = oracledb.ConnectParams()
     connect_string = """
@@ -660,7 +660,7 @@ def test_1337():
     assert params.connection_id_prefix == "prefix1337b"
 
 
-def test_1338():
+def test_misc_1338():
     "1338 - test overriding parameters"
     params = oracledb.ConnectParams()
     host = "my_host_1338"
@@ -677,7 +677,7 @@ def test_1338():
     assert params.port == new_port
 
 
-def test_1339():
+def test_misc_1339():
     "1339 - test ConnectParams repr()"
     values = [
         ("user", "USER_1"),
@@ -809,7 +809,7 @@ def test_1339():
     assert repr(params) == expected_value
 
 
-def test_1340():
+def test_misc_1340():
     "1340 - connect descriptor with SDU"
     connect_string = """
         (DESCRIPTION=(SDU=65535)(ADDRESS=(PROTOCOL=TCP)
@@ -819,7 +819,7 @@ def test_1340():
     assert params.sdu == 65535
 
 
-def test_1341():
+def test_misc_1341():
     "1341 - test that SDU is set correctly with invalid sizes"
     params = oracledb.ConnectParams()
     params.set(sdu=random.randint(0, 511))
@@ -828,7 +828,7 @@ def test_1341():
     assert params.sdu == 2097152
 
 
-def test_1342():
+def test_misc_1342():
     "1342 - test empty connection class"
     params = oracledb.ConnectParams()
     assert params.cclass is None
@@ -836,7 +836,7 @@ def test_1342():
     assert params.cclass is None
 
 
-def test_1343():
+def test_misc_1343():
     "1343 - test easy connect string with protocol specified"
     protocol = "tcp"
     host = "my_host_1343"
@@ -851,7 +851,7 @@ def test_1343():
     assert params.service_name == service_name
 
 
-def test_1344():
+def test_misc_1344():
     "1344 - calling set() doesn't clear object parameters"
     sharding_key = [1, 2, 3]
     super_sharding_key = [4, 5, 6]
@@ -876,7 +876,7 @@ def test_1344():
     assert params.ssl_context == ssl_context
 
 
-def test_1345():
+def test_misc_1345():
     "1345 - test that use_tcp_fast_open is set correctly"
     params = oracledb.ConnectParams()
     params.set(use_tcp_fast_open=True)
@@ -893,7 +893,7 @@ def test_1345():
     assert params.use_tcp_fast_open
 
 
-def test_1346(test_env):
+def test_misc_1346(test_env):
     "1346 - test connect descriptor without addresses defined"
     params = oracledb.ConnectParams()
     host = "host_1346"
@@ -922,7 +922,7 @@ def test_1346(test_env):
                 params.parse_connect_string(connect_string)
 
 
-def test_1347():
+def test_misc_1347():
     "1347 - test simple EasyConnect string parsing with IPv6 address"
     host = "::1"
     port = 1347
@@ -935,7 +935,7 @@ def test_1347():
     assert params.service_name == service_name
 
 
-def test_1348():
+def test_misc_1348():
     "1348 - test easy connect string with multiple hosts, different ports"
     connect_string = (
         "host1348a,host1348b:1348,host1348c,host1348d:1348/"
@@ -948,7 +948,7 @@ def test_1348():
     assert params.service_name == "service_name_1348"
 
 
-def test_1349():
+def test_misc_1349():
     "1349 - test easy connect string with multiple address lists"
     connect_string = (
         "host1349a;host1349b,host1349c:1349;host1349d/service_name_1349"
@@ -968,7 +968,7 @@ def test_1349():
     assert params.get_connect_string() == expected_conn_string
 
 
-def test_1350(test_env):
+def test_misc_1350(test_env):
     "1350 - test connect descriptor with mixed complex and simple data"
     connect_string = (
         "(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=localhost)(PORT=1521))"
@@ -979,7 +979,7 @@ def test_1350(test_env):
         params.parse_connect_string(connect_string)
 
 
-def test_1351(test_env):
+def test_misc_1351(test_env):
     "1351 - test connect descriptor with simple data for containers"
     container_names = [
         "address",
@@ -996,7 +996,7 @@ def test_1351(test_env):
             params.parse_connect_string(connect_string)
 
 
-def test_1352():
+def test_misc_1352():
     "1352 - test easy connect string with degenerate protocol"
     host = "host_1352"
     port = 1352
@@ -1009,7 +1009,7 @@ def test_1352():
     assert params.service_name == service_name
 
 
-def test_1353():
+def test_misc_1353():
     "1353 - test easy connect string with registered protocol"
     protocol = "proto-test"
     protocol_arg = "args/for/proto1353"
@@ -1033,7 +1033,7 @@ def test_1353():
         oracledb.register_protocol(protocol, None)
 
 
-def test_1354():
+def test_misc_1354():
     "1354 - test parsing a DSN with a protocol specified"
     dsn_in = "my-protocol://some_arguments_to_protocol"
     params = oracledb.ConnectParams()
@@ -1043,22 +1043,22 @@ def test_1354():
     assert dsn_out == dsn_in
 
 
-def test_1355(test_env):
+def test_misc_1355(test_env):
     "1355 - test program attribute"
     _verify_network_name_attr(test_env, "program")
 
 
-def test_1356(test_env):
+def test_misc_1356(test_env):
     "1356 - test machine attribute"
     _verify_network_name_attr(test_env, "machine")
 
 
-def test_1357(test_env):
+def test_misc_1357(test_env):
     "1357 - test osuser attribute"
     _verify_network_name_attr(test_env, "osuser")
 
 
-def test_1358():
+def test_misc_1358():
     "1358 - test terminal attribute"
     params = oracledb.ConnectParams()
     assert params.terminal == oracledb.defaults.terminal
@@ -1067,7 +1067,7 @@ def test_1358():
     assert params.terminal == value
 
 
-def test_1359():
+def test_misc_1359():
     "1359 - test driver_name attribute"
     params = oracledb.ConnectParams()
     assert params.driver_name == oracledb.defaults.driver_name
@@ -1076,7 +1076,7 @@ def test_1359():
     assert params.driver_name == value
 
 
-def test_1360(test_env):
+def test_misc_1360(test_env):
     "1360 - test register_protocol with invalid hook type"
 
     def hook1(protocol, protocol_arg, params, extra_invalid_param):
@@ -1096,7 +1096,7 @@ def test_1360(test_env):
         oracledb.register_protocol(protocol, None)
 
 
-def test_1361():
+def test_misc_1361():
     "1361 - test register_protocol with invalid protocol type"
     with pytest.raises(TypeError):
         oracledb.register_protocol(1, lambda: None)
@@ -1104,13 +1104,13 @@ def test_1361():
         oracledb.register_protocol("proto", 5)
 
 
-def test_1362():
+def test_misc_1362():
     "1362 - test removing unregistered protocol"
     with pytest.raises(KeyError):
         oracledb.register_protocol("unregistered-protocol", None)
 
 
-def test_1363():
+def test_misc_1363():
     "1363 - test restoring pre-registered protocols (tcp and tcps)"
 
     host = "host_1363"
@@ -1138,7 +1138,7 @@ def test_1363():
         assert params.service_name == service_name
 
 
-def test_1364():
+def test_misc_1364():
     "1364 - test extended connect strings for ConnectParams"
     test_scenarios = [
         ("cclass", "test_cclass", "test_cclass"),
@@ -1186,7 +1186,7 @@ def test_1364():
 
 
 @pytest.mark.filterwarnings("ignore:base64 encoded")
-def test_1365(test_env):
+def test_misc_1365(test_env):
     "1365 - test set_from_config() with no user and password set"
     user = "user_1365"
     password = test_env.get_random_string()
@@ -1215,7 +1215,7 @@ def test_1365(test_env):
             assert params.user == user
 
 
-def test_1366(test_env):
+def test_misc_1366(test_env):
     "1366 - test set_from_config() with user and password already set"
     host = "host_1366"
     service_name = "service_1366"
@@ -1239,14 +1239,14 @@ def test_1366(test_env):
     assert params.user == user
 
 
-def test_1367(test_env):
+def test_misc_1367(test_env):
     "1367 - test set_from_config() without connect_descriptor"
     params = oracledb.ConnectParams()
     with test_env.assert_raises_full_code("DPY-2059"):
         params.set_from_config(dict(connect_descriptor_missing="missing"))
 
 
-def test_1368(test_env):
+def test_misc_1368(test_env):
     "1368 - test set_from_config() with extended parameters"
     host = "host_1368"
     service_name = "service_1368"
@@ -1271,7 +1271,7 @@ def test_1368(test_env):
     assert params.stmtcachesize == stmtcachesize
 
 
-def test_1369():
+def test_misc_1369():
     "1369 - test USE_SNI in connect string"
     options = [("on", True), ("off", False)]
     service_name = "service_1369"
@@ -1295,7 +1295,7 @@ def test_1369():
         assert params.get_connect_string() == connect_descriptor
 
 
-def test_1370():
+def test_misc_1370():
     "1370 - test passing through unrecognized parameters in CONNECT_DATA"
     options = [
         "(SIMPLE_KEY=SIMPLE_VALUE)",
@@ -1313,7 +1313,7 @@ def test_1370():
         assert params.get_connect_string() == connect_string
 
 
-def test_1371():
+def test_misc_1371():
     "1371 - test INSTANCE_NAME in connect string"
     service_name = "service_1371"
     instance_name = "instance_1371"
@@ -1335,7 +1335,7 @@ def test_1371():
         assert params.get_connect_string() == connect_descriptor
 
 
-def test_1372():
+def test_misc_1372():
     "1372 - test passing through unrecognized parameters in SECURITY"
     options = [
         "(SIMPLE_KEY=SIMPLE_VALUE)",
@@ -1353,7 +1353,7 @@ def test_1372():
         assert params.get_connect_string() == connect_string
 
 
-def test_1373():
+def test_misc_1373():
     "1373 - test passing through unrecognized parameters in DESCRIPTION"
     options = [
         "(SIMPLE_KEY=SIMPLE_VALUE)",
@@ -1375,7 +1375,7 @@ def test_1373():
         assert params.get_connect_string() == connect_string
 
 
-def test_1374():
+def test_misc_1374():
     "1374 - test passing through specific unsupported parameters"
     easy_connect = (
         "host_1374/service_1374?"
@@ -1391,7 +1391,7 @@ def test_1374():
     assert params.get_connect_string() == connect_descriptor
 
 
-def test_1375(test_env):
+def test_misc_1375(test_env):
     "1375 - test syntax rule for keywords"
     for value, ok in [
         ("(SIMPLE_KEY=SIMPLE_VALUE)", True),
@@ -1418,7 +1418,7 @@ def test_1375(test_env):
                 params.parse_connect_string(connect_string)
 
 
-def test_1376(test_env):
+def test_misc_1376(test_env):
     "1376 - test syntax rule for keywords in easy connect string"
     for value, ok in [
         ("simple_key=simple_value", True),
@@ -1448,7 +1448,7 @@ def test_1376(test_env):
                 params.parse_connect_string(easy_connect)
 
 
-def test_1377():
+def test_misc_1377():
     "1377 - test for DESCRIPTION_LIST with FAILOVER"
     connect_string = (
         "(DESCRIPTION_LIST=(FAILOVER=OFF)(LOAD_BALANCE=ON)"
@@ -1470,7 +1470,7 @@ def test_1377():
     assert params.get_connect_string() == connect_string
 
 
-def test_1378():
+def test_misc_1378():
     "1378 - test for descriptor parameters in connect descriptor"
     options = [
         ("(FAILOVER=on)", ""),
@@ -1546,7 +1546,7 @@ def test_1378():
         assert params.get_connect_string() == connect_descriptor_exp
 
 
-def test_1379():
+def test_misc_1379():
     "1379 - test for connect data parameters in connect descriptor"
     options = [
         "(COLOCATION_TAG=ColocationTag1379)",
@@ -1578,7 +1578,7 @@ def test_1379():
         assert params.get_connect_string() == connect_descriptor
 
 
-def test_1380():
+def test_misc_1380():
     "1380 - test for security parameters in connect descriptor"
 
     security_options = {
@@ -1650,7 +1650,7 @@ def test_1380():
         assert params.get_connect_string() == connect_descriptor_exp
 
 
-def test_1381():
+def test_misc_1381():
     "1381 - test for parameters supported in easy connect descriptor"
     options = [
         ("retry_count=3&retry_delay=6", "(RETRY_COUNT=3)(RETRY_DELAY=6)"),
@@ -1711,7 +1711,7 @@ def test_1381():
         assert params.get_connect_string() == connect_descriptor_exp
 
 
-def test_1382():
+def test_misc_1382():
     "1382 - test for security parameters in easy connect descriptor"
     service_name = "service_1382"
     srvc_str = (
@@ -1741,7 +1741,7 @@ def test_1382():
     assert params.get_connect_string() == connect_descriptor_exp
 
 
-def test_1383():
+def test_misc_1383():
     "1383 - test for TYPE_OF_SERVICE, RDB_DATABASE, GLOBAL_NAME parameters"
     connect_string = (
         "(DESCRIPTION_LIST="
@@ -1822,7 +1822,7 @@ def test_1383():
         ("transaction_priority", oracledb.TransactionPriority.MEDIUM),
     ],
 )
-def test_1384(attr_name, value):
+def test_misc_1384(attr_name, value):
     "1384 - test ConnectParams __eq__()"
     params = oracledb.ConnectParams()
     other_params = oracledb.ConnectParams()
@@ -1835,7 +1835,7 @@ def test_1384(attr_name, value):
     assert other_params == params
 
 
-def test_1385():
+def test_misc_1385():
     "1385 - test callback parameters"
 
     def on_connect_callback(connection):

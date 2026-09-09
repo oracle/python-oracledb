@@ -57,7 +57,7 @@ async def _test_data(
     assert array_value == expected_array_value
 
 
-async def test_3500(async_conn, async_cursor):
+async def test_data_types_3500(async_conn, async_cursor):
     "3500 - test binding an object (IN)"
     type_obj = await async_conn.gettype("UDT_OBJECT")
     obj = type_obj.newobject()
@@ -100,7 +100,7 @@ async def test_3500(async_conn, async_cursor):
     assert result == expected_value
 
 
-async def test_3501(async_conn):
+async def test_data_types_3501(async_conn):
     "3501 - test copying an object"
     type_obj = await async_conn.gettype("UDT_OBJECT")
     obj = type_obj()
@@ -115,7 +115,7 @@ async def test_3501(async_conn):
     assert obj.TIMESTAMPVALUE == copied_obj.TIMESTAMPVALUE
 
 
-async def test_3502(async_cursor, test_env):
+async def test_data_types_3502(async_cursor, test_env):
     "3502 - test fetching objects"
     await async_cursor.execute("""
         select IntCol, ObjectCol, ArrayCol
@@ -204,7 +204,7 @@ async def test_3502(async_cursor, test_env):
     await _test_data(async_cursor, test_env, 3, expected_value, None)
 
 
-async def test_3503(async_conn):
+async def test_data_types_3503(async_conn):
     "3503 - test getting object type"
     type_obj = await async_conn.gettype("UDT_OBJECT")
     assert not type_obj.iscollection
@@ -269,7 +269,7 @@ async def test_3503(async_conn):
     assert sub_object_array_type.attributes == []
 
 
-async def test_3504(async_conn, async_cursor):
+async def test_data_types_3504(async_conn, async_cursor):
     "3504 - test object type data"
     await async_cursor.execute("""
         select ObjectCol
@@ -283,7 +283,7 @@ async def test_3504(async_conn, async_cursor):
     assert obj.type.attributes[0].name == "NUMBERVALUE"
 
 
-async def test_3505(async_conn, async_cursor, test_env):
+async def test_data_types_3505(async_conn, async_cursor, test_env):
     "3505 - test inserting and then querying object with all data types"
     await async_cursor.execute("delete from TestClobs")
     await async_cursor.execute("delete from TestNClobs")
@@ -419,7 +419,7 @@ async def test_3505(async_conn, async_cursor, test_env):
     await async_conn.rollback()
 
 
-async def test_3506(async_conn, test_env):
+async def test_data_types_3506(async_conn, test_env):
     "3506 - test trying to find an object type that does not exist"
     with pytest.raises(TypeError):
         await async_conn.gettype(2)
@@ -427,7 +427,7 @@ async def test_3506(async_conn, test_env):
         await async_conn.gettype("A TYPE THAT DOES NOT EXIST")
 
 
-async def test_3507(async_conn, test_env):
+async def test_data_types_3507(async_conn, test_env):
     "3507 - test appending an object of the wrong type to a collection"
     collection_obj_type = await async_conn.gettype("UDT_OBJECTARRAY")
     collection_obj = collection_obj_type.newobject()
@@ -437,7 +437,7 @@ async def test_3507(async_conn, test_env):
         collection_obj.append(array_obj)
 
 
-async def test_3508(async_conn):
+async def test_data_types_3508(async_conn):
     "3508 - test that referencing a sub object affects the parent object"
     obj_type = await async_conn.gettype("UDT_OBJECT")
     sub_obj_type = await async_conn.gettype("UDT_SUBOBJECT")
@@ -449,7 +449,7 @@ async def test_3508(async_conn):
     assert obj.SUBOBJECTVALUE.SUBSTRINGVALUE == "Substring"
 
 
-async def test_3509(async_conn, test_env):
+async def test_data_types_3509(async_conn, test_env):
     "3509 - test accessing sub object after parent object destroyed"
     obj_type = await async_conn.gettype("UDT_OBJECT")
     sub_obj_type = await async_conn.gettype("UDT_SUBOBJECT")
@@ -468,7 +468,7 @@ async def test_3509(async_conn, test_env):
     assert val == [(2, "AB"), (3, "CDE")]
 
 
-async def test_3510(async_conn, test_env):
+async def test_data_types_3510(async_conn, test_env):
     "3510 - test assigning an object of wrong type to an object attribute"
     obj_type = await async_conn.gettype("UDT_OBJECT")
     obj = obj_type.newobject()
@@ -478,7 +478,7 @@ async def test_3510(async_conn, test_env):
         setattr(obj, "SUBOBJECTVALUE", wrong_obj)
 
 
-async def test_3511(async_conn, async_cursor, test_env):
+async def test_data_types_3511(async_conn, async_cursor, test_env):
     "3511 - test setting value of object variable to wrong object type"
     obj_type = await async_conn.gettype("UDT_OBJECT")
     wrong_obj_type = await async_conn.gettype("UDT_OBJECTARRAY")
@@ -488,7 +488,7 @@ async def test_3511(async_conn, async_cursor, test_env):
         var.setvalue(0, wrong_obj)
 
 
-async def test_3512(async_conn, test_env):
+async def test_data_types_3512(async_conn, test_env):
     "3512 - test trimming a number of elements from a collection"
     sub_obj_type = await async_conn.gettype("UDT_SUBOBJECT")
     array_type = await async_conn.gettype("UDT_OBJECTARRAY")
@@ -521,7 +521,7 @@ async def test_3512(async_conn, test_env):
     assert await test_env.get_db_object_as_plain_object_async(array_obj) == []
 
 
-async def test_3513(async_conn, test_env):
+async def test_data_types_3513(async_conn, test_env):
     "3513 - test the metadata of a SQL type"
     user = test_env.main_user.upper()
     typ = await async_conn.gettype("UDT_OBJECTARRAY")
@@ -533,7 +533,7 @@ async def test_3513(async_conn, test_env):
     assert typ.element_type.package_name is None
 
 
-async def test_3514(async_conn, test_env):
+async def test_data_types_3514(async_conn, test_env):
     "3514 - test the metadata of a PL/SQL type"
     typ = await async_conn.gettype("PKG_TESTSTRINGARRAYS.UDT_STRINGLIST")
     assert typ.schema == test_env.main_user.upper()
@@ -542,7 +542,7 @@ async def test_3514(async_conn, test_env):
     assert typ.element_type == oracledb.DB_TYPE_VARCHAR
 
 
-async def test_3515(async_conn, async_cursor):
+async def test_data_types_3515(async_conn, async_cursor):
     "3515 - test collection with thousands of entries"
     typ = await async_conn.gettype("PKG_TESTNUMBERARRAYS.UDT_NUMBERLIST")
     obj = typ.newobject()
@@ -557,7 +557,7 @@ async def test_3515(async_conn, async_cursor):
     assert result == 7146445847327
 
 
-async def test_3516(async_conn):
+async def test_data_types_3516(async_conn):
     "3516 - test %ROWTYPE with all types"
     sub_obj_type = await async_conn.gettype("UDT_SUBOBJECT")
     sub_arr_type = await async_conn.gettype("UDT_OBJECTARRAY")
@@ -620,7 +620,7 @@ async def test_3516(async_conn):
     assert actual_metadata == expected_metadata
 
 
-async def test_3517(async_cursor):
+async def test_data_types_3517(async_cursor):
     "3517 - test collection iteration"
     await async_cursor.execute("select udt_array(5, 10, 15) from dual")
     (obj,) = await async_cursor.fetchone()
@@ -628,7 +628,7 @@ async def test_3517(async_cursor):
     assert result == [5, 10, 15]
 
 
-async def test_3518(test_env):
+async def test_data_types_3518(test_env):
     "3518 - test insufficient privileges for gettype()"
     user = test_env.proxy_user
     password = test_env.proxy_password
@@ -640,7 +640,7 @@ async def test_3518(test_env):
             await conn.gettype(f"{main_user}.UDT_OBJECTARRAY")
 
 
-async def test_3519(async_conn, async_cursor):
+async def test_data_types_3519(async_conn, async_cursor):
     "3519 - test nested records"
     options = [(None, None), (1, None), (None, 2), (1, 2)]
     typ = await async_conn.gettype("PKG_TESTNESTEDRECORDS.UDT_OUTER")

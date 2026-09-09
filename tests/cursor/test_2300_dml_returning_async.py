@@ -37,7 +37,7 @@ def module_checks(anyio_backend, skip_unless_thin_mode):
     pass
 
 
-async def test_2300(async_cursor):
+async def test_cursor_2300(async_cursor):
     "2300 - test insert (single row) with DML returning"
     await async_cursor.execute("truncate table TestTempTable")
     int_val = 5
@@ -59,7 +59,7 @@ async def test_2300(async_cursor):
     assert str_var.values == [[str_val]]
 
 
-async def test_2301(async_cursor):
+async def test_cursor_2301(async_cursor):
     "2301 - test insert (multiple rows) with DML returning"
     await async_cursor.execute("truncate table TestTempTable")
     int_values = [5, 8, 17, 24, 6]
@@ -80,7 +80,7 @@ async def test_2301(async_cursor):
     assert str_var.values == [[v] for v in str_values]
 
 
-async def test_2302(async_cursor, test_env):
+async def test_cursor_2302(async_cursor, test_env):
     "2302 - test insert with DML returning into too small a variable"
     await async_cursor.execute("truncate table TestTempTable")
     int_val = 6
@@ -101,7 +101,7 @@ async def test_2302(async_cursor, test_env):
         )
 
 
-async def test_2303(async_cursor):
+async def test_cursor_2303(async_cursor):
     "2303 - test update single row with DML returning"
     int_val = 7
     str_val = "The updated value of the string"
@@ -131,7 +131,7 @@ async def test_2303(async_cursor):
     assert str_var.values == [[str_val]]
 
 
-async def test_2304(async_cursor):
+async def test_cursor_2304(async_cursor):
     "2304 - test update no rows with DML returning"
     int_val = 8
     str_val = "The updated value of the string"
@@ -163,7 +163,7 @@ async def test_2304(async_cursor):
     assert str_var.getvalue() == []
 
 
-async def test_2305(async_cursor):
+async def test_cursor_2305(async_cursor):
     "2305 - test update multiple rows with DML returning"
     await async_cursor.execute("truncate table TestTempTable")
     for i in (8, 9, 10):
@@ -197,7 +197,7 @@ async def test_2305(async_cursor):
     assert str_var.values == expected_values
 
 
-async def test_2306(async_cursor):
+async def test_cursor_2306(async_cursor):
     "2306 - test update multiple rows with DML returning (executemany)"
     data = [(i, f"The initial value of string {i}") for i in range(1, 11)]
     await async_cursor.execute("truncate table TestTempTable")
@@ -238,7 +238,7 @@ async def test_2306(async_cursor):
     assert str_var.values == expected_values
 
 
-async def test_2307(async_conn, async_cursor):
+async def test_cursor_2307(async_conn, async_cursor):
     "2307 - test inserting an object with DML returning"
     type_obj = await async_conn.gettype("UDT_OBJECT")
     string_value = "The string that will be verified"
@@ -258,7 +258,7 @@ async def test_2307(async_conn, async_cursor):
     await async_conn.rollback()
 
 
-async def test_2308(async_cursor):
+async def test_cursor_2308(async_cursor):
     "2308 - test inserting a row and returning a rowid"
     await async_cursor.execute("truncate table TestTempTable")
     var = async_cursor.var(oracledb.ROWID)
@@ -282,7 +282,7 @@ async def test_2308(async_cursor):
     assert await async_cursor.fetchall() == [(278, "String 278")]
 
 
-async def test_2309(async_conn, async_cursor):
+async def test_cursor_2309(async_conn, async_cursor):
     "2309 - test inserting with a REF cursor and returning a rowid"
     await async_cursor.execute("truncate table TestTempTable")
     var = async_cursor.var(oracledb.ROWID)
@@ -313,7 +313,7 @@ async def test_2309(async_conn, async_cursor):
     assert await async_cursor.fetchall() == [(187, "String 7 (Modified)")]
 
 
-async def test_2310(async_cursor):
+async def test_cursor_2310(async_cursor):
     "2310 - test delete returning decreasing number of rows"
     data = [(i, f"Test String {i}") for i in range(1, 11)]
     await async_cursor.execute("truncate table TestTempTable")
@@ -340,7 +340,7 @@ async def test_2310(async_cursor):
     assert results == [[1, 2, 3, 4], [5, 6, 7], [8, 9]]
 
 
-async def test_2311(async_cursor):
+async def test_cursor_2311(async_cursor):
     "2311 - test delete returning no rows after returning many rows"
     data = [(i, f"Test String {i}") for i in range(1, 11)]
     await async_cursor.execute("truncate table TestTempTable")
@@ -365,7 +365,7 @@ async def test_2311(async_cursor):
     assert int_var.getvalue() == []
 
 
-async def test_2312(async_cursor, test_env):
+async def test_cursor_2312(async_cursor, test_env):
     "2312 - test DML returning when an error occurs"
     await async_cursor.execute("truncate table TestTempTable")
     int_val = 7
@@ -383,7 +383,7 @@ async def test_2312(async_cursor, test_env):
         await async_cursor.execute(sql, parameters)
 
 
-async def test_2313(async_cursor):
+async def test_cursor_2313(async_cursor):
     "2313 - test DML returning with no input variables, multiple iters"
     await async_cursor.execute("truncate table TestTempTable")
     sql = """
@@ -397,7 +397,7 @@ async def test_2313(async_cursor):
     assert var.getvalue() == [2]
 
 
-async def test_2314(async_cursor):
+async def test_cursor_2314(async_cursor):
     "2314 - test DML returning with a quoted bind name"
     sql = """
             insert into TestTempTable (IntCol, StringCol1)
@@ -408,7 +408,7 @@ async def test_2314(async_cursor):
     assert async_cursor.bindnames() == expected_bind_names
 
 
-async def test_2315(async_cursor, test_env):
+async def test_cursor_2315(async_cursor, test_env):
     "2315 - test DML returning with an invalid bind name"
     sql = """
             insert into TestTempTable (IntCol)
@@ -418,7 +418,7 @@ async def test_2315(async_cursor, test_env):
         await async_cursor.parse(sql)
 
 
-async def test_2316(async_conn, async_cursor):
+async def test_cursor_2316(async_conn, async_cursor):
     "2316 - test DML returning with input bind variable data"
     await async_cursor.execute("truncate table TestTempTable")
     out_var = async_cursor.var(int)
@@ -436,7 +436,7 @@ async def test_2316(async_conn, async_cursor):
     assert out_var.getvalue() == [23]
 
 
-async def test_2317(async_conn, async_cursor):
+async def test_cursor_2317(async_conn, async_cursor):
     "2317 - test DML returning with LOBs and an output converter"
     await async_cursor.execute("truncate table TestCLOBs")
     out_var = async_cursor.var(
@@ -456,7 +456,7 @@ async def test_2317(async_conn, async_cursor):
     assert out_var.getvalue() == [lob_value]
 
 
-async def test_2318(async_conn, async_cursor):
+async def test_cursor_2318(async_conn, async_cursor):
     "2318 - test DML returning with CLOB converted to LONG"
     await async_cursor.execute("truncate table TestCLOBs")
     out_var = async_cursor.var(oracledb.DB_TYPE_LONG)
@@ -475,7 +475,7 @@ async def test_2318(async_conn, async_cursor):
     assert out_var.getvalue() == [lob_value]
 
 
-async def test_2319(async_cursor):
+async def test_cursor_2319(async_cursor):
     "2319 - test dml returning with an index organized table"
     await async_cursor.execute("truncate table TestUniversalRowids")
     rowid_var = async_cursor.var(oracledb.ROWID)
@@ -497,7 +497,7 @@ async def test_2319(async_cursor):
     assert row == data[:3]
 
 
-async def test_2320(async_cursor):
+async def test_cursor_2320(async_cursor):
     "2320 - test plsql returning rowids with index organized table"
     await async_cursor.execute("truncate table TestUniversalRowids")
     rowid_var = async_cursor.var(oracledb.ROWID)
@@ -524,7 +524,7 @@ async def test_2320(async_cursor):
     assert row == data[:3]
 
 
-async def test_2321(async_cursor):
+async def test_cursor_2321(async_cursor):
     "2321 - parse DML returning with no spaces"
     await async_cursor.execute("truncate table TestTempTable")
     sql = (
@@ -536,7 +536,7 @@ async def test_2321(async_cursor):
     assert out_val.getvalue() == [25]
 
 
-async def test_2322(async_cursor):
+async def test_cursor_2322(async_cursor):
     "2322 - use bind variable in new statement after RETURNING statement"
     await async_cursor.execute("truncate table TestTempTable")
     sql = (

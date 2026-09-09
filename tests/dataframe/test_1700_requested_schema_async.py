@@ -52,7 +52,7 @@ def module_checks(anyio_backend, skip_unless_thin_mode):
         pyarrow.uint64(),
     ],
 )
-async def test_1700(dtype, async_conn):
+async def test_dataframe_1700(dtype, async_conn):
     "1700 - fetch_df_all() with fixed width integer types"
     statement = "select 1 from dual"
     requested_schema = pyarrow.schema([("INT_COL", dtype)])
@@ -77,7 +77,7 @@ async def test_1700(dtype, async_conn):
         pyarrow.uint64(),
     ],
 )
-async def test_1701(dtype, async_conn):
+async def test_dataframe_1701(dtype, async_conn):
     "1701 - fetch_df_all() with duplicate fixed width integer types"
     requested_schema = pyarrow.schema([("INT_COL", dtype)])
     ora_df = await async_conn.fetch_df_all(
@@ -103,7 +103,7 @@ async def test_1701(dtype, async_conn):
         assert value.as_py() == 99
 
 
-async def test_1702(async_conn):
+async def test_dataframe_1702(async_conn):
     "1702 - fetch_df_all() requested_schema honored for repeated execution"
     statement = "select 1 as int_col from dual"
     ora_df = await async_conn.fetch_df_all(statement)
@@ -133,7 +133,7 @@ async def test_1702(async_conn):
         pyarrow.uint64(),
     ],
 )
-async def test_1703(dtype, async_conn):
+async def test_dataframe_1703(dtype, async_conn):
     "1703 - fetch_df_batches() with fixed width integer types"
     statement = "select 1 from dual"
     requested_schema = pyarrow.schema([("INT_COL", dtype)])
@@ -158,7 +158,7 @@ async def test_1703(dtype, async_conn):
         pyarrow.uint64(),
     ],
 )
-async def test_1704(dtype, async_conn):
+async def test_dataframe_1704(dtype, async_conn):
     "1704 - fetch_df_batches() with duplicate fixed width integer types"
     requested_schema = pyarrow.schema([("INT_COL", dtype)])
     async for ora_df in async_conn.fetch_df_batches(
@@ -184,7 +184,7 @@ async def test_1704(dtype, async_conn):
             assert value.as_py() == 99
 
 
-async def test_1705(async_conn):
+async def test_dataframe_1705(async_conn):
     "1705 - fetch_df_batches() requested_schema honored for repeated execution"
     statement = "select 1 as int_col from dual"
     async for ora_df in async_conn.fetch_df_batches(statement):
@@ -209,7 +209,7 @@ async def test_1705(async_conn):
         pyarrow.float64(),
     ],
 )
-async def test_1706(dtype, async_conn):
+async def test_dataframe_1706(dtype, async_conn):
     "1706 - fetch_df_all() for NUMBER"
     value = 2.75
     requested_schema = pyarrow.schema([("DECIMAL_COL", dtype)])
@@ -226,7 +226,7 @@ async def test_1706(dtype, async_conn):
     "dtype",
     [pyarrow.float32(), pyarrow.float64()],
 )
-async def test_1707(dtype, async_conn):
+async def test_dataframe_1707(dtype, async_conn):
     "1707 - fetch_df_all() for BINARY_DOUBLE"
     value = 123.25
     requested_schema = pyarrow.schema([("BINARY_DOUBLE_COL", dtype)])
@@ -243,7 +243,7 @@ async def test_1707(dtype, async_conn):
     "dtype",
     [pyarrow.float32(), pyarrow.float64()],
 )
-async def test_1708(dtype, async_conn):
+async def test_dataframe_1708(dtype, async_conn):
     "1708 - fetch_df_all() for BINARY_FLOAT"
     value = 123.625
     requested_schema = pyarrow.schema([("BINARY_FLOAT_COL", dtype)])
@@ -260,7 +260,7 @@ async def test_1708(dtype, async_conn):
     "dtype",
     [pyarrow.binary(length=6), pyarrow.binary(), pyarrow.large_binary()],
 )
-async def test_1709(dtype, async_conn):
+async def test_dataframe_1709(dtype, async_conn):
     "1709 - fetch_df_all() for RAW"
     value = "ABCDEF"
     requested_schema = pyarrow.schema([("RAW_COL", dtype)])
@@ -284,7 +284,7 @@ async def test_1709(dtype, async_conn):
         (pyarrow.timestamp("ns"), False),
     ],
 )
-async def test_1710(dtype, value_is_date, async_conn):
+async def test_dataframe_1710(dtype, value_is_date, async_conn):
     "1710 - fetch_df_all() for DATE"
     requested_schema = pyarrow.schema([("DATE_COL", dtype)])
     value = datetime.datetime(2025, 2, 18)
@@ -310,7 +310,7 @@ async def test_1710(dtype, value_is_date, async_conn):
         pyarrow.timestamp("ns"),
     ],
 )
-async def test_1711(dtype, async_conn):
+async def test_dataframe_1711(dtype, async_conn):
     "1711 - fetch_df_all() for TIMESTAMP"
     requested_schema = pyarrow.schema([("TIMESTAMP_COL", dtype)])
     value = datetime.datetime(1974, 4, 4, 0, 57, 54, 15079)
@@ -342,7 +342,7 @@ async def test_1711(dtype, async_conn):
         (pyarrow.timestamp("ns"), False),
     ],
 )
-async def test_1712(dtype, value_is_date, async_conn):
+async def test_dataframe_1712(dtype, value_is_date, async_conn):
     "1712 - fetch_df_all() for TIMESTAMP WITH LOCAL TIME ZONE"
     requested_schema = pyarrow.schema([("TIMESTAMP_LTZ_COL", dtype)])
     value = datetime.datetime(2025, 3, 4)
@@ -368,7 +368,7 @@ async def test_1712(dtype, value_is_date, async_conn):
         (pyarrow.timestamp("ns"), False),
     ],
 )
-async def test_1713(dtype, value_is_date, async_conn):
+async def test_dataframe_1713(dtype, value_is_date, async_conn):
     "1713 - fetch_df_all() for TIMESTAMP WITH TIME ZONE"
     requested_schema = pyarrow.schema([("TIMESTAMP_TZ_COL", dtype)])
     value = datetime.datetime(2025, 3, 4)
@@ -387,7 +387,7 @@ async def test_1713(dtype, value_is_date, async_conn):
     "dtype",
     [pyarrow.binary(length=6), pyarrow.binary(), pyarrow.large_binary()],
 )
-async def test_1714(dtype, async_conn):
+async def test_dataframe_1714(dtype, async_conn):
     "1714 - fetch_df_all() for BLOB"
     value = "GHIJKL"
     requested_schema = pyarrow.schema([("BLOB_COL", dtype)])
@@ -405,7 +405,7 @@ async def test_1714(dtype, async_conn):
     ["CHAR", "NCHAR", "VARCHAR2", "NVARCHAR2"],
 )
 @pytest.mark.parametrize("dtype", [pyarrow.string(), pyarrow.large_string()])
-async def test_1715(db_type_name, dtype, async_conn):
+async def test_dataframe_1715(db_type_name, dtype, async_conn):
     "1715 - fetch_df_all() for string types"
     value = "test_1715"
     requested_schema = pyarrow.schema([("STRING_COL", dtype)])
@@ -420,9 +420,9 @@ async def test_1715(db_type_name, dtype, async_conn):
 
 @pytest.mark.parametrize("db_type_name", ["CLOB", "NCLOB"])
 @pytest.mark.parametrize("dtype", [pyarrow.string(), pyarrow.large_string()])
-async def test_1716(db_type_name, dtype, async_conn):
+async def test_dataframe_1716(db_type_name, dtype, async_conn):
     "1716 - fetch_df_all() for CLOB types"
-    value = "test_1716"
+    value = "test_dataframe_1716"
     requested_schema = pyarrow.schema([("CLOB_COL", dtype)])
     statement = f"select to_{db_type_name.lower()}('{value}') from dual"
     ora_df = await async_conn.fetch_df_all(
@@ -441,7 +441,7 @@ async def test_1716(db_type_name, dtype, async_conn):
         pyarrow.float64(),
     ],
 )
-async def test_1717(dtype, async_conn):
+async def test_dataframe_1717(dtype, async_conn):
     "1717 - fetch_df_all() for NUMBER duplicate values"
     value = 93.25
     requested_schema = pyarrow.schema([("DECIMAL_COL", dtype)])
@@ -471,7 +471,7 @@ async def test_1717(dtype, async_conn):
     "dtype",
     [pyarrow.float32(), pyarrow.float64()],
 )
-async def test_1718(dtype, async_conn):
+async def test_dataframe_1718(dtype, async_conn):
     "1718 - fetch_df_all() for BINARY_DOUBLE duplicate values"
     value = 523.75
     requested_schema = pyarrow.schema([("BINARY_DOUBLE_COL", dtype)])
@@ -501,7 +501,7 @@ async def test_1718(dtype, async_conn):
     "dtype",
     [pyarrow.float32(), pyarrow.float64()],
 )
-async def test_1719(dtype, async_conn):
+async def test_dataframe_1719(dtype, async_conn):
     "1719 - fetch_df_all() for BINARY_FLOAT duplicate values"
     value = 9308.125
     requested_schema = pyarrow.schema([("BINARY_FLOAT_COL", dtype)])
@@ -531,7 +531,7 @@ async def test_1719(dtype, async_conn):
     "dtype",
     [pyarrow.binary(length=6), pyarrow.binary(), pyarrow.large_binary()],
 )
-async def test_1720(dtype, async_conn):
+async def test_dataframe_1720(dtype, async_conn):
     "1720 - fetch_df_all() for RAW duplicate values"
     value = "A23456"
     requested_schema = pyarrow.schema([("RAW_COL", dtype)])
@@ -568,7 +568,7 @@ async def test_1720(dtype, async_conn):
         (pyarrow.timestamp("ns"), False),
     ],
 )
-async def test_1721(dtype, value_is_date, async_conn):
+async def test_dataframe_1721(dtype, value_is_date, async_conn):
     "1721 - fetch_df_all() for DATE duplicate values"
     requested_schema = pyarrow.schema([("DATE_COL", dtype)])
     value = datetime.datetime(2025, 3, 1)
@@ -609,7 +609,7 @@ async def test_1721(dtype, value_is_date, async_conn):
         (pyarrow.timestamp("ns"), False),
     ],
 )
-async def test_1722(dtype, value_is_date, async_conn):
+async def test_dataframe_1722(dtype, value_is_date, async_conn):
     "1722 - fetch_df_all() for TIMESTAMP duplicate values"
     requested_schema = pyarrow.schema([("TIMESTAMP_COL", dtype)])
     value = datetime.datetime(2025, 1, 14)
@@ -650,7 +650,7 @@ async def test_1722(dtype, value_is_date, async_conn):
         (pyarrow.timestamp("ns"), False),
     ],
 )
-async def test_1723(dtype, value_is_date, async_conn):
+async def test_dataframe_1723(dtype, value_is_date, async_conn):
     "1723 - fetch_df_all() for TIMESTAMP WITH LOCAL TIME ZONE duplicate values"
     requested_schema = pyarrow.schema([("TIMESTAMP_LTZ_COL", dtype)])
     value = datetime.datetime(2025, 3, 6)
@@ -691,7 +691,7 @@ async def test_1723(dtype, value_is_date, async_conn):
         (pyarrow.timestamp("ns"), False),
     ],
 )
-async def test_1724(dtype, value_is_date, async_conn):
+async def test_dataframe_1724(dtype, value_is_date, async_conn):
     "1724 - fetch_df_all() for TIMESTAMP WITH TIME ZONE duplicate values"
     requested_schema = pyarrow.schema([("TIMESTAMP_TZ_COL", dtype)])
     value = datetime.datetime(2025, 2, 28)
@@ -726,7 +726,7 @@ async def test_1724(dtype, value_is_date, async_conn):
     ["CHAR", "NCHAR", "VARCHAR2", "NVARCHAR2"],
 )
 @pytest.mark.parametrize("dtype", [pyarrow.string(), pyarrow.large_string()])
-async def test_1725(db_type_name, dtype, async_conn):
+async def test_dataframe_1725(db_type_name, dtype, async_conn):
     "1725 - fetch_df_all() for string types duplicate values"
     value = "test_1725"
     requested_schema = pyarrow.schema([("STRING_COL", dtype)])
@@ -769,7 +769,7 @@ async def test_1725(db_type_name, dtype, async_conn):
         (pyarrow.uint32(), 4294967296),
     ],
 )
-async def test_1726(dtype, value, async_conn, test_env):
+async def test_dataframe_1726(dtype, value, async_conn, test_env):
     "1726 - fetch_df_all() for out of range integer values"
     requested_schema = pyarrow.schema([("VALUE", dtype)])
     with test_env.assert_raises_full_code("DPY-4038"):
@@ -779,7 +779,7 @@ async def test_1726(dtype, value, async_conn, test_env):
 
 
 @pytest.mark.parametrize("value", [b"Too short", b"Much too long"])
-async def test_1727(value, async_conn, test_env):
+async def test_dataframe_1727(value, async_conn, test_env):
     "1727 - fetch_df_all() with fixed width binary violations"
     requested_schema = pyarrow.schema([("VALUE", pyarrow.binary(length=10))])
     with test_env.assert_raises_full_code("DPY-4040"):
@@ -789,7 +789,7 @@ async def test_1727(value, async_conn, test_env):
 
 
 @pytest.mark.parametrize("num_elements", [1, 3])
-async def test_1728(num_elements, async_conn, test_env):
+async def test_dataframe_1728(num_elements, async_conn, test_env):
     "1728 - fetch_df_all() with wrong requested_schema size"
     elements = [(f"COL_{i}", pyarrow.string()) for i in range(num_elements)]
     requested_schema = pyarrow.schema(elements)
@@ -800,7 +800,7 @@ async def test_1728(num_elements, async_conn, test_env):
 
 
 @pytest.mark.parametrize("num_elements", [1, 3])
-async def test_1729(num_elements, async_conn, test_env):
+async def test_dataframe_1729(num_elements, async_conn, test_env):
     "1729 - fetch_df_batches() with wrong requested_schema size"
     elements = [(f"COL_{i}", pyarrow.string()) for i in range(num_elements)]
     requested_schema = pyarrow.schema(elements)
@@ -823,7 +823,7 @@ async def test_1729(num_elements, async_conn, test_env):
         "9876543210987654321098765432109876543.7",
     ],
 )
-async def test_1730(async_conn, value):
+async def test_dataframe_1730(async_conn, value):
     "1730 - fetch_df_all() for unconstrained NUMBER with decimal256"
     dtype = pyarrow.decimal256(precision=76, scale=38)
     requested_schema = pyarrow.schema([("VALUE", dtype)])
@@ -845,7 +845,7 @@ async def test_1730(async_conn, value):
         assert [v.as_py() for v in tab["VALUE"]] == [decimal.Decimal(value)]
 
 
-async def test_1731(test_env, async_conn):
+async def test_dataframe_1731(test_env, async_conn):
     "1731 - fetch_df_all() for decimal256 scale overflow"
     dtype = pyarrow.decimal256(precision=76, scale=0)
     requested_schema = pyarrow.schema([("VALUE", dtype)])
@@ -855,7 +855,7 @@ async def test_1731(test_env, async_conn):
         )
 
 
-async def test_1732(async_conn):
+async def test_dataframe_1732(async_conn):
     "1732 - decimal256 with large scale"
     value = "1e-76"
     expected_values = [

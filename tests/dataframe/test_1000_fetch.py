@@ -371,7 +371,7 @@ def _validate_df(ora_df, data, test_env):
     assert fetched_data == raw_data
 
 
-def test_1000(conn, cursor):
+def test_dataframe_1000(conn, cursor):
     "1000 - test basic fetch of data frame"
     _populate_table(cursor, DATASET_1)
     ora_df = conn.fetch_df_all(QUERY_SQL)
@@ -379,59 +379,59 @@ def test_1000(conn, cursor):
     assert ora_df.num_columns() == len(DATASET_1[0])
 
 
-def test_1001(cursor, test_env):
+def test_dataframe_1001(cursor, test_env):
     "1001 - test conversion to external dataframe"
     _test_df_interop(test_env, cursor, DATASET_1)
 
 
-def test_1002(cursor, test_env):
+def test_dataframe_1002(cursor, test_env):
     "1001 - test null and negative values"
     _test_df_interop(test_env, cursor, DATASET_2)
 
 
-def test_1003(cursor, test_env):
+def test_dataframe_1003(cursor, test_env):
     "1002 - test with fetch_decimals"
     with test_env.defaults_context_manager("fetch_decimals", True):
         _test_df_interop(test_env, cursor, DATASET_1)
 
 
-def test_1004(cursor, test_env):
+def test_dataframe_1004(cursor, test_env):
     "1003 - test null and negative values with fetch_decimals"
     with test_env.defaults_context_manager("fetch_decimals", True):
         _test_df_interop(test_env, cursor, DATASET_2)
 
 
-def test_1005(cursor, test_env):
+def test_dataframe_1005(cursor, test_env):
     "1005 - test null and values with leading zeros"
     _test_df_interop(test_env, cursor, DATASET_3)
 
 
-def test_1006(cursor, test_env):
+def test_dataframe_1006(cursor, test_env):
     "1005 - test null and values with leading zeros with fetch_decimals"
     with test_env.defaults_context_manager("fetch_decimals", True):
         _test_df_interop(test_env, cursor, DATASET_3)
 
 
-def test_1007(cursor, test_env):
+def test_dataframe_1007(cursor, test_env):
     "1007 - duplicate values in the rows"
     _test_df_interop(test_env, cursor, DATASET_4)
 
 
-def test_1008(cursor, test_env):
+def test_dataframe_1008(cursor, test_env):
     "1008 - batches without specification of size"
     _test_df_batches_interop(
         test_env, cursor, DATASET_4, batch_size=None, num_batches=1
     )
 
 
-def test_1009(cursor, test_env):
+def test_dataframe_1009(cursor, test_env):
     "1009 - batches with specification of size"
     _test_df_batches_interop(
         test_env, cursor, DATASET_4, batch_size=5, num_batches=2
     )
 
 
-def test_1010(conn, cursor, test_env):
+def test_dataframe_1010(conn, cursor, test_env):
     "1010 - verify passing Arrow arrays twice works"
     _populate_table(cursor, DATASET_1)
     ora_df = conn.fetch_df_all(QUERY_SQL)
@@ -439,7 +439,7 @@ def test_1010(conn, cursor, test_env):
     _validate_df(ora_df, DATASET_1, test_env)
 
 
-def test_1011(conn, cursor):
+def test_dataframe_1011(conn, cursor):
     "1011 - verify empty data set"
     _populate_table(cursor, DATASET_1)
     statement = "select * from TestDataFrame where Id = 4"
@@ -447,7 +447,7 @@ def test_1011(conn, cursor):
     assert ora_df.num_rows() == 0
 
 
-def test_1012(conn, cursor):
+def test_dataframe_1012(conn, cursor):
     "1012 - verify empty data set with batches"
     _populate_table(cursor, DATASET_1)
     statement = "select * from TestDataFrame where Id = 4"
@@ -455,7 +455,7 @@ def test_1012(conn, cursor):
         assert ora_df.num_rows() == 0
 
 
-def test_1013(conn, cursor):
+def test_dataframe_1013(conn, cursor):
     "1013 - negative checks on attributes"
     _populate_table(cursor, DATASET_1)
     ora_df = conn.fetch_df_all(QUERY_SQL)
@@ -467,21 +467,21 @@ def test_1013(conn, cursor):
         ora_df.get_column_by_name("missing_column")
 
 
-def test_1014(conn, test_env):
+def test_dataframe_1014(conn, test_env):
     "1014 - check unsupported error"
     statement = "select cursor(select user from dual) from dual"
     with test_env.assert_raises_full_code("DPY-3030"):
         conn.fetch_df_all(statement)
 
 
-def test_1015(cursor, test_env):
+def test_dataframe_1015(cursor, test_env):
     "1015 - batches with specification of size matching number of rows"
     _test_df_batches_interop(
         test_env, cursor, DATASET_2, batch_size=len(DATASET_2), num_batches=1
     )
 
 
-def test_1016(conn, cursor):
+def test_dataframe_1016(conn, cursor):
     "1016 - verify get_column() returns the correct value"
     _populate_table(cursor, DATASET_1)
     ora_df = conn.fetch_df_all(QUERY_SQL)
@@ -489,14 +489,14 @@ def test_1016(conn, cursor):
     assert array.to_pylist() == ["John", "Big"]
 
 
-def test_1017(cursor, test_env):
+def test_dataframe_1017(cursor, test_env):
     "1017 - batches with size that has duplicate rows across batches"
     _test_df_batches_interop(
         test_env, cursor, DATASET_4, batch_size=3, num_batches=2
     )
 
 
-def test_1018(conn, test_env):
+def test_dataframe_1018(conn, test_env):
     "1018 - fetch_decimals without precision and scale specified"
     data = [(1.0,)]
     with test_env.defaults_context_manager("fetch_decimals", True):
@@ -509,7 +509,7 @@ def test_1018(conn, test_env):
         assert fetched_data == data
 
 
-def test_1019(conn, test_env):
+def test_dataframe_1019(conn, test_env):
     "1019 - fetch clob"
     data = [("test_1023",)]
     ora_df = conn.fetch_df_all("select to_clob('test_1023') from dual")
@@ -518,7 +518,7 @@ def test_1019(conn, test_env):
     assert fetched_data == data
 
 
-def test_1020(conn, test_env):
+def test_dataframe_1020(conn, test_env):
     "1020 - fetch blob"
     data = [(b"test_1024",)]
     ora_df = conn.fetch_df_all(
@@ -529,7 +529,7 @@ def test_1020(conn, test_env):
     assert fetched_data == data
 
 
-def test_1021(conn, test_env):
+def test_dataframe_1021(conn, test_env):
     "1021 - fetch raw"
     data = [(b"test_1025",)]
     ora_df = conn.fetch_df_all(
@@ -540,7 +540,7 @@ def test_1021(conn, test_env):
     assert fetched_data == data
 
 
-def test_1022(skip_unless_native_boolean_supported, conn, test_env):
+def test_dataframe_1022(skip_unless_native_boolean_supported, conn, test_env):
     "1022 - fetch boolean"
     data = [(True,), (False,), (False,), (True,), (True,)]
     ora_df = conn.fetch_df_all("""
@@ -559,7 +559,7 @@ def test_1022(skip_unless_native_boolean_supported, conn, test_env):
     assert fetched_data == data
 
 
-def test_1023(conn, test_env):
+def test_dataframe_1023(conn, test_env):
     "1023 - fetch data with multiple rows containing null values"
     ora_df = conn.fetch_df_all("""
         select to_date('2025-06-12', 'YYYY-MM-DD') as data from dual
@@ -596,7 +596,7 @@ def test_1023(conn, test_env):
     assert fetched_data == data
 
 
-def test_1024(skip_unless_vectors_supported, conn, test_env):
+def test_dataframe_1024(skip_unless_vectors_supported, conn, test_env):
     "1024 - fetch float32 vector"
 
     # float32 is a special case while comparing dataframe values
@@ -620,7 +620,7 @@ def test_1024(skip_unless_vectors_supported, conn, test_env):
     assert data == test_env.get_data_from_df(fetched_df)
 
 
-def test_1025(skip_unless_vectors_supported, conn, test_env):
+def test_dataframe_1025(skip_unless_vectors_supported, conn, test_env):
     "1025 - fetch float64 vector"
     data = [
         ([34.6, 77.8],),
@@ -637,7 +637,7 @@ def test_1025(skip_unless_vectors_supported, conn, test_env):
     assert data == test_env.get_data_from_df(fetched_df)
 
 
-def test_1026(skip_unless_vectors_supported, conn, test_env):
+def test_dataframe_1026(skip_unless_vectors_supported, conn, test_env):
     "1026 - fetch int8 vector"
     data = [
         ([34, -77],),
@@ -654,7 +654,7 @@ def test_1026(skip_unless_vectors_supported, conn, test_env):
     assert data == test_env.get_data_from_df(fetched_df)
 
 
-def test_1027(skip_unless_vectors_supported, conn, test_env):
+def test_dataframe_1027(skip_unless_vectors_supported, conn, test_env):
     "1027 - fetch binary vector"
     data = [
         ([3, 2, 3],),
@@ -671,7 +671,7 @@ def test_1027(skip_unless_vectors_supported, conn, test_env):
     assert data == test_env.get_data_from_df(fetched_df)
 
 
-def test_1028(skip_unless_vectors_supported, conn, test_env):
+def test_dataframe_1028(skip_unless_vectors_supported, conn, test_env):
     "1028 - fetch float32 vectors with None"
     data = [
         (array.array("f", [34.6, 77.8]).tolist(),),
@@ -691,7 +691,7 @@ def test_1028(skip_unless_vectors_supported, conn, test_env):
     assert data == test_env.get_data_from_df(fetched_df)
 
 
-def test_1029(skip_unless_vectors_supported, conn, test_env):
+def test_dataframe_1029(skip_unless_vectors_supported, conn, test_env):
     "1029 - fetch duplicate float64 vectors"
     data = [
         ([34.6, 77.8],),
@@ -738,7 +738,7 @@ def test_1029(skip_unless_vectors_supported, conn, test_env):
     assert data == test_env.get_data_from_df(fetched_df)
 
 
-def test_1030(skip_unless_sparse_vectors_supported, conn, test_env):
+def test_dataframe_1030(skip_unless_sparse_vectors_supported, conn, test_env):
     "1030 - fetch float32 sparse vectors"
     data = [
         (
@@ -777,7 +777,7 @@ def test_1030(skip_unless_sparse_vectors_supported, conn, test_env):
     assert data == test_env.get_data_from_df(fetched_df)
 
 
-def test_1031(skip_unless_sparse_vectors_supported, conn, test_env):
+def test_dataframe_1031(skip_unless_sparse_vectors_supported, conn, test_env):
     "1031 - fetch float64 sparse vectors"
     data = [
         (
@@ -816,7 +816,7 @@ def test_1031(skip_unless_sparse_vectors_supported, conn, test_env):
     assert data == test_env.get_data_from_df(fetched_df)
 
 
-def test_1032(skip_unless_vectors_supported, conn, test_env):
+def test_dataframe_1032(skip_unless_vectors_supported, conn, test_env):
     "1032 - DPY-3031 - Unsupported flexible vector formats"
     with test_env.assert_raises_full_code("DPY-3031"):
         conn.fetch_df_all("""
@@ -826,7 +826,7 @@ def test_1032(skip_unless_vectors_supported, conn, test_env):
             """)
 
 
-def test_1033(skip_unless_sparse_vectors_supported, conn, test_env):
+def test_dataframe_1033(skip_unless_sparse_vectors_supported, conn, test_env):
     "1033 - DPY-4007 -fetch sparse vectors with flexible dimensions"
     with test_env.assert_raises_full_code("DPY-2065"):
         conn.fetch_df_all("""
@@ -846,7 +846,7 @@ def test_1033(skip_unless_sparse_vectors_supported, conn, test_env):
             """)
 
 
-def test_1034(conn, cursor, test_env):
+def test_dataframe_1034(conn, cursor, test_env):
     "1034 - test expressions on numeric columns"
     # fill only the numeric column - credit score
     dataset = [
@@ -867,7 +867,7 @@ def test_1034(conn, cursor, test_env):
     assert data == test_env.get_data_from_df(fetched_df)
 
 
-def test_1035(test_env, conn, cursor):
+def test_dataframe_1035(test_env, conn, cursor):
     "1035 - test metadata of all data types"
     ts_value = datetime.datetime(2026, 7, 4, 18, 42, 8)
     data = [
@@ -924,7 +924,7 @@ def test_1035(test_env, conn, cursor):
     assert test_env.get_data_from_df(fetched_df) == [data_to_insert]
 
 
-def test_1036(conn, cursor, test_env):
+def test_dataframe_1036(conn, cursor, test_env):
     "1036 - test metadata of all data types with fetch_decimals = True"
     ts_value = datetime.datetime(2026, 7, 4, 11, 23, 56)
     data = [
@@ -986,7 +986,7 @@ def test_1036(conn, cursor, test_env):
         assert test_env.get_data_from_df(fetched_df) == [data_to_insert]
 
 
-def test_1037(skip_unless_native_boolean_supported, conn, cursor):
+def test_dataframe_1037(skip_unless_native_boolean_supported, conn, cursor):
     "1037 - test metadata with boolean type"
     cursor.execute("delete from TestBooleans")
     data = [(1, True, False, None), (2, False, True, True)]
@@ -1012,7 +1012,7 @@ def test_1037(skip_unless_native_boolean_supported, conn, cursor):
     assert actual_types == expected_types
 
 
-def test_1038(cursor, test_env):
+def test_dataframe_1038(cursor, test_env):
     "1038 - test NULL rows with all null values"
     data = [
         (1, None, None, None, None, None, None, None, None),
@@ -1021,7 +1021,7 @@ def test_1038(cursor, test_env):
     _test_df_interop(test_env, cursor, data)
 
 
-def test_1039(conn, cursor):
+def test_dataframe_1039(conn, cursor):
     "1039 - test repeated pyarrow table construction"
     data = [
         (
@@ -1044,7 +1044,7 @@ def test_1039(conn, cursor):
     assert table1.to_pydict() == table2.to_pydict()
 
 
-def test_1040(conn, cursor, test_env):
+def test_dataframe_1040(conn, cursor, test_env):
     "1040 - test dataframe query with multiple bind variables"
     _populate_table(cursor, DATASET_2)
     statement = QUERY_SQL_WITH_WHERE_CLAUSE.format(
@@ -1061,14 +1061,14 @@ def test_1040(conn, cursor, test_env):
     assert fetched_data == raw_data
 
 
-def test_1041(conn, test_env):
+def test_dataframe_1041(conn, test_env):
     "1041 - test error handling with invalid SQL in fetch_df_batches()"
     with test_env.assert_raises_full_code("ORA-00942"):
         for batch in conn.fetch_df_batches("select * from NonExistentTable"):
             pass
 
 
-def test_1042(cursor, test_env):
+def test_dataframe_1042(cursor, test_env):
     "1042 - test partial batch (last batch smaller than batch size)"
     test_data = [
         (
@@ -1089,7 +1089,7 @@ def test_1042(cursor, test_env):
     )
 
 
-def test_1043(conn, cursor):
+def test_dataframe_1043(conn, cursor):
     "1043 - test with date functions"
     _populate_table(cursor, DATASET_1)
     ora_df = conn.fetch_df_all("""
@@ -1106,7 +1106,7 @@ def test_1043(conn, cursor):
     assert array.to_pylist() == [1955, 1955]
 
 
-def test_1044(conn, cursor):
+def test_dataframe_1044(conn, cursor):
     "1044 - test column access by index bounds"
     _populate_table(cursor, DATASET_1)
     ora_df = conn.fetch_df_all(QUERY_SQL)
@@ -1114,7 +1114,7 @@ def test_1044(conn, cursor):
         ora_df.get_column(ora_df.num_columns())
 
 
-def test_1045(cursor, test_env):
+def test_dataframe_1045(cursor, test_env):
     "1045 - test with different batch sizes"
     _test_df_batches_interop(
         test_env, cursor, DATASET_4, batch_size=1, num_batches=6
@@ -1124,20 +1124,20 @@ def test_1045(cursor, test_env):
     )
 
 
-def test_1046(cursor, test_env):
+def test_dataframe_1046(cursor, test_env):
     "1046 - test with very large batch size"
     _test_df_batches_interop(
         test_env, cursor, DATASET_1, batch_size=1000, num_batches=1
     )
 
 
-def test_1047(conn, test_env):
+def test_dataframe_1047(conn, test_env):
     "1047 - test error handling with invalid SQL"
     with test_env.assert_raises_full_code("ORA-00942"):
         conn.fetch_df_all("select * from NonExistentTable")
 
 
-def test_1048(conn, cursor, test_env):
+def test_dataframe_1048(conn, cursor, test_env):
     "1048 - test error handling with invalid bind variable"
     _populate_table(cursor, DATASET_1)
     with test_env.assert_raises_full_code("DPY-4010", "ORA-01008"):
@@ -1146,7 +1146,7 @@ def test_1048(conn, cursor, test_env):
         )
 
 
-def test_1049(conn, cursor, test_env):
+def test_dataframe_1049(conn, cursor, test_env):
     "1049 - test with single row result"
     _populate_table(cursor, DATASET_1)
     statement = QUERY_SQL_WITH_WHERE_CLAUSE.format(where_clause="where Id = 1")
@@ -1155,7 +1155,7 @@ def test_1049(conn, cursor, test_env):
     _validate_df(ora_df, [DATASET_1[0]], test_env)
 
 
-def test_1050(conn, cursor, test_env):
+def test_dataframe_1050(conn, cursor, test_env):
     "1050 - test with calculated columns"
     _populate_table(cursor, DATASET_1)
     now = datetime.datetime.now().replace(microsecond=0)
@@ -1188,7 +1188,7 @@ def test_1050(conn, cursor, test_env):
     assert fetched_data == expected_data
 
 
-def test_1051(conn, cursor, test_env):
+def test_dataframe_1051(conn, cursor, test_env):
     "1051 - test fetch_df_batches with bind variables"
     batch_size = 2
     _populate_table(cursor, DATASET_4)
@@ -1204,7 +1204,7 @@ def test_1051(conn, cursor, test_env):
         offset += batch_size
 
 
-def test_1052(conn, cursor, test_env):
+def test_dataframe_1052(conn, cursor, test_env):
     "1052 - test with large data"
     data = [
         (1, "A" * 41_000, b"Very long description " * 5_000),
@@ -1233,7 +1233,7 @@ def test_1052(conn, cursor, test_env):
     assert fetched_data == data
 
 
-def test_1053(conn, cursor):
+def test_dataframe_1053(conn, cursor):
     "1053 - test fetching from an empty table with fetch_df_batches"
     cursor.execute("delete from TestDataFrame")
     batches = list(conn.fetch_df_batches(QUERY_SQL, size=10))
@@ -1241,7 +1241,7 @@ def test_1053(conn, cursor):
     assert batches[0].num_rows() == 0
 
 
-def test_1054(conn, cursor, test_env):
+def test_dataframe_1054(conn, cursor, test_env):
     "1054 - fetch clob in batches"
     cursor.execute("delete from TestDataFrame")
     test_string = "A" * 10000
@@ -1265,7 +1265,7 @@ def test_1054(conn, cursor, test_env):
         offset += batch_size
 
 
-def test_1055(conn, cursor, test_env):
+def test_dataframe_1055(conn, cursor, test_env):
     "1055 - fetch blob in batches"
     cursor.execute("delete from TestDataFrame")
     test_string = b"B" * 10000
@@ -1289,7 +1289,7 @@ def test_1055(conn, cursor, test_env):
         offset += batch_size
 
 
-def test_1056(conn, cursor, test_env):
+def test_dataframe_1056(conn, cursor, test_env):
     "1056 - test with empty strings"
     data = [
         (
@@ -1325,7 +1325,7 @@ def test_1056(conn, cursor, test_env):
     assert fetched_data == expected_data
 
 
-def test_1057(cursor, test_env):
+def test_dataframe_1057(cursor, test_env):
     "1057 - test with unicode characters"
     data = [
         (
@@ -1354,7 +1354,7 @@ def test_1057(cursor, test_env):
     _test_df_interop(test_env, cursor, data)
 
 
-def test_1058(cursor, test_env):
+def test_dataframe_1058(cursor, test_env):
     "1072 - test with very old dates"
     data = [
         (
@@ -1383,7 +1383,7 @@ def test_1058(cursor, test_env):
     _test_df_interop(test_env, cursor, data)
 
 
-def test_1059(cursor, test_env):
+def test_dataframe_1059(cursor, test_env):
     "1059 - test with future dates"
     data = [
         (
@@ -1412,7 +1412,7 @@ def test_1059(cursor, test_env):
     _test_df_interop(test_env, cursor, data)
 
 
-def test_1060(cursor, test_env):
+def test_dataframe_1060(cursor, test_env):
     "1060 - test with exactly arraysize rows"
     test_date = datetime.date(2000, 1, 1)
     now = datetime.datetime.now()
@@ -1433,7 +1433,7 @@ def test_1060(cursor, test_env):
     _test_df_interop(test_env, cursor, data)
 
 
-def test_1061(cursor, test_env):
+def test_dataframe_1061(cursor, test_env):
     "1061 - test with arraysize+1 rows"
     test_date = datetime.date(2000, 1, 1)
     now = datetime.datetime.now()
@@ -1454,7 +1454,7 @@ def test_1061(cursor, test_env):
     _test_df_interop(test_env, cursor, data)
 
 
-def test_1062(cursor, test_env):
+def test_dataframe_1062(cursor, test_env):
     "1062 - test with odd arraysize"
     test_date = datetime.date(2000, 1, 1)
     now = datetime.datetime.now()
@@ -1475,7 +1475,7 @@ def test_1062(cursor, test_env):
     _test_df_interop(test_env, cursor, data)
 
 
-def test_1063(cursor, test_env):
+def test_dataframe_1063(cursor, test_env):
     "1063 - test with single row"
     data = [
         (
@@ -1493,7 +1493,7 @@ def test_1063(cursor, test_env):
     _test_df_interop(test_env, cursor, data)
 
 
-def test_1064(cursor, test_env):
+def test_dataframe_1064(cursor, test_env):
     "1064 - test multiple rows with NULL values in different columns"
     now = datetime.datetime.now()
     test_date = datetime.datetime(2000, 1, 1)
@@ -1506,7 +1506,7 @@ def test_1064(cursor, test_env):
     _test_df_interop(test_env, cursor, data)
 
 
-def test_1065(cursor, test_env):
+def test_dataframe_1065(cursor, test_env):
     "1065 - test single column with all NULL values"
     data = [
         (
@@ -1546,7 +1546,7 @@ def test_1065(cursor, test_env):
     _test_df_interop(test_env, cursor, data)
 
 
-def test_1066(cursor, test_env):
+def test_dataframe_1066(cursor, test_env):
     "1066 - test last column NULL in each row"
     data = [
         (
@@ -1586,7 +1586,7 @@ def test_1066(cursor, test_env):
     _test_df_interop(test_env, cursor, data)
 
 
-def test_1067(cursor, test_env):
+def test_dataframe_1067(cursor, test_env):
     "1067 - test alternating NULL/non-NULL values in a column"
     data = [
         (
@@ -1617,7 +1617,7 @@ def test_1067(cursor, test_env):
     _test_df_interop(test_env, cursor, data)
 
 
-def test_1068(cursor, test_env):
+def test_dataframe_1068(cursor, test_env):
     "1068 - test all columns NULL except one"
     now = datetime.datetime.now()
     test_date = datetime.date(2001, 1, 1)
@@ -1630,7 +1630,7 @@ def test_1068(cursor, test_env):
     _test_df_interop(test_env, cursor, data)
 
 
-def test_1069(cursor, test_env):
+def test_dataframe_1069(cursor, test_env):
     "1069 - test all date columns with all NULL values"
     data = [
         (1, "First1", "Last1", "City1", "Country1", None, 1000, 100, None),
@@ -1640,7 +1640,7 @@ def test_1069(cursor, test_env):
     _test_df_interop(test_env, cursor, data)
 
 
-def test_1070(cursor, test_env):
+def test_dataframe_1070(cursor, test_env):
     "1070 - test NULL values in numeric columns"
     data = [
         (
@@ -1680,7 +1680,7 @@ def test_1070(cursor, test_env):
     _test_df_interop(test_env, cursor, data)
 
 
-def test_1071(cursor, test_env):
+def test_dataframe_1071(cursor, test_env):
     "1071 - test multiple consecutive NULL rows"
     data = [
         (1, None, None, None, None, None, None, None, None),
@@ -1701,7 +1701,7 @@ def test_1071(cursor, test_env):
     _test_df_interop(test_env, cursor, data)
 
 
-def test_1072(cursor, test_env):
+def test_dataframe_1072(cursor, test_env):
     "1072 - test NULL rows interspersed with data rows"
     data = [
         (1, None, None, None, None, None, None, None, None),
@@ -1733,7 +1733,7 @@ def test_1072(cursor, test_env):
     _test_df_interop(test_env, cursor, data)
 
 
-def test_1073(cursor, test_env):
+def test_dataframe_1073(cursor, test_env):
     "1073 - test multiple NULL rows with different NULL columns"
     data = [
         (1, None, "Last1", "City1", "Country1", None, 1000, 100, None),
@@ -1774,7 +1774,7 @@ def test_1073(cursor, test_env):
     _test_df_interop(test_env, cursor, data)
 
 
-def test_1074(cursor, test_env):
+def test_dataframe_1074(cursor, test_env):
     "1074 - test NULL rows with alternating NULL patterns"
     data = [
         (
@@ -1825,7 +1825,7 @@ def test_1074(cursor, test_env):
     _test_df_interop(test_env, cursor, data)
 
 
-def test_1075(cursor, test_env):
+def test_dataframe_1075(cursor, test_env):
     "1075 - test multiple NULL rows with partial NULL groups"
     data = [
         (
@@ -1876,7 +1876,7 @@ def test_1075(cursor, test_env):
     _test_df_interop(test_env, cursor, data)
 
 
-def test_1076(cursor, test_env):
+def test_dataframe_1076(cursor, test_env):
     "1076 - test multiple NULL rows with varying NULL counts"
     data = [
         (1, None, None, None, None, None, None, None, None),
@@ -1907,7 +1907,7 @@ def test_1076(cursor, test_env):
     _test_df_interop(test_env, cursor, data)
 
 
-def test_1077(conn, test_env):
+def test_dataframe_1077(conn, test_env):
     "1077 - test fetching large integers"
     data = (-(2**40), 2**41)
     ora_df = conn.fetch_df_all(
@@ -1923,9 +1923,9 @@ def test_1077(conn, test_env):
     assert [data] == test_env.get_data_from_df(fetched_df)
 
 
-def test_1078(conn, test_env):
+def test_dataframe_1078(conn, test_env):
     "1078 - test fetching NCHAR and NVARCHAR data"
-    value = "test_1078"
+    value = "test_dataframe_1078"
     value_len = len(value)
     ora_df = conn.fetch_df_all(f"""
         select
@@ -1937,7 +1937,7 @@ def test_1078(conn, test_env):
     assert test_env.get_data_from_df(fetched_df) == [(value, value)]
 
 
-def test_1079(conn, test_env):
+def test_dataframe_1079(conn, test_env):
     "1079 - test passing statement=None or handle=None raise ValueError"
     with pytest.raises(ValueError):
         conn.fetch_df_all()
@@ -1945,7 +1945,7 @@ def test_1079(conn, test_env):
         conn.fetch_df_all(handle=1, statement="select user from dual")
 
 
-def test_1080(conn, test_env):
+def test_dataframe_1080(conn, test_env):
     "1080 - test passing statement=None or handle=None raise ValueError"
     with pytest.raises(ValueError):
         for _ in conn.fetch_df_batches():
@@ -1957,7 +1957,7 @@ def test_1080(conn, test_env):
             pass
 
 
-def test_1081(conn, test_env):
+def test_dataframe_1081(conn, test_env):
     "1081 - test fetching JSON constrained data via Arrow backed data frame"
     expected_data = [("[1, 2, 3]", "[4, 5, 6]", b"[7, 8, 9]")]
     ora_df = conn.fetch_df_all("""
@@ -1971,7 +1971,7 @@ def test_1081(conn, test_env):
     assert test_env.get_data_from_df(fetched_df) == expected_data
 
 
-def test_1082(test_env, conn, cursor):
+def test_dataframe_1082(test_env, conn, cursor):
     "1082 - test fetching interval types"
     cursor.execute("delete from TestAllTypes")
     data = [
@@ -2008,7 +2008,7 @@ def test_1082(test_env, conn, cursor):
     assert test_env.get_data_from_df(fetched_df) == data
 
 
-def test_1083(test_env, conn):
+def test_dataframe_1083(test_env, conn):
     "1083 - test fetching data that is null by describe"
     data = [(None, None), (None, None), (None, None)]
     ora_df = conn.fetch_df_all(
@@ -2018,7 +2018,7 @@ def test_1083(test_env, conn):
     assert test_env.get_data_from_df(fetched_df) == data
 
 
-def test_1084(conn, cursor):
+def test_dataframe_1084(conn, cursor):
     "1084 - test executemany() with decimal256 data frame"
     expected_values = [
         decimal.Decimal("9007199254740993"),

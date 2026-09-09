@@ -98,7 +98,7 @@ async def _deq_in_thread(test_env, results):
         await conn.commit()
 
 
-async def test_1300(queue, async_conn):
+async def test_aq_1300(queue, async_conn):
     "1300 - test bulk enqueue and dequeue"
     messages = [
         async_conn.msgproperties(payload=data) for data in RAW_PAYLOAD_DATA
@@ -110,7 +110,7 @@ async def test_1300(queue, async_conn):
     assert data == RAW_PAYLOAD_DATA
 
 
-async def test_1301(queue, async_conn):
+async def test_aq_1301(queue, async_conn):
     "1301 - test empty bulk dequeue"
     queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
     messages = await queue.deqmany(5)
@@ -118,7 +118,7 @@ async def test_1301(queue, async_conn):
     assert messages == []
 
 
-async def test_1302(queue, async_conn):
+async def test_aq_1302(queue, async_conn):
     "1302 - test enqueue and dequeue multiple times"
     data_to_enqueue = RAW_PAYLOAD_DATA
     for num in (2, 6, 4):
@@ -137,14 +137,14 @@ async def test_1302(queue, async_conn):
     assert all_data == RAW_PAYLOAD_DATA
 
 
-async def test_1303(queue, async_conn, test_env):
+async def test_aq_1303(queue, async_conn, test_env):
     "1303 - test error for messages with no payload"
     messages = [async_conn.msgproperties() for _ in RAW_PAYLOAD_DATA]
     with test_env.assert_raises_full_code("DPY-2000"):
         await queue.enqmany(messages)
 
 
-async def test_1304(queue, async_conn, async_cursor):
+async def test_aq_1304(queue, async_conn, async_cursor):
     "1304 - verify that the msgid property is returned correctly"
     messages = [
         async_conn.msgproperties(payload=data) for data in RAW_PAYLOAD_DATA
@@ -159,7 +159,7 @@ async def test_1304(queue, async_conn, async_cursor):
     assert msgids == actual_msgids
 
 
-async def test_1305(json_queue, async_conn):
+async def test_aq_1305(json_queue, async_conn):
     "1305 - test enqueuing and dequeuing JSON message"
     props = [
         async_conn.msgproperties(payload=data) for data in JSON_DATA_PAYLOAD
@@ -172,14 +172,14 @@ async def test_1305(json_queue, async_conn):
     assert actual_data == JSON_DATA_PAYLOAD
 
 
-async def test_1306(json_queue, async_conn, test_env):
+async def test_aq_1306(json_queue, async_conn, test_env):
     "1306 - test enqueuing to a JSON queue without a JSON payload"
     props = async_conn.msgproperties(payload="string message")
     with test_env.assert_raises_full_code("DPY-2062"):
         await json_queue.enqmany([props, props])
 
 
-async def test_1307(json_queue, async_conn):
+async def test_aq_1307(json_queue, async_conn):
     "1307 - test errors for invalid values for enqmany and deqmany"
     props = async_conn.msgproperties(payload="string message")
     with pytest.raises(TypeError):

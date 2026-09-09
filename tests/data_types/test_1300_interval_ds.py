@@ -79,7 +79,7 @@ def module_data_by_key(module_data):
     return data_by_key
 
 
-def test_1300(cursor, module_data_by_key):
+def test_data_types_1300(cursor, module_data_by_key):
     "1300 - test binding in an interval"
     cursor.setinputsizes(value=oracledb.DB_TYPE_INTERVAL_DS)
     value = datetime.timedelta(days=5, hours=5, minutes=10, seconds=15)
@@ -90,7 +90,7 @@ def test_1300(cursor, module_data_by_key):
     assert cursor.fetchall() == [module_data_by_key[5]]
 
 
-def test_1301(cursor):
+def test_data_types_1301(cursor):
     "1301 - test binding in a null"
     cursor.setinputsizes(value=oracledb.DB_TYPE_INTERVAL_DS)
     cursor.execute(
@@ -100,7 +100,7 @@ def test_1301(cursor):
     assert cursor.fetchall() == []
 
 
-def test_1302(cursor):
+def test_data_types_1302(cursor):
     "1302 - test binding out with set input sizes defined"
     bind_vars = cursor.setinputsizes(value=oracledb.DB_TYPE_INTERVAL_DS)
     cursor.execute("""
@@ -114,7 +114,7 @@ def test_1302(cursor):
     assert bind_vars["value"].getvalue() == expected_value
 
 
-def test_1303(cursor):
+def test_data_types_1303(cursor):
     "1303 - test binding in/out with set input sizes defined"
     bind_vars = cursor.setinputsizes(value=oracledb.DB_TYPE_INTERVAL_DS)
     cursor.execute(
@@ -129,7 +129,7 @@ def test_1303(cursor):
     assert bind_vars["value"].getvalue() == expected_value
 
 
-def test_1304(cursor):
+def test_data_types_1304(cursor):
     "1304 - test binding in/out with set input sizes defined"
     bind_vars = cursor.setinputsizes(value=oracledb.DB_TYPE_INTERVAL_DS)
     cursor.execute(
@@ -146,7 +146,7 @@ def test_1304(cursor):
     assert bind_vars["value"].getvalue() == expected_value
 
 
-def test_1305(cursor):
+def test_data_types_1305(cursor):
     "1305 - test binding out with cursor.var() method"
     var = cursor.var(oracledb.DB_TYPE_INTERVAL_DS)
     cursor.execute(
@@ -163,7 +163,7 @@ def test_1305(cursor):
     assert var.getvalue() == expected_value
 
 
-def test_1306(cursor):
+def test_data_types_1306(cursor):
     "1306 - test binding in/out with cursor.var() method"
     var = cursor.var(oracledb.DB_TYPE_INTERVAL_DS)
     var.setvalue(0, datetime.timedelta(days=1, minutes=50))
@@ -179,7 +179,7 @@ def test_1306(cursor):
     assert var.getvalue() == expected_value
 
 
-def test_1307(cursor):
+def test_data_types_1307(cursor):
     "1307 - test cursor description is accurate"
     cursor.execute("select * from TestIntervals")
     expected_value = [
@@ -224,14 +224,14 @@ def test_1307(cursor):
     assert cursor.description == expected_value
 
 
-def test_1308(cursor, module_data):
+def test_data_types_1308(cursor, module_data):
     "1308 - test that fetching all of the data returns the correct results"
     cursor.execute("select * From TestIntervals order by IntCol")
     assert cursor.fetchall() == module_data
     assert cursor.fetchall() == []
 
 
-def test_1309(cursor, module_data):
+def test_data_types_1309(cursor, module_data):
     "1309 - test that fetching data in chunks returns the correct results"
     cursor.execute("select * From TestIntervals order by IntCol")
     assert cursor.fetchmany(3) == module_data[0:3]
@@ -241,7 +241,7 @@ def test_1309(cursor, module_data):
     assert cursor.fetchmany(3) == []
 
 
-def test_1310(cursor, module_data_by_key):
+def test_data_types_1310(cursor, module_data_by_key):
     "1310 - test that fetching a single row returns the correct results"
     cursor.execute("""
         select *
@@ -261,7 +261,7 @@ def test_1310(cursor, module_data_by_key):
         datetime.timedelta(days=-8, seconds=-126, microseconds=-1811),
     ],
 )
-def test_1311(cursor, value):
+def test_data_types_1311(cursor, value):
     "1311 - test binding and fetching negative intervals"
     cursor.execute("select :1 from dual", [value])
     (result,) = cursor.fetchone()

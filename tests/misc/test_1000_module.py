@@ -34,7 +34,7 @@ import oracledb
 import pytest
 
 
-def test_1000():
+def test_misc_1000():
     "1000 - test DateFromTicks()"
     today = datetime.datetime.today()
     timestamp = today.timestamp()
@@ -42,14 +42,14 @@ def test_1000():
     assert date == today.date()
 
 
-def test_1001():
+def test_misc_1001():
     "1001 - test management of __future__ object"
     assert oracledb.__future__.dummy is None
     oracledb.__future__.dummy = "Unimportant"
     assert oracledb.__future__.dummy is None
 
 
-def test_1002():
+def test_misc_1002():
     "1002 - test TimestampFromTicks()"
     timestamp = datetime.datetime.today().timestamp()
     today = datetime.datetime.fromtimestamp(timestamp)
@@ -57,7 +57,7 @@ def test_1002():
     assert date == today
 
 
-def test_1003(test_env):
+def test_misc_1003(test_env):
     "1003 - test unsupported time functions"
     with test_env.assert_raises_full_code("DPY-3000"):
         oracledb.Time(12, 0, 0)
@@ -65,7 +65,7 @@ def test_1003(test_env):
         oracledb.TimeFromTicks(100)
 
 
-def test_1004():
+def test_misc_1004():
     "1004 - test makedsn() with valid arguments"
     for name, value in [
         ("SID", "sid_1004"),
@@ -95,7 +95,7 @@ def test_1004():
         assert result == expected_value
 
 
-def test_1005(test_env):
+def test_misc_1005(test_env):
     "1005 - test makedsn() with invalid arguments"
     with test_env.assert_raises_full_code("DPY-2020"):
         oracledb.makedsn(host="(invalid)", port=1521)
@@ -113,7 +113,7 @@ def test_1005(test_env):
         )
 
 
-def test_1006():
+def test_misc_1006():
     "1006 - test aliases match"
 
     # database type aliases
@@ -166,13 +166,13 @@ def test_1006():
     assert oracledb.version is oracledb.__version__
 
 
-def test_1007(test_env, skip_unless_thin_mode):
+def test_misc_1007(test_env, skip_unless_thin_mode):
     "1007 - test clientversion() fails without init_oracle_client()"
     with test_env.assert_raises_full_code("DPY-2021"):
         oracledb.clientversion()
 
 
-def test_1008():
+def test_misc_1008():
     "1008 - test enumeration aliases match"
 
     # authentication mode enumeration
@@ -232,7 +232,7 @@ def test_1008():
     assert oracledb.VECTOR_FORMAT_INT8 is oracledb.VectorFormat.INT8
 
 
-def test_1009(test_env, conn):
+def test_misc_1009(test_env, conn):
     "1009 - test enable_thin_mode()"
     if test_env.use_thick_mode:
         with test_env.assert_raises_full_code("DPY-2053"):
@@ -243,7 +243,7 @@ def test_1009(test_env, conn):
             oracledb.init_oracle_client()
 
 
-def test_1010():
+def test_misc_1010():
     "1010 - test creation and updating of secret values"
     secret = "secret_1010"
     value = oracledb.SecretValue(secret)
@@ -253,7 +253,7 @@ def test_1010():
     assert value.value == another_secret
 
 
-def test_1011():
+def test_misc_1011():
     "1011 - test secret values that expire are not returned"
     secret = "secret_1011"
     expires = datetime.datetime.now(
@@ -263,7 +263,7 @@ def test_1011():
     assert value.value is None
 
 
-def test_1012():
+def test_misc_1012():
     "1012 - test secret values require a timezone-aware date"
     secret = "secret_1012"
     expires = datetime.datetime.now() - datetime.timedelta(1)
@@ -271,7 +271,7 @@ def test_1012():
         oracledb.SecretValue(secret, expires=expires)
 
 
-def test_1013():
+def test_misc_1013():
     "1013 - test secret values that have not expired are returned"
     secret = "secret_1013"
     expires = datetime.datetime.now(
@@ -281,7 +281,7 @@ def test_1013():
     assert value.value == secret
 
 
-def test_1014():
+def test_misc_1014():
     "1014 - test storing secrets in the global cache"
     key = (1014, "key")
     secret = "secret_1014"
@@ -290,7 +290,7 @@ def test_1014():
     assert oracledb.get_secret(key).value == secret
 
 
-def test_1015():
+def test_misc_1015():
     "1015 - test storing secrets in the thread local cache"
     key = (1015, "key")
     main_secret = "secret_1015"
@@ -314,7 +314,7 @@ def test_1015():
     assert secret_value.value == main_secret
 
 
-def test_1016():
+def test_misc_1016():
     "1016 - test secrets that have expired are not returned"
     key = (1016, "key")
     secret = "secret_1016"
@@ -325,7 +325,7 @@ def test_1016():
     assert oracledb.get_secret(key) is None
 
 
-def test_1017():
+def test_misc_1017():
     "1017 - test secrets that have not expired are returned correctly"
     key = (1017, "key")
     secret = "secret_1017"
@@ -336,7 +336,7 @@ def test_1017():
     assert oracledb.get_secret(key).value == secret
 
 
-def test_1018():
+def test_misc_1018():
     "1018 - test storing a secret value of None"
     key = (1018, "key")
     assert oracledb.save_secret(key, None) is None
@@ -348,7 +348,7 @@ def test_1018():
     assert oracledb.get_secret(key) is None
 
 
-def test_1019():
+def test_misc_1019():
     "1019 - test storing a secret value containing bytes"
     key = (1019, "key")
     secret = b"secret_1019"
@@ -384,7 +384,7 @@ def test_1019():
         ("a" * 10_000, "'" + "a" * 10_000 + "'"),
     ],
 )
-def test_1020(in_value, out_value):
+def test_misc_1020(in_value, out_value):
     "1020 - test enquote_literal()"
     assert oracledb.enquote_literal(in_value) == out_value
 
@@ -431,7 +431,7 @@ def test_1020(in_value, out_value):
         ("Δ$#_é", True, f'"{"Δ$#_é".upper()}"'),
     ],
 )
-def test_1021(in_value, capitalize, out_value):
+def test_misc_1021(in_value, capitalize, out_value):
     "1021 - test enquote_name()"
     assert oracledb.enquote_name(in_value, capitalize) == out_value
 
@@ -488,7 +488,7 @@ def test_1021(in_value, capitalize, out_value):
         ('"test_1022h', False),
     ],
 )
-def test_1022(value, expected_result):
+def test_misc_1022(value, expected_result):
     "1022 - test is_simple_sql_name()"
     assert oracledb.is_simple_sql_name(value) == expected_result
 
@@ -555,12 +555,12 @@ def test_1022(value, expected_result):
         ('"not_quoted_correctly', False),
     ],
 )
-def test_1023(value, expected_result):
+def test_misc_1023(value, expected_result):
     "1023 - test is_qualified_sql_name()"
     assert oracledb.is_qualified_sql_name(value) == expected_result
 
 
-def test_1024(test_env):
+def test_misc_1024(test_env):
     "1024 - additional tests of enquote_name()"
     assert oracledb.enquote_name("test_1024a") == '"TEST_1024A"'
     with test_env.assert_raises_full_code("DPY-2074"):
@@ -569,7 +569,7 @@ def test_1024(test_env):
         oracledb.enquote_name('"test_"1024c"')
 
 
-def test_1025(skip_unless_thin_mode, test_env):
+def test_misc_1025(skip_unless_thin_mode, test_env):
     "1025 - test invalid end user security context length"
     with test_env.assert_raises_full_code("DPY-2072"):
         oracledb.create_end_user_security_context(
@@ -592,7 +592,7 @@ def test_1025(skip_unless_thin_mode, test_env):
         (["end_user_1026", "key_1026"], False),
     ],
 )
-def test_1026(end_user_identity, acceptable):
+def test_misc_1026(end_user_identity, acceptable):
     "1026 - create_end_user_security_context() validation"
     expectation = (
         contextlib.nullcontext() if acceptable else pytest.raises(ValueError)
@@ -604,7 +604,7 @@ def test_1026(end_user_identity, acceptable):
         )
 
 
-def test_1027():
+def test_misc_1027():
     "1027 - test end user security provider storage of dynamic values"
     import oracledb.plugins.end_user_sec_provider as provider
 
@@ -622,7 +622,7 @@ def test_1027():
     assert provider.get_end_user_attributes() is None
 
 
-def test_1028():
+def test_misc_1028():
     "1028 - test clearing of secret values"
     key = (1028, "key")
     secret = "secret_1028"
@@ -651,7 +651,7 @@ def test_1028():
         (["role_1029", 1029], False),
     ],
 )
-def test_1029(data_roles, acceptable):
+def test_misc_1029(data_roles, acceptable):
     "1029 - validate data roles for end user security contexts"
     expectation = (
         contextlib.nullcontext() if acceptable else pytest.raises(ValueError)

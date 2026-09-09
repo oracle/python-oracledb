@@ -57,7 +57,7 @@ def empty_tab(cursor):
     cursor.execute("delete from TestDataFrame")
 
 
-def test_1200(conn, cursor, empty_tab):
+def test_dataframe_1200(conn, cursor, empty_tab):
     "1200 - test basic ingestion of data frame"
     arrays = [
         pyarrow.array([1, 2, 3], pyarrow.int64()),
@@ -96,7 +96,7 @@ def test_1200(conn, cursor, empty_tab):
     assert fetched_df.equals(df)
 
 
-def test_1201(conn, cursor, empty_tab):
+def test_dataframe_1201(conn, cursor, empty_tab):
     "1201 - test ingestion with null values"
     arrays = [
         pyarrow.array([1, 2, 3], pyarrow.int64()),
@@ -135,7 +135,7 @@ def test_1201(conn, cursor, empty_tab):
     assert fetched_df.equals(df)
 
 
-def test_1202(conn, cursor, empty_tab):
+def test_dataframe_1202(conn, cursor, empty_tab):
     "1202 - test ingestion with single column"
     arrays = [pyarrow.array([1, 2, 3], pyarrow.int64())]
     names = ["Id"]
@@ -151,7 +151,7 @@ def test_1202(conn, cursor, empty_tab):
     assert fetched_df.equals(df)
 
 
-def test_1203(conn, cursor, empty_tab):
+def test_dataframe_1203(conn, cursor, empty_tab):
     "1203 - test ingestion with large data types"
     long_str = "X" * 32_768
     long_raw = b"Y" * 32_768
@@ -182,7 +182,7 @@ def test_1203(conn, cursor, empty_tab):
     assert fetched_df.equals(df)
 
 
-def test_1204(conn, cursor, empty_tab):
+def test_dataframe_1204(conn, cursor, empty_tab):
     "1204 - test ingestion with decimal values"
     arrays = [
         pyarrow.array(
@@ -227,7 +227,7 @@ def test_1204(conn, cursor, empty_tab):
     assert fetched_df.equals(df)
 
 
-def test_1205(skip_unless_native_boolean_supported, conn, cursor):
+def test_dataframe_1205(skip_unless_native_boolean_supported, conn, cursor):
     "1205 - test ingestion with boolean values"
     arrays = [
         pyarrow.array([1, 2, 3], pyarrow.int64()),
@@ -258,7 +258,7 @@ def test_1205(skip_unless_native_boolean_supported, conn, cursor):
     assert fetched_df.equals(df)
 
 
-def test_1206(conn, cursor, empty_tab):
+def test_dataframe_1206(conn, cursor, empty_tab):
     "1206 - test ingestion with timestamp values"
     arrays = [
         pyarrow.array([1, 2, 3], pyarrow.int64()),
@@ -293,7 +293,7 @@ def test_1206(conn, cursor, empty_tab):
     assert fetched_df.equals(df)
 
 
-def test_1207(cursor, test_env):
+def test_dataframe_1207(cursor, test_env):
     "1207 - test ingestion with mismatched column count"
     arrays = [
         pyarrow.array([1, 2, 3], pyarrow.int64()),
@@ -311,7 +311,7 @@ def test_1207(cursor, test_env):
         )
 
 
-def test_1208(cursor, test_env):
+def test_dataframe_1208(cursor, test_env):
     "1208 - test ingestion with invalid data type"
     arrays = [
         pyarrow.array([1, 2, 3], pyarrow.int64()),
@@ -332,7 +332,7 @@ def test_1208(cursor, test_env):
         )
 
 
-def test_1209(cursor, test_env):
+def test_dataframe_1209(cursor, test_env):
     "1209 - test execute() with DataFrame"
     arrays = [
         pyarrow.array([1, 2, 3], pyarrow.int64()),
@@ -350,7 +350,7 @@ def test_1209(cursor, test_env):
         )
 
 
-def test_1210(conn, cursor):
+def test_dataframe_1210(conn, cursor):
     "1210 - test consecutive executemany() calls with same dataframe"
     arrays = [
         pyarrow.array([1, 2, 3], pyarrow.int64()),
@@ -381,7 +381,7 @@ def test_1210(conn, cursor):
         assert fetched_df.equals(df)
 
 
-def test_1211(conn, cursor, empty_tab):
+def test_dataframe_1211(conn, cursor, empty_tab):
     "1211 - test nulls/None for all datatypes"
     arrays = [
         pyarrow.array([1], pyarrow.int64()),
@@ -420,7 +420,7 @@ def test_1211(conn, cursor, empty_tab):
     assert fetched_df.equals(df)
 
 
-def test_1212(conn, cursor, empty_tab):
+def test_dataframe_1212(conn, cursor, empty_tab):
     "1212 - test LOB sizes around 32K boundary using DataFrame ingestion"
     test_sizes = [32766, 32767, 32768, 32769, 32770]
     arrays = [
@@ -450,7 +450,7 @@ def test_1212(conn, cursor, empty_tab):
     assert fetched_df.equals(df)
 
 
-def test_1213(conn, cursor, empty_tab, test_env):
+def test_dataframe_1213(conn, cursor, empty_tab, test_env):
     "1213 - test ingestion with mixed characters using DataFrame"
     if test_env.charset != "AL32UTF8":
         pytest.skip("Database character set must be AL32UTF8")
@@ -489,7 +489,7 @@ def test_1213(conn, cursor, empty_tab, test_env):
     assert fetched_df.equals(df)
 
 
-def test_1214(conn, cursor, empty_tab):
+def test_dataframe_1214(conn, cursor, empty_tab):
     "1214 - test various numeric values"
     test_data = [
         decimal.Decimal(0),
@@ -537,7 +537,7 @@ def test_1214(conn, cursor, empty_tab):
     assert fetched_df.equals(df)
 
 
-def test_1215(conn, cursor, empty_tab):
+def test_dataframe_1215(conn, cursor, empty_tab):
     "1215 - test various timestamp values"
     test_data = [
         datetime.datetime(2056, 2, 29),
@@ -575,7 +575,7 @@ def test_1215(conn, cursor, empty_tab):
     assert fetched_df.equals(df)
 
 
-def test_1216(conn, cursor, empty_tab):
+def test_dataframe_1216(conn, cursor, empty_tab):
     "1216 - test insertion with large data volumes"
     num_rows = 10_000
     ids = list(range(1, num_rows + 1))
@@ -608,7 +608,7 @@ def test_1216(conn, cursor, empty_tab):
     assert fetched_df.equals(df)
 
 
-def test_1217(skip_unless_sparse_vectors_supported, conn, cursor):
+def test_dataframe_1217(skip_unless_sparse_vectors_supported, conn, cursor):
     "1217 - test ingestion of sparse vectors"
     arrays = [
         pyarrow.array([1, 2, 3], pyarrow.int64()),
@@ -665,7 +665,7 @@ def test_1217(skip_unless_sparse_vectors_supported, conn, cursor):
     assert fetched_df.equals(df)
 
 
-def test_1218(skip_unless_vectors_supported, conn, cursor):
+def test_dataframe_1218(skip_unless_vectors_supported, conn, cursor):
     "1218 - test ingestion of dense vectors"
     arrays = [
         pyarrow.array([1, 2, 3], pyarrow.int64()),
@@ -837,7 +837,7 @@ def test_1218(skip_unless_vectors_supported, conn, cursor):
         ([0, 2**63, 2**64 - 1], pyarrow.uint64()),
     ],
 )
-def test_1219(values, dtype, conn, cursor, empty_tab):
+def test_dataframe_1219(values, dtype, conn, cursor, empty_tab):
     "1219 - test ingestion with various integer data types"
     names = ["Id", "LongIntegerData"]
     arrays = [
@@ -883,7 +883,7 @@ def test_1219(values, dtype, conn, cursor, empty_tab):
         ),
     ],
 )
-def test_1220(values, dtype, conn, cursor, empty_tab):
+def test_dataframe_1220(values, dtype, conn, cursor, empty_tab):
     "1220 - test ingestion with alternative date types"
     names = ["Id", "DateOfBirth"]
     arrays = [
@@ -909,7 +909,9 @@ def test_1220(values, dtype, conn, cursor, empty_tab):
 
 
 @pytest.mark.parametrize("batch_size", [1, 5, 99, 199, 200])
-def test_1221(batch_size, conn, cursor, empty_tab, round_trip_checker):
+def test_dataframe_1221(
+    batch_size, conn, cursor, empty_tab, round_trip_checker
+):
     "1221 - test ingestion with various batch sizes"
     names = ["Id", "FirstName"]
     rows = [(i + 1, f"Name {i + 1}") for i in range(200)]
@@ -933,7 +935,9 @@ def test_1221(batch_size, conn, cursor, empty_tab, round_trip_checker):
 
 
 @pytest.mark.parametrize("batch_size", [1, 5, 99, 199, 200])
-def test_1222(batch_size, conn, cursor, empty_tab, round_trip_checker):
+def test_dataframe_1222(
+    batch_size, conn, cursor, empty_tab, round_trip_checker
+):
     "1222 - test ingestion of multi chunk data frames with various batch sizes"
     names = ["Id", "FirstName"]
     rows = [(i + 1, f"Name {i + 1}") for i in range(200)]
@@ -972,7 +976,7 @@ def test_1222(batch_size, conn, cursor, empty_tab, round_trip_checker):
     assert cursor.fetchall() == rows
 
 
-def test_1223(conn, cursor, empty_tab):
+def test_dataframe_1223(conn, cursor, empty_tab):
     "1223 - test ingestion with a column containing only null values"
     names = ["Id", "DateOfBirth"]
     values = [None] * 3
@@ -998,7 +1002,7 @@ def test_1223(conn, cursor, empty_tab):
     assert fetched_values == values
 
 
-def test_1224(conn, cursor, empty_tab):
+def test_dataframe_1224(conn, cursor, empty_tab):
     "1224 - test ingestion with data frame view"
     input_df = pandas.DataFrame({"Id": [1, 2, 3]}).convert_dtypes(
         dtype_backend="pyarrow"
@@ -1015,7 +1019,7 @@ def test_1224(conn, cursor, empty_tab):
     assert fetched_df.equals(pyarrow.table(df))
 
 
-def test_1225(test_env, conn, cursor, empty_tab):
+def test_dataframe_1225(test_env, conn, cursor, empty_tab):
     "1225 - test ingestion with string and binary views"
     short_str = "Short"
     short_raw = bytes.fromhex("1F3D527A9BC4")
@@ -1049,7 +1053,7 @@ def test_1225(test_env, conn, cursor, empty_tab):
     assert fetched_data == expected_data
 
 
-def test_1226(test_env, conn, cursor):
+def test_dataframe_1226(test_env, conn, cursor):
     "1226 - test ingestion with interval day to second type"
     interval_type = pyarrow.month_day_nano_interval()
     arrays = [

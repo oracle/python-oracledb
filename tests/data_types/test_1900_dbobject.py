@@ -55,14 +55,14 @@ def _test_data(
     assert array_value == expected_array_value
 
 
-def test_1900(cursor):
+def test_data_types_1900(cursor):
     "1900 - test binding a null value (IN)"
     var = cursor.var(oracledb.DB_TYPE_OBJECT, typename="UDT_OBJECT")
     result = cursor.callfunc("pkg_TestBindObject.GetStringRep", str, [var])
     assert result == "null"
 
 
-def test_1901(conn, cursor):
+def test_data_types_1901(conn, cursor):
     "1901 - test binding an object (IN)"
     type_obj = conn.gettype("UDT_OBJECT")
     obj = type_obj.newobject()
@@ -99,7 +99,7 @@ def test_1901(conn, cursor):
     assert result == expected_value
 
 
-def test_1902(conn):
+def test_data_types_1902(conn):
     "1902 - test copying an object"
     type_obj = conn.gettype("UDT_OBJECT")
     obj = type_obj()
@@ -114,14 +114,14 @@ def test_1902(conn):
     assert obj.TIMESTAMPVALUE == copied_obj.TIMESTAMPVALUE
 
 
-def test_1903(conn):
+def test_data_types_1903(conn):
     "1903 - test getting an empty collection as a list"
     type_obj = conn.gettype("UDT_ARRAY")
     obj = type_obj.newobject()
     assert obj.aslist() == []
 
 
-def test_1904(cursor, test_env):
+def test_data_types_1904(cursor, test_env):
     "1904 - test fetching objects"
     cursor.execute("""
         select IntCol, ObjectCol, ArrayCol
@@ -208,7 +208,7 @@ def test_1904(cursor, test_env):
     _test_data(cursor, test_env, 3, expected_value, None)
 
 
-def test_1905(conn):
+def test_data_types_1905(conn):
     "1905 - test getting object type"
     type_obj = conn.gettype("UDT_OBJECT")
     assert not type_obj.iscollection
@@ -273,7 +273,7 @@ def test_1905(conn):
     assert sub_object_array_type.attributes == []
 
 
-def test_1906(conn, cursor):
+def test_data_types_1906(conn, cursor):
     "1906 - test object type data"
     cursor.execute("""
         select ObjectCol
@@ -287,7 +287,7 @@ def test_1906(conn, cursor):
     assert obj.type.attributes[0].name == "NUMBERVALUE"
 
 
-def test_1907(conn, cursor, test_env):
+def test_data_types_1907(conn, cursor, test_env):
     "1907 - test inserting and then querying object with all data types"
     cursor.execute("delete from TestClobs")
     cursor.execute("delete from TestNClobs")
@@ -425,14 +425,14 @@ def test_1907(conn, cursor, test_env):
     conn.rollback()
 
 
-def test_1908(conn, test_env):
+def test_data_types_1908(conn, test_env):
     "1908 - test trying to find an object type that does not exist"
     pytest.raises(TypeError, conn.gettype, 2)
     with test_env.assert_raises_full_code("DPY-2035"):
         conn.gettype("A TYPE THAT DOES NOT EXIST")
 
 
-def test_1909(conn, test_env):
+def test_data_types_1909(conn, test_env):
     "1909 - test appending an object of the wrong type to a collection"
     collection_obj_type = conn.gettype("UDT_OBJECTARRAY")
     collection_obj = collection_obj_type.newobject()
@@ -442,7 +442,7 @@ def test_1909(conn, test_env):
         collection_obj.append(array_obj)
 
 
-def test_1910(conn):
+def test_data_types_1910(conn):
     "1910 - test that referencing a sub object affects the parent object"
     obj_type = conn.gettype("UDT_OBJECT")
     sub_obj_type = conn.gettype("UDT_SUBOBJECT")
@@ -454,7 +454,7 @@ def test_1910(conn):
     assert obj.SUBOBJECTVALUE.SUBSTRINGVALUE == "Substring"
 
 
-def test_1911(conn, test_env):
+def test_data_types_1911(conn, test_env):
     "1911 - test accessing sub object after parent object destroyed"
     obj_type = conn.gettype("UDT_OBJECT")
     sub_obj_type = conn.gettype("UDT_SUBOBJECT")
@@ -473,7 +473,7 @@ def test_1911(conn, test_env):
     assert test_env.get_db_object_as_plain_object(sub_obj_array) == expected
 
 
-def test_1912(conn, test_env):
+def test_data_types_1912(conn, test_env):
     "1912 - test assigning an object of wrong type to an object attribute"
     obj_type = conn.gettype("UDT_OBJECT")
     obj = obj_type.newobject()
@@ -483,7 +483,7 @@ def test_1912(conn, test_env):
         setattr(obj, "SUBOBJECTVALUE", wrong_obj)
 
 
-def test_1913(conn, cursor, test_env):
+def test_data_types_1913(conn, cursor, test_env):
     "1913 - test setting value of object variable to wrong object type"
     wrong_obj_type = conn.gettype("UDT_OBJECTARRAY")
     wrong_obj = wrong_obj_type.newobject()
@@ -492,7 +492,7 @@ def test_1913(conn, cursor, test_env):
         var.setvalue(0, wrong_obj)
 
 
-def test_1914(conn, test_env):
+def test_data_types_1914(conn, test_env):
     "1914 - test object string format"
     obj_type = conn.gettype("UDT_OBJECT")
     user = test_env.main_user.upper()
@@ -500,7 +500,7 @@ def test_1914(conn, test_env):
     assert str(obj_type.attributes[0]) == "<oracledb.DbObjectAttr NUMBERVALUE>"
 
 
-def test_1915(conn, test_env):
+def test_data_types_1915(conn, test_env):
     "1915 - test Trim number of elements from collection"
     sub_obj_type = conn.gettype("UDT_SUBOBJECT")
     array_type = conn.gettype("UDT_OBJECTARRAY")
@@ -522,7 +522,7 @@ def test_1915(conn, test_env):
     assert test_env.get_db_object_as_plain_object(array_obj) == []
 
 
-def test_1916(conn, test_env):
+def test_data_types_1916(conn, test_env):
     "1916 - test the metadata of a SQL type"
     user = test_env.main_user
     typ = conn.gettype("UDT_OBJECTARRAY")
@@ -536,7 +536,7 @@ def test_1916(conn, test_env):
     assert typ.iscollection
 
 
-def test_1917(conn, test_env):
+def test_data_types_1917(conn, test_env):
     "1917 - test the metadata of a PL/SQL type"
     user = test_env.main_user
     typ = conn.gettype("PKG_TESTSTRINGARRAYS.UDT_STRINGLIST")
@@ -548,20 +548,20 @@ def test_1917(conn, test_env):
     assert typ.iscollection
 
 
-def test_1918(cursor, test_env):
+def test_data_types_1918(cursor, test_env):
     "1918 - test creating an object variable without a type name"
     with test_env.assert_raises_full_code("DPY-2037"):
         cursor.var(oracledb.DB_TYPE_OBJECT)
 
 
-def test_1919(conn):
+def test_data_types_1919(conn):
     "1919 - test getting an empty collection as a dictionary"
     type_obj = conn.gettype("UDT_ARRAY")
     obj = type_obj.newobject()
     assert obj.asdict() == {}
 
 
-def test_1920(conn):
+def test_data_types_1920(conn):
     "1920 - test if an element exists in a collection"
     array_type = conn.gettype("UDT_ARRAY")
     array_obj = array_type.newobject()
@@ -571,7 +571,7 @@ def test_1920(conn):
     assert not array_obj.exists(1)
 
 
-def test_1921(conn):
+def test_data_types_1921(conn):
     "1921 - test first and last methods"
     array_type = conn.gettype("UDT_ARRAY")
     array_obj = array_type.newobject()
@@ -583,7 +583,7 @@ def test_1921(conn):
     assert array_obj.last() == 6
 
 
-def test_1922(conn):
+def test_data_types_1922(conn):
     "1922 - test getting the size of a collections"
     array_type = conn.gettype("UDT_ARRAY")
     array_obj = array_type.newobject()
@@ -593,7 +593,7 @@ def test_1922(conn):
     assert array_obj.size() == 5
 
 
-def test_1923(conn):
+def test_data_types_1923(conn):
     "1923 - test prev and next methods"
     array_type = conn.gettype("UDT_ARRAY")
     array_obj = array_type.newobject()
@@ -607,7 +607,7 @@ def test_1923(conn):
     assert array_obj.next(1) is None
 
 
-def test_1924(conn, test_env):
+def test_data_types_1924(conn, test_env):
     "1924 - test setting and getting elements from a collection"
     array_type = conn.gettype("UDT_ARRAY")
     array_obj = array_type.newobject()
@@ -623,7 +623,7 @@ def test_1924(conn, test_env):
         array_obj.setelement(3, 4)
 
 
-def test_1925(conn, test_env):
+def test_data_types_1925(conn, test_env):
     "1925 - test appending too many elements to a collection"
     array_type = conn.gettype("UDT_ARRAY")
     numbers = [i for i in range(11)]
@@ -641,7 +641,7 @@ def test_1925(conn, test_env):
         array_obj.append(numbers[10])
 
 
-def test_1926(conn, cursor):
+def test_data_types_1926(conn, cursor):
     "1926 - test appending elements to an unconstrained table"
     data = [1, 3, 6, 10, 15, 21]
     typ = conn.gettype("UDT_UNCONSTRAINEDTABLE")
@@ -651,7 +651,7 @@ def test_1926(conn, cursor):
     assert output_obj.aslist() == data
 
 
-def test_1927(conn, cursor):
+def test_data_types_1927(conn, cursor):
     "1927 - test collection with thousands of entries"
     typ = conn.gettype("PKG_TESTNUMBERARRAYS.UDT_NUMBERLIST")
     obj = typ.newobject()
@@ -666,19 +666,19 @@ def test_1927(conn, cursor):
     assert result == 7146445847327
 
 
-def test_1928(skip_unless_thick_mode, conn):
+def test_data_types_1928(skip_unless_thick_mode, conn):
     "1928 - test object with unknown type in one of its attributes"
     typ = conn.gettype("UDT_OBJECTWITHXMLTYPE")
     assert typ.attributes[1].type == oracledb.DB_TYPE_UNKNOWN
 
 
-def test_1929(skip_unless_thick_mode, conn):
+def test_data_types_1929(skip_unless_thick_mode, conn):
     "1929 - test object with unknown type as the element type"
     typ = conn.gettype("UDT_XMLTYPEARRAY")
     assert typ.element_type == oracledb.DB_TYPE_UNKNOWN
 
 
-def test_1930(conn):
+def test_data_types_1930(conn):
     "1930 - test DB Object repr()"
     typ = conn.gettype("UDT_ARRAY")
     obj = typ.newobject()
@@ -694,7 +694,7 @@ def test_1930(conn):
     assert re.fullmatch(expected_str, repr(obj)) is not None
 
 
-def test_1931(conn, test_env):
+def test_data_types_1931(conn, test_env):
     "1931 - test creating an object with invalid data type"
     type_obj = conn.gettype("UDT_ARRAY")
     with test_env.assert_raises_full_code("DPY-3013"):
@@ -703,7 +703,7 @@ def test_1931(conn, test_env):
         type_obj([71, "not a number"])
 
 
-def test_1932(conn):
+def test_data_types_1932(conn):
     "1932 - test getting an invalid attribute name from an object"
     typ = conn.gettype("UDT_OBJECT")
     obj = typ.newobject()
@@ -711,7 +711,7 @@ def test_1932(conn):
         obj.MISSING
 
 
-def test_1933(conn, test_env):
+def test_data_types_1933(conn, test_env):
     "1933 - test validating a string attribute"
     typ = conn.gettype("UDT_OBJECT")
     obj = typ.newobject()
@@ -729,7 +729,7 @@ def test_1933(conn, test_env):
             setattr(obj, attr_name, value)
 
 
-def test_1934(conn, test_env):
+def test_data_types_1934(conn, test_env):
     "1934 - test validating a string element value"
     typ = conn.gettype("PKG_TESTSTRINGARRAYS.UDT_STRINGLIST")
     obj = typ.newobject()
@@ -741,14 +741,14 @@ def test_1934(conn, test_env):
         obj.setelement(2, "C" * 101)
 
 
-def test_1935(conn):
+def test_data_types_1935(conn):
     "1935 - test validating a string attribute with null value"
     typ = conn.gettype("UDT_OBJECT")
     obj = typ.newobject()
     obj.STRINGVALUE = None
 
 
-def test_1936(conn, test_env):
+def test_data_types_1936(conn, test_env):
     "1936 - test initializing (with a sequence) a non collection obj"
     obj_type = conn.gettype("UDT_OBJECT")
     with test_env.assert_raises_full_code("DPY-2036"):
@@ -757,7 +757,7 @@ def test_1936(conn, test_env):
         obj_type([3, 4])
 
 
-def test_1937(conn):
+def test_data_types_1937(conn):
     "1937 - test %ROWTYPE with all types"
     sub_obj_type = conn.gettype("UDT_SUBOBJECT")
     sub_arr_type = conn.gettype("UDT_OBJECTARRAY")
@@ -820,7 +820,7 @@ def test_1937(conn):
     assert actual_metadata == expected_metadata
 
 
-def test_1938(cursor):
+def test_data_types_1938(cursor):
     "1938 - test collection iteration"
     cursor.execute("select udt_array(5, 10, 15) from dual")
     (obj,) = cursor.fetchone()
@@ -828,7 +828,7 @@ def test_1938(cursor):
     assert result == [5, 10, 15]
 
 
-def test_1939(skip_unless_thin_mode, cursor):
+def test_data_types_1939(skip_unless_thin_mode, cursor):
     "1939 - test fetching an object containing an XmlType instance"
     num_val = 2339
     xml_val = "<item>test_1939</item>"
@@ -843,7 +843,7 @@ def test_1939(skip_unless_thin_mode, cursor):
     assert obj.STRINGVALUE == str_val
 
 
-def test_1940(conn, cursor):
+def test_data_types_1940(conn, cursor):
     "1940 - test DbObject instances are retained across getvalue() calls"
     typ = conn.gettype("UDT_OBJECT")
     obj = typ.newobject()
@@ -852,7 +852,7 @@ def test_1940(conn, cursor):
     assert var.getvalue() is obj
 
 
-def test_1941(test_env):
+def test_data_types_1941(test_env):
     "1941 - test insufficient privileges for gettype()"
     main_user = test_env.main_user.upper()
     with test_env.get_connection(
@@ -862,7 +862,7 @@ def test_1941(test_env):
             conn.gettype(f"{main_user}.UDT_OBJECTARRAY")
 
 
-def test_1942(conn, cursor, test_env):
+def test_data_types_1942(conn, cursor, test_env):
     "1942 - test nested records"
     test_env.skip_unless_server_version(21)
     options = [(None, None), (1, None), (None, 2), (1, 2)]
@@ -880,21 +880,21 @@ def test_1942(conn, cursor, test_env):
         assert obj.INNER2.ATTR2 == value2
 
 
-def test_1943(conn, cursor):
+def test_data_types_1943(conn, cursor):
     "1943 - test varray of numbers"
     obj_type = conn.gettype("UDT_VARRAYOFNUMBER")
     obj = cursor.callfunc("pkg_NestedTable.GetVarrayOfNumber", obj_type)
     assert obj.aslist() == [10, 20, 30]
 
 
-def test_1944(conn, cursor):
+def test_data_types_1944(conn, cursor):
     "1944 - test table of numbers"
     obj_type = conn.gettype("UDT_TABLEOFNUMBER")
     obj = cursor.callfunc("pkg_NestedTable.GetTableOfNumber", obj_type)
     assert obj.aslist() == [15, 25, 35, 45]
 
 
-def test_1945(conn, cursor, test_env):
+def test_data_types_1945(conn, cursor, test_env):
     "1945 - test table of varray of numbers"
     obj_type = conn.gettype("UDT_TABLEOFVARRAYOFNUMBER")
     obj = cursor.callfunc("pkg_NestedTable.GetTableOfVarrayOfNumber", obj_type)
@@ -902,7 +902,7 @@ def test_1945(conn, cursor, test_env):
     assert plain_obj == [[10, 20], [30, 40]]
 
 
-def test_1946(conn, cursor, test_env):
+def test_data_types_1946(conn, cursor, test_env):
     "1946 - test nested table of nested tables"
     num_tab_type = conn.gettype("UDT_TABLEOFNUMBER")
     tab_num_tab_type = conn.gettype("UDT_TABLEOFTABLEOFNUMBER")
@@ -928,7 +928,7 @@ def test_1946(conn, cursor, test_env):
     assert plain_obj == expected_data
 
 
-def test_1947(conn, cursor, test_env):
+def test_data_types_1947(conn, cursor, test_env):
     "1947 - test nested table of varrays"
     num_tab_type = conn.gettype("UDT_TABLEOFNUMBER")
     arr_num_tab_type = conn.gettype("UDT_VARRAYOFTABLEOFNUMBER")
@@ -954,7 +954,7 @@ def test_1947(conn, cursor, test_env):
     assert plain_obj == expected_data
 
 
-def test_1948(conn, test_env):
+def test_data_types_1948(conn, test_env):
     "1948 - test using collection methods on an object that is not one"
     obj_type = conn.gettype("UDT_OBJECT")
     obj = obj_type.newobject()
@@ -988,7 +988,7 @@ def test_1948(conn, test_env):
         obj.trim(0)
 
 
-def test_1949(skip_unless_thin_mode, cursor):
+def test_data_types_1949(skip_unless_thin_mode, cursor):
     "1949 - test fetching an object containing a null XmlType instance"
     num_val = 2349
     str_val = "A string for test 2349"

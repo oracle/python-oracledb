@@ -38,7 +38,7 @@ def module_checks(skip_unless_binary_vectors_supported):
     pass
 
 
-def test_2900(conn, cursor):
+def test_data_types_2900(conn, cursor):
     "2900 - test binding and fetching a BINARY format vector."
     value = array.array("B", [4, 8, 12, 4, 98, 127, 25, 78])
     cursor.execute("delete from TestBinaryVectors")
@@ -57,7 +57,7 @@ def test_2900(conn, cursor):
     assert fetched_value == value
 
 
-def test_2901(cursor):
+def test_data_types_2901(cursor):
     "2901 - verify fetch info contents"
     attr_names = [
         "name",
@@ -80,7 +80,7 @@ def test_2901(cursor):
     assert cursor.description[1].vector_format is oracledb.VectorFormat.BINARY
 
 
-def test_2902(conn, cursor):
+def test_data_types_2902(conn, cursor):
     "2902 - test comparing BINARY vectors"
     value = array.array("B", [20, 9, 15, 34, 108, 125, 35, 88])
     cursor.execute("delete from TestBinaryVectors")

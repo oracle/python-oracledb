@@ -71,12 +71,12 @@ def _perform_test(cursor, typ):
         assert fetched_value == expected_value
 
 
-def test_1600(cursor):
+def test_data_types_1600(cursor):
     "1600 - test binding and fetching long data"
     _perform_test(cursor, oracledb.DB_TYPE_LONG)
 
 
-def test_1601(conn, cursor):
+def test_data_types_1601(conn, cursor):
     "1601 - test binding long data with executemany()"
     data = []
     cursor.execute("truncate table TestLongs")
@@ -90,12 +90,12 @@ def test_1601(conn, cursor):
     assert cursor.fetchall() == data
 
 
-def test_1602(cursor):
+def test_data_types_1602(cursor):
     "1602 - test binding and fetching long raw data"
     _perform_test(cursor, oracledb.DB_TYPE_LONG_RAW)
 
 
-def test_1603(cursor):
+def test_data_types_1603(cursor):
     "1603 - test cursor description is accurate for longs"
     cursor.execute("select * from TestLongs")
     expected_value = [
@@ -105,7 +105,7 @@ def test_1603(cursor):
     assert cursor.description == expected_value
 
 
-def test_1604(cursor):
+def test_data_types_1604(cursor):
     "1604 - test cursor description is accurate for long raws"
     cursor.execute("select * from TestLongRaws")
     expected_value = [
@@ -123,7 +123,7 @@ def test_1604(cursor):
     assert cursor.description == expected_value
 
 
-def test_1605(skip_unless_thick_mode, cursor, test_env):
+def test_data_types_1605(skip_unless_thick_mode, cursor, test_env):
     "1605 - test array size too large generates an exception"
     cursor.arraysize = 268435456
     with test_env.assert_raises_full_code("DPI-1015"):

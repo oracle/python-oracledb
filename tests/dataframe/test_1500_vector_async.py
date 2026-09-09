@@ -39,7 +39,7 @@ def module_checks(
     pass
 
 
-async def test_1500(async_conn, test_env):
+async def test_dataframe_1500(async_conn, test_env):
     "1500 - fetch float32 vector"
 
     # float32 is a special case while comparing dataframe values
@@ -64,7 +64,7 @@ async def test_1500(async_conn, test_env):
     assert data == test_env.get_data_from_df(fetched_df)
 
 
-async def test_1501(async_conn, test_env):
+async def test_dataframe_1501(async_conn, test_env):
     "1501 - fetch float64 vector"
     data = [
         ([34.6, 77.8],),
@@ -82,7 +82,7 @@ async def test_1501(async_conn, test_env):
     assert data == test_env.get_data_from_df(fetched_df)
 
 
-async def test_1502(async_conn, test_env):
+async def test_dataframe_1502(async_conn, test_env):
     "1502 - fetch int8 vector"
     data = [
         ([34, -77],),
@@ -100,7 +100,7 @@ async def test_1502(async_conn, test_env):
     assert data == test_env.get_data_from_df(fetched_df)
 
 
-async def test_1503(
+async def test_dataframe_1503(
     skip_unless_binary_vectors_supported, async_conn, test_env
 ):
     "1503 - fetch binary vector"
@@ -120,7 +120,7 @@ async def test_1503(
     assert data == test_env.get_data_from_df(fetched_df)
 
 
-async def test_1504(async_conn, test_env):
+async def test_dataframe_1504(async_conn, test_env):
     "1504 - fetch duplicate float64 vectors"
     data = [
         ([34.6, 77.8],),
@@ -165,7 +165,7 @@ async def test_1504(async_conn, test_env):
     assert data == test_env.get_data_from_df(fetched_df)
 
 
-async def test_1505(
+async def test_dataframe_1505(
     skip_unless_sparse_vectors_supported, async_conn, test_env
 ):
     "1505 - fetch float32 sparse vectors"
@@ -194,7 +194,7 @@ async def test_1505(
     assert data == test_env.get_data_from_df(fetched_df)
 
 
-async def test_1506(
+async def test_dataframe_1506(
     skip_unless_sparse_vectors_supported, async_conn, test_env
 ):
     "1506 - fetch float64 sparse vectors"
@@ -226,7 +226,7 @@ async def test_1506(
     assert data == test_env.get_data_from_df(fetched_df)
 
 
-async def test_1507(async_conn, test_env):
+async def test_dataframe_1507(async_conn, test_env):
     "1507 - DPY-3031 - Unsupported flexible vector formats"
     with test_env.assert_raises_full_code("DPY-3031"):
         await async_conn.fetch_df_all("""
@@ -236,7 +236,7 @@ async def test_1507(async_conn, test_env):
             """)
 
 
-async def test_1508(async_conn, test_env):
+async def test_dataframe_1508(async_conn, test_env):
     "1508 - test vector operations with different dimensions"
     data = [([1, 0, 3],), ([0, 5, -12.25, 0],), ([5.5, -6.25, 7, 8, 9],)]
     ora_df = await async_conn.fetch_df_all("""
@@ -250,7 +250,7 @@ async def test_1508(async_conn, test_env):
     assert data == test_env.get_data_from_df(fetched_df)
 
 
-async def test_1509(async_conn, test_env):
+async def test_dataframe_1509(async_conn, test_env):
     "1509 - test vector operations with large arrays"
     large_array = list(range(1, 1001))
     data = [(large_array,), (large_array,)]
@@ -264,7 +264,7 @@ async def test_1509(async_conn, test_env):
     assert data == test_env.get_data_from_df(fetched_df)
 
 
-async def test_1510(
+async def test_dataframe_1510(
     skip_unless_sparse_vectors_supported, async_conn, test_env
 ):
     "1510 - test sparse vector operations with different dimensions"
@@ -276,7 +276,7 @@ async def test_1510(
             """)
 
 
-async def test_1511(async_conn, test_env):
+async def test_dataframe_1511(async_conn, test_env):
     "1511 - test mixed vector types in a single dataframe"
     data = [
         ([1.5, 2.5, 3.5], [1, 2, 3]),
@@ -295,7 +295,7 @@ async def test_1511(async_conn, test_env):
     assert data == test_env.get_data_from_df(fetched_df)
 
 
-async def test_1512(async_conn, test_env):
+async def test_dataframe_1512(async_conn, test_env):
     "1512 - test vectors with very large dimensions"
     large_dim = 800
     large_vector = [2.25] * large_dim
@@ -310,7 +310,7 @@ async def test_1512(async_conn, test_env):
     assert data == test_env.get_data_from_df(fetched_df)
 
 
-async def test_1513(
+async def test_dataframe_1513(
     skip_unless_binary_vectors_supported, async_conn, test_env
 ):
     "1513 - test binary vector edge case - max value"

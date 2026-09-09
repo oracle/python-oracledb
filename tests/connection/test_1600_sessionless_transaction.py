@@ -29,8 +29,8 @@ server-side procedures with DBMS_TRANSACTION package.
 
 import pytest
 
-TRANSACTION_ID_CLIENT = b"test_1600_client"
-TRANSACTION_ID_SERVER = b"test_1600_server"
+TRANSACTION_ID_CLIENT = b"test_connection_1600_client"
+TRANSACTION_ID_SERVER = b"test_connection_1600_server"
 
 
 @pytest.fixture(autouse=True)
@@ -53,7 +53,7 @@ def _get_server_start_stmt(mode):
     END;"""
 
 
-def test_1600(cursor, test_env):
+def test_connection_1600(cursor, test_env):
     "1600 - test sessionless transaction using client API"
     cursor.execute("truncate table TestTempTable")
 
@@ -127,7 +127,7 @@ def test_1600(cursor, test_env):
         assert len(cursor.fetchall()) == 3
 
 
-def test_1601(conn, test_env):
+def test_connection_1601(conn, test_env):
     "1601 - test sessionless transaction using server-side procedures"
     base_cursor = conn.cursor()
     base_cursor.execute("truncate table TestTempTable")
@@ -177,7 +177,7 @@ def test_1601(conn, test_env):
     assert len(base_cursor.fetchall()) == 2
 
 
-def test_1602(cursor, test_env):
+def test_connection_1602(cursor, test_env):
     "1602 - test error conditions with server API sessionless transactions"
     cursor.execute("truncate table TestTempTable")
 
@@ -228,7 +228,7 @@ def test_1602(cursor, test_env):
                 )
 
 
-def test_1603(cursor, test_env):
+def test_connection_1603(cursor, test_env):
     "1603 - test rollback of sessionless transaction"
     cursor.execute("truncate table TestTempTable")
 
@@ -258,7 +258,7 @@ def test_1603(cursor, test_env):
         assert cursor.fetchall() == []
 
 
-def test_1604(cursor, test_env):
+def test_connection_1604(cursor, test_env):
     "1604 - test multiple operations within same sessionless transaction"
     cursor.execute("truncate table TestTempTable")
 
@@ -304,7 +304,7 @@ def test_1604(cursor, test_env):
         assert cursor.fetchall() == [(1, "updated")]
 
 
-def test_1605(cursor, test_env):
+def test_connection_1605(cursor, test_env):
     "1605 - test concurrent sessionless transactions"
     cursor.execute("truncate table TestTempTable")
 
@@ -357,7 +357,7 @@ def test_1605(cursor, test_env):
         assert cursor.fetchall() == expected_data
 
 
-def test_1606(conn, cursor, test_env):
+def test_connection_1606(conn, cursor, test_env):
     "1606 - test sessionless transaction with large data"
     cursor.execute("delete from TestAllTypes")
     conn.commit()
@@ -386,7 +386,7 @@ def test_1606(conn, cursor, test_env):
         assert result == large_string
 
 
-def test_1607(conn, test_env):
+def test_connection_1607(conn, test_env):
     "1607 - test sessionless transaction with multiple suspends/resumes"
     base_cursor = conn.cursor()
     base_cursor.execute("truncate table TestTempTable")
@@ -444,7 +444,7 @@ def test_1607(conn, test_env):
     assert base_cursor.fetchall() == data
 
 
-def test_1608(conn, cursor, test_env):
+def test_connection_1608(conn, cursor, test_env):
     "1608 - Test sessionless transaction with invalid resume attempts"
     cursor.execute("truncate table TestTempTable")
 
@@ -467,7 +467,7 @@ def test_1608(conn, cursor, test_env):
         other_conn.resume_sessionless_transaction(transaction_id)
 
 
-def test_1609(conn, cursor):
+def test_connection_1609(conn, cursor):
     "1609 - test getting transaction ID of active sessionless transaction"
     transaction_id = conn.begin_sessionless_transaction()
     cursor.execute("select dbms_transaction.get_transaction_id()")
@@ -476,7 +476,7 @@ def test_1609(conn, cursor):
     conn.commit()
 
 
-def test_1610(conn, test_env):
+def test_connection_1610(conn, test_env):
     "1610 - test auto-generated transaction ID uniqueness"
 
     # start first transaction
@@ -496,7 +496,7 @@ def test_1610(conn, test_env):
     conn.rollback()
 
 
-def test_1611(cursor, test_env):
+def test_connection_1611(cursor, test_env):
     "1611 - test sessionless transactions with connection pool"
     cursor.execute("truncate table TestTempTable")
 
@@ -543,7 +543,7 @@ def test_1611(cursor, test_env):
     pool.close()
 
 
-def test_1612(conn, cursor, test_env):
+def test_connection_1612(conn, cursor, test_env):
     "1612 - Test sessionless transaction with special transaction ids"
     cursor.execute("truncate table TestTempTable")
 
@@ -593,16 +593,16 @@ def test_1612(conn, cursor, test_env):
     assert cursor.fetchall() == data
 
 
-def test_1613(conn, test_env):
+def test_connection_1613(conn, test_env):
     "1613 - duplicate transaction id across different connections"
-    transaction_id = "test_1613_transaction_id"
+    transaction_id = "test_connection_1613_transaction_id"
     conn.begin_sessionless_transaction(transaction_id)
     with test_env.get_connection() as conn:
         with test_env.assert_raises_full_code("ORA-26217"):
             conn.begin_sessionless_transaction(transaction_id)
 
 
-def test_1614(conn, test_env):
+def test_connection_1614(conn, test_env):
     "1614 - zero timeout behaviour in resume"
     transaction_id = conn.begin_sessionless_transaction()
     with test_env.get_connection() as other_conn:
@@ -618,11 +618,11 @@ def test_1614(conn, test_env):
         conn.rollback()
 
 
-def test_1615(conn, cursor, test_env):
+def test_connection_1615(conn, cursor, test_env):
     "1615 - transaction behaviour with DDL operations"
 
     # create temp table
-    temp_table_name = "temp_test_1615"
+    temp_table_name = "temp_test_connection_1615"
     cursor.execute(f"drop table if exists {temp_table_name}")
     cursor.execute(f"""
         create table {temp_table_name} (
@@ -661,7 +661,7 @@ def test_1615(conn, cursor, test_env):
     cursor.execute(f"drop table {temp_table_name} purge")
 
 
-def test_1616(test_env):
+def test_connection_1616(test_env):
     "1616 - test suspend_on_success with batch_size < total rows inserted"
     with test_env.get_connection() as conn:
         cursor = conn.cursor()

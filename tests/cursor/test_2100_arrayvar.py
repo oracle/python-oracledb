@@ -30,7 +30,7 @@ import oracledb
 import pytest
 
 
-def test_2100(cursor):
+def test_cursor_2100(cursor):
     "2100 - checking the attributes of an array variable"
     var = cursor.arrayvar(oracledb.DB_TYPE_NUMBER, 1000)
     assert var.size == 0
@@ -44,7 +44,7 @@ def test_2100(cursor):
     assert var.actual_elements == 2
 
 
-def test_2101(cursor):
+def test_cursor_2101(cursor):
     "2101 - setting values in an array variable"
     var = cursor.arrayvar(oracledb.DB_TYPE_VARCHAR, 10, 2000)
     assert var.values == []
@@ -55,7 +55,7 @@ def test_2101(cursor):
     assert var.actual_elements == len(data)
 
 
-def test_2102(cursor):
+def test_cursor_2102(cursor):
     "2102 - checking the default size of VARCHAR and RAW types"
     types = [oracledb.DB_TYPE_VARCHAR, oracledb.DB_TYPE_RAW]
     for typ in types:
@@ -63,7 +63,7 @@ def test_2102(cursor):
         assert var.size == 4000
 
 
-def test_2103(cursor):
+def test_cursor_2103(cursor):
     "2103 - creating array variables with invalid parameters"
     pytest.raises(
         TypeError, cursor.arrayvar, oracledb.DB_TYPE_NUMBER, "10", 40
@@ -74,20 +74,20 @@ def test_2103(cursor):
     pytest.raises(TypeError, cursor.arrayvar, oracledb.DB_TYPE_NUMBER, 10, [])
 
 
-def test_2104(cursor, test_env):
+def test_cursor_2104(cursor, test_env):
     "2104 - declaring an array variable with an incorrect Python type"
     with test_env.assert_raises_full_code("DPY-3013"):
         cursor.arrayvar(oracledb.DB_TYPE_NUMBER, [3, "ab"])
 
 
-def test_2105(cursor, test_env):
+def test_cursor_2105(cursor, test_env):
     "2105 - adding more elements than declared to an array variable"
     var = cursor.arrayvar(oracledb.DB_TYPE_NUMBER, 4)
     with test_env.assert_raises_full_code("DPY-2016"):
         var.setvalue(0, [i for i in range(5)])
 
 
-def test_2106(cursor, test_env):
+def test_cursor_2106(cursor, test_env):
     "2106 - creating an invalid array of arrays"
     var = cursor.arrayvar(oracledb.DB_TYPE_NUMBER, 4)
     with test_env.assert_raises_full_code("DPY-3005"):

@@ -66,7 +66,7 @@ def _test_type_change(
         conn.outputtypehandler = orig_type_handler
 
 
-def test_2500(skip_unless_thin_mode, conn, test_env):
+def test_cursor_2500(skip_unless_thin_mode, conn, test_env):
     "2500 - test data type changing from VARCHAR to CLOB"
     _test_type_change(
         conn,
@@ -78,7 +78,7 @@ def test_2500(skip_unless_thin_mode, conn, test_env):
     )
 
 
-def test_2501(skip_unless_thin_mode, conn, test_env):
+def test_cursor_2501(skip_unless_thin_mode, conn, test_env):
     "2501 - test data type changing from CHAR to CLOB"
     _test_type_change(
         conn,
@@ -90,7 +90,7 @@ def test_2501(skip_unless_thin_mode, conn, test_env):
     )
 
 
-def test_2502(skip_unless_thin_mode, conn, cursor, test_env):
+def test_cursor_2502(skip_unless_thin_mode, conn, cursor, test_env):
     "2502 - test data type changing from LONG to CLOB"
     cursor.execute("truncate table TestLongs")
     cursor.execute("insert into TestLongs values (1, 'string_4602')")
@@ -105,7 +105,7 @@ def test_2502(skip_unless_thin_mode, conn, cursor, test_env):
     )
 
 
-def test_2503(skip_unless_thin_mode, conn, test_env):
+def test_cursor_2503(skip_unless_thin_mode, conn, test_env):
     "2503 - test data type changing from NVARCHAR to CLOB"
     _test_type_change(
         conn,
@@ -117,7 +117,7 @@ def test_2503(skip_unless_thin_mode, conn, test_env):
     )
 
 
-def test_2504(skip_unless_thin_mode, conn, test_env):
+def test_cursor_2504(skip_unless_thin_mode, conn, test_env):
     "2504 - test data type changing from NCHAR to CLOB"
     _test_type_change(
         conn,
@@ -129,7 +129,7 @@ def test_2504(skip_unless_thin_mode, conn, test_env):
     )
 
 
-def test_2505(skip_unless_thin_mode, conn, test_env):
+def test_cursor_2505(skip_unless_thin_mode, conn, test_env):
     "2505 - test data type changing from RAW to BLOB"
     _test_type_change(
         conn,
@@ -141,7 +141,7 @@ def test_2505(skip_unless_thin_mode, conn, test_env):
     )
 
 
-def test_2506(skip_unless_thin_mode, conn, cursor, test_env):
+def test_cursor_2506(skip_unless_thin_mode, conn, cursor, test_env):
     "2506 - test data type changing from LONGRAW to BLOB"
     cursor.execute("truncate table TestLongRaws")
     data = [1, b"string_4606"]
@@ -157,7 +157,7 @@ def test_2506(skip_unless_thin_mode, conn, cursor, test_env):
     )
 
 
-def test_2507(skip_unless_thin_mode, conn, test_env):
+def test_cursor_2507(skip_unless_thin_mode, conn, test_env):
     "2507 - test data type changing from VARCHAR to NCLOB"
     _test_type_change(
         conn,
@@ -169,7 +169,7 @@ def test_2507(skip_unless_thin_mode, conn, test_env):
     )
 
 
-def test_2508(skip_unless_thin_mode, conn, test_env):
+def test_cursor_2508(skip_unless_thin_mode, conn, test_env):
     "2508 - test data type changing from CHAR to NCLOB"
     _test_type_change(
         conn,
@@ -181,7 +181,7 @@ def test_2508(skip_unless_thin_mode, conn, test_env):
     )
 
 
-def test_2509(skip_unless_thin_mode, conn, cursor, test_env):
+def test_cursor_2509(skip_unless_thin_mode, conn, cursor, test_env):
     "2509 - test data type changing from LONG to NCLOB"
     cursor.execute("truncate table TestLongs")
     cursor.execute("insert into TestLongs values (1, 'string_4609')")
@@ -196,7 +196,7 @@ def test_2509(skip_unless_thin_mode, conn, cursor, test_env):
     )
 
 
-def test_2510(skip_unless_thin_mode, conn, test_env):
+def test_cursor_2510(skip_unless_thin_mode, conn, test_env):
     "2510 - test data type changing from NVARCHAR to NCLOB"
     _test_type_change(
         conn,
@@ -208,7 +208,7 @@ def test_2510(skip_unless_thin_mode, conn, test_env):
     )
 
 
-def test_2511(skip_unless_thin_mode, conn, test_env):
+def test_cursor_2511(skip_unless_thin_mode, conn, test_env):
     "2511 - test data type changing from NCHAR to NCLOB"
     _test_type_change(
         conn,
@@ -220,7 +220,7 @@ def test_2511(skip_unless_thin_mode, conn, test_env):
     )
 
 
-def test_2512(conn, test_env):
+def test_cursor_2512(conn, test_env):
     "2512 - test data type changing from VARCHAR to NUMBER"
     _test_type_change(
         conn,
@@ -232,7 +232,7 @@ def test_2512(conn, test_env):
     )
 
 
-def test_2513(conn, test_env):
+def test_cursor_2513(conn, test_env):
     "2513 - test data type changing from NUMBER to VARCHAR"
     _test_type_change(
         conn,
@@ -244,7 +244,7 @@ def test_2513(conn, test_env):
     )
 
 
-def test_2514(conn, test_env):
+def test_cursor_2514(conn, test_env):
     "2514 - test data type changing from STRING to DATE"
     _test_type_change(
         conn,
@@ -256,7 +256,7 @@ def test_2514(conn, test_env):
     )
 
 
-def test_2515(conn, test_env):
+def test_cursor_2515(conn, test_env):
     "2515 - test data type changing from DATE to STRING"
     _test_type_change(
         conn,
@@ -268,7 +268,7 @@ def test_2515(conn, test_env):
     )
 
 
-def test_2516(conn, test_env):
+def test_cursor_2516(conn, test_env):
     "2516 - test data type changing from NUMBER to DATE"
     _test_type_change(
         conn,
@@ -280,7 +280,7 @@ def test_2516(conn, test_env):
     )
 
 
-def test_2517(skip_unless_thin_mode, conn, test_env):
+def test_cursor_2517(skip_unless_thin_mode, conn, test_env):
     "2517 - test data type changing from CLOB to VARCHAR"
 
     def type_handler(cursor, metadata):
@@ -302,7 +302,7 @@ def test_2517(skip_unless_thin_mode, conn, test_env):
     )
 
 
-def test_2518(skip_unless_thin_mode, conn, test_env):
+def test_cursor_2518(skip_unless_thin_mode, conn, test_env):
     "2518 - test data type changing from NCLOB to NVARCHAR"
 
     def type_handler(cursor, metadata):
@@ -324,7 +324,7 @@ def test_2518(skip_unless_thin_mode, conn, test_env):
     )
 
 
-def test_2519(skip_unless_thin_mode, conn, test_env):
+def test_cursor_2519(skip_unless_thin_mode, conn, test_env):
     "2519 - test data type changing from CLOB to NVARCHAR"
 
     def type_handler(cursor, metadata):
@@ -346,7 +346,7 @@ def test_2519(skip_unless_thin_mode, conn, test_env):
     )
 
 
-def test_2520(skip_unless_thin_mode, conn, test_env):
+def test_cursor_2520(skip_unless_thin_mode, conn, test_env):
     "2520 - test data type changing from BLOB to RAW"
 
     def type_handler(cursor, metadata):
@@ -368,7 +368,7 @@ def test_2520(skip_unless_thin_mode, conn, test_env):
     )
 
 
-def test_2521(skip_unless_thin_mode, conn, test_env):
+def test_cursor_2521(skip_unless_thin_mode, conn, test_env):
     "2521 - test data type changing from NVARCHAR to CLOB"
     _test_type_change(
         conn,

@@ -82,7 +82,7 @@ async def _verify_create_arg(test_env, arg_name, arg_value, sql):
     await pool.close()
 
 
-async def test_1100(test_env):
+async def test_pool_1100(test_env):
     "1100 - test getting default pool parameters"
     pool = test_env.get_pool_async()
     try:
@@ -103,7 +103,7 @@ async def test_1100(test_env):
         await pool.close(force=True)
 
 
-async def test_1101(test_env):
+async def test_pool_1101(test_env):
     "1101 - test setting pool attributes"
     pool = test_env.get_pool_async()
     test_values = [
@@ -122,7 +122,7 @@ async def test_1101(test_env):
         await pool.close(force=True)
 
 
-async def test_1102(test_env):
+async def test_pool_1102(test_env):
     "1102 - connection rolls back before released back to the pool"
     pool = test_env.get_pool_async()
     conn = await pool.acquire()
@@ -140,7 +140,7 @@ async def test_1102(test_env):
     await conn.close()
 
 
-async def test_1103(test_env):
+async def test_pool_1103(test_env):
     "1103 - test session pool with multiple coroutines"
     pool = test_env.get_pool_async(min=5, max=20, increment=2)
     try:
@@ -150,7 +150,7 @@ async def test_1103(test_env):
         await pool.close(force=True)
 
 
-async def test_1104(test_env):
+async def test_pool_1104(test_env):
     "1104 - test session pool with multiple coroutines (with errors)"
     pool = test_env.get_pool_async(min=5, max=20, increment=2)
     try:
@@ -162,7 +162,7 @@ async def test_1104(test_env):
         await pool.close(force=True)
 
 
-async def test_1105(skip_if_drcp, test_env):
+async def test_pool_1105(skip_if_drcp, test_env):
     "1105 - test session pool with various types of purity"
     pool = test_env.get_pool_async(min=1, max=8, increment=1)
 
@@ -196,7 +196,7 @@ async def test_1105(skip_if_drcp, test_env):
     await pool.release(conn)
 
 
-async def test_1106(test_env):
+async def test_pool_1106(test_env):
     "1106 - test dropping/closing a connection from the pool"
     pool = test_env.get_pool_async(min=1, max=5, increment=2)
     try:
@@ -218,7 +218,7 @@ async def test_1106(test_env):
         await pool.close(force=True)
 
 
-async def test_1107(test_env):
+async def test_pool_1107(test_env):
     "1107 - test to ensure pure connections are being created correctly"
     pool = test_env.get_pool_async(min=1, max=2, increment=1)
     try:
@@ -234,13 +234,13 @@ async def test_1107(test_env):
         await pool.close(force=True)
 
 
-async def test_1108(test_env):
+async def test_pool_1108(test_env):
     "1108 - test closing a pool normally with no connections checked out"
     pool = test_env.get_pool_async(min=1, max=8, increment=1)
     await pool.close()
 
 
-async def test_1109(test_env):
+async def test_pool_1109(test_env):
     "1109 - test closing a pool normally with connections checked out"
     pool = test_env.get_pool_async(min=1, max=8, increment=1)
     closed = False
@@ -254,14 +254,14 @@ async def test_1109(test_env):
             await pool.close(force=True)
 
 
-async def test_1110(test_env):
+async def test_pool_1110(test_env):
     "1110 - test closing a pool forcibly"
     pool = test_env.get_pool_async(min=1, max=8, increment=1)
     async with pool.acquire():
         await pool.close(force=True)
 
 
-async def test_1111(test_env):
+async def test_pool_1111(test_env):
     "1111 - using the pool after it is closed raises an exception"
     pool = test_env.get_pool_async(min=1, max=8, increment=1)
     await pool.close()
@@ -269,7 +269,7 @@ async def test_1111(test_env):
         await pool.acquire()
 
 
-async def test_1112(test_env):
+async def test_pool_1112(test_env):
     "1112 - using the pool beyond max limit raises an error"
     pool = test_env.get_pool_async(min=1, max=2, increment=1)
     try:
@@ -281,7 +281,7 @@ async def test_1112(test_env):
         await pool.close(force=True)
 
 
-async def test_1113(test_env):
+async def test_pool_1113(test_env):
     "1113 - callable session callback is executed for new connections"
 
     class Counter:
@@ -307,7 +307,7 @@ async def test_1113(test_env):
         await pool.close(force=True)
 
 
-async def test_1114(skip_if_drcp, test_env):
+async def test_pool_1114(skip_if_drcp, test_env):
     "1114 - drop the pooled connection on receiving dead connection error"
     admin_conn = await test_env.get_admin_connection_async()
     pool = test_env.get_pool_async(min=2, max=2, increment=2)
@@ -343,7 +343,7 @@ async def test_1114(skip_if_drcp, test_env):
         await pool.close(force=True)
 
 
-async def test_1115(test_env):
+async def test_pool_1115(test_env):
     "1115 - acquire a connection from an empty pool (min=0)"
     pool = test_env.get_pool_async(min=0, max=2, increment=2)
     try:
@@ -356,7 +356,7 @@ async def test_1115(test_env):
         await pool.close(force=True)
 
 
-async def test_1116(test_env):
+async def test_pool_1116(test_env):
     "1116 - get different object types from different connections"
     pool = test_env.get_pool_async(min=1, max=2, increment=1)
     try:
@@ -370,7 +370,7 @@ async def test_1116(test_env):
         await pool.close(force=True)
 
 
-async def test_1117(test_env):
+async def test_pool_1117(test_env):
     "1117 - test creating a pool using a proxy user"
     user_str = f"{test_env.main_user}[{test_env.proxy_user}]"
     pool = test_env.get_pool_async(user=user_str)
@@ -384,7 +384,7 @@ async def test_1117(test_env):
         await pool.close(force=True)
 
 
-async def test_1118(skip_if_drcp, test_env):
+async def test_pool_1118(skip_if_drcp, test_env):
     "1118 - test acquiring conn from pool in LIFO order"
     pool = test_env.get_pool_async(min=5, max=10, increment=1)
     try:
@@ -409,7 +409,7 @@ async def test_1118(skip_if_drcp, test_env):
         await pool.close(force=True)
 
 
-async def test_1119(test_env):
+async def test_pool_1119(test_env):
     "1119 - verify that dynamic pool cannot have an increment of zero"
     pool = test_env.get_pool_async(min=1, max=3, increment=0)
     try:
@@ -420,7 +420,7 @@ async def test_1119(test_env):
         await pool.close(force=True)
 
 
-async def test_1120(test_env):
+async def test_pool_1120(test_env):
     "1120 - verify that static pool can have an increment of zero"
     pool = test_env.get_pool_async(min=1, max=1, increment=0)
     try:
@@ -431,7 +431,7 @@ async def test_1120(test_env):
         await pool.close(force=True)
 
 
-async def test_1121(test_env):
+async def test_pool_1121(test_env):
     "1121 - verify that connection with different cclass is reused"
     cclass = "cclass2431"
     pool = test_env.get_pool_async(min=1, max=1)
@@ -452,13 +452,13 @@ async def test_1121(test_env):
         await pool.close(force=True)
 
 
-async def test_1122(test_env):
+async def test_pool_1122(test_env):
     "1122 - test creating a pool invalid params"
     with test_env.assert_raises_full_code("DPY-2027"):
         oracledb.create_pool_async(params="bad params")
 
 
-async def test_1123(test_env):
+async def test_pool_1123(test_env):
     "1123 - test releasing and dropping an invalid connection"
     pool = test_env.get_pool_async()
     try:
@@ -470,13 +470,13 @@ async def test_1123(test_env):
         await pool.close(force=True)
 
 
-async def test_1124(test_env):
+async def test_pool_1124(test_env):
     "1124 - test creating a pool with invalid pool_class"
     with test_env.assert_raises_full_code("DPY-2026"):
         oracledb.create_pool_async(pool_class=int)
 
 
-async def test_1125(test_env):
+async def test_pool_1125(test_env):
     "1125 - test creating a pool with a subclassed connection type"
 
     class MyConnection(oracledb.AsyncConnection):
@@ -487,7 +487,7 @@ async def test_1125(test_env):
         assert isinstance(conn, MyConnection)
 
 
-async def test_1126(test_env):
+async def test_pool_1126(test_env):
     "1126 - test creating a pool with a subclassed pool type"
 
     class MyPool(oracledb.AsyncConnectionPool):
@@ -500,7 +500,7 @@ async def test_1126(test_env):
         await pool.close(force=True)
 
 
-async def test_1127(test_env):
+async def test_pool_1127(test_env):
     "1127 - test connectiontype with an invalid connection class"
     with test_env.assert_raises_full_code("DPY-2023"):
         test_env.get_pool_async(connectiontype=oracledb.Connection)
@@ -508,7 +508,7 @@ async def test_1127(test_env):
         test_env.get_pool_async(connectiontype=int)
 
 
-async def test_1128(skip_unless_pool_timed_wait_supported, test_env):
+async def test_pool_1128(skip_unless_pool_timed_wait_supported, test_env):
     "1128 - ensure that timed wait times out with appropriate exception"
     pool = test_env.get_pool_async(
         getmode=oracledb.POOL_GETMODE_TIMEDWAIT, min=0, wait_timeout=1
@@ -517,7 +517,7 @@ async def test_1128(skip_unless_pool_timed_wait_supported, test_env):
         await pool.acquire()
 
 
-async def test_1129(test_env):
+async def test_pool_1129(test_env):
     "1129 - ensure call timeout is reset on connections returned by pool"
     pool = test_env.get_pool_async(ping_timeout=1000, ping_interval=0)
     async with pool.acquire() as conn:
@@ -526,7 +526,7 @@ async def test_1129(test_env):
         assert conn.call_timeout == 0
 
 
-async def test_1130(test_env):
+async def test_pool_1130(test_env):
     "1130 - test passing program when creating a pool"
     sql = (
         "select program from v$session "
@@ -535,7 +535,7 @@ async def test_1130(test_env):
     await _verify_create_arg(test_env, "program", "newprogram", sql)
 
 
-async def test_1131(test_env):
+async def test_pool_1131(test_env):
     "1131 - test passing machine when creating a pool"
     sql = (
         "select machine from v$session "
@@ -544,7 +544,7 @@ async def test_1131(test_env):
     await _verify_create_arg(test_env, "machine", "newmachine", sql)
 
 
-async def test_1132(test_env):
+async def test_pool_1132(test_env):
     "1132 - test passing terminal when creating a pool"
     sql = (
         "select terminal from v$session "
@@ -553,7 +553,7 @@ async def test_1132(test_env):
     await _verify_create_arg(test_env, "terminal", "newterminal", sql)
 
 
-async def test_1133(test_env):
+async def test_pool_1133(test_env):
     "1133 - test passing osuser when creating a pool"
     sql = (
         "select osuser from v$session "
@@ -562,7 +562,7 @@ async def test_1133(test_env):
     await _verify_create_arg(test_env, "osuser", "newosuser", sql)
 
 
-async def test_1134(test_env):
+async def test_pool_1134(test_env):
     "1134 - test passing driver_name when creating a pool"
     sql = (
         "select distinct client_driver from v$session_connect_info "
@@ -571,7 +571,7 @@ async def test_1134(test_env):
     await _verify_create_arg(test_env, "driver_name", "newdriver", sql)
 
 
-async def test_1135(test_env):
+async def test_pool_1135(test_env):
     "1135 - test register_parameter with pooled connection"
     sdu = 4096
     params = test_env.get_pool_params()
@@ -596,7 +596,7 @@ async def test_1135(test_env):
         oracledb.register_protocol(protocol, None)
 
 
-async def test_1136(test_env):
+async def test_pool_1136(test_env):
     "1136 - test create_pool() with edition"
     edition = test_env.edition_name
     pool = test_env.get_pool_async(edition=edition)
@@ -605,7 +605,7 @@ async def test_1136(test_env):
     await pool.close()
 
 
-async def test_1137(test_env):
+async def test_pool_1137(test_env):
     "1137 - test create_pool() and get_pool() with alias"
     alias = "pool_alias_5537"
     pool = test_env.get_pool_async(pool_alias=alias)
@@ -613,7 +613,7 @@ async def test_1137(test_env):
     await pool.close()
 
 
-async def test_1138(test_env):
+async def test_pool_1138(test_env):
     "1138 - test create_pool() twice with the same alias"
     alias = "pool_alias_5538"
     pool = test_env.get_pool_async(pool_alias=alias)
@@ -623,7 +623,7 @@ async def test_1138(test_env):
     assert oracledb.get_pool(alias) is None
 
 
-async def test_1139(test_env):
+async def test_pool_1139(test_env):
     "1139 - test acquire() with pool alias and stmtcachesize"
     alias = "pool_5539"
     stmtcachesize = 35
@@ -633,7 +633,7 @@ async def test_1139(test_env):
     await oracledb.get_pool(alias).close()
 
 
-async def test_1140(test_env):
+async def test_pool_1140(test_env):
     "1140 - test pool alias is case sensitive"
     alias = "pool_5540"
     test_env.get_pool_async(pool_alias=alias)
@@ -643,7 +643,7 @@ async def test_1140(test_env):
     await oracledb.get_pool(alias).close()
 
 
-async def test_1141(test_env):
+async def test_pool_1141(test_env):
     "1141 - test pool alias with invalid types"
     aliases = [5, set(), dict(), bytearray(1)]
     for alias in aliases:
@@ -651,13 +651,13 @@ async def test_1141(test_env):
             test_env.get_pool_async(pool_alias=alias)
 
 
-async def test_1142(test_env):
+async def test_pool_1142(test_env):
     "1142 - test creation of pool with min > max"
     with test_env.assert_raises_full_code("DPY-2064"):
         test_env.get_pool_async(min=3, max=2)
 
 
-async def test_1143(skip_if_drcp, test_env):
+async def test_pool_1143(skip_if_drcp, test_env):
     "1143 - ping pooled connection on receiving dead connection error"
     admin_conn = await test_env.get_admin_connection_async()
     pool = test_env.get_pool_async(min=1, max=1, ping_interval=0)
@@ -677,14 +677,14 @@ async def test_1143(skip_if_drcp, test_env):
             assert user == test_env.main_user.upper()
 
 
-async def test_1144(test_env):
+async def test_pool_1144(test_env):
     "1144 - connection to database with bad password"
     pool = test_env.get_pool_async(password=test_env.main_password + "X")
     with test_env.assert_raises_full_code("ORA-01017"):
         await pool.acquire()
 
 
-async def test_1145(test_env):
+async def test_pool_1145(test_env):
     "1145 - verify call_timeout is unchanged after internal ping performed"
     desired_value = 5000
 
@@ -699,7 +699,7 @@ async def test_1145(test_env):
     await pool.close()
 
 
-async def test_1146(test_env):
+async def test_pool_1146(test_env):
     "1146 - test on_connect_callback is triggered for each pool acquire()"
     counter = 0
 
@@ -714,7 +714,7 @@ async def test_1146(test_env):
     await pool.close()
 
 
-async def test_1147(test_env):
+async def test_pool_1147(test_env):
     "1147 - release a connection twice"
     pool = test_env.get_pool_async(min=0, max=1, increment=1)
     conn = await pool.acquire()
@@ -725,7 +725,7 @@ async def test_1147(test_env):
     await pool.close()
 
 
-async def test_1148(test_env):
+async def test_pool_1148(test_env):
     "1148 - test waiting for a connection unblocks when it is released"
     pool = test_env.get_pool_async(min=1, max=1)
 
@@ -740,7 +740,7 @@ async def test_1148(test_env):
     await pool.close()
 
 
-async def test_1149(test_env):
+async def test_pool_1149(test_env):
     "1149 - Test that pool `wait_timeout` getter uses milliseconds."
     wait_ms = 4500
     pool = test_env.get_pool_async(
@@ -755,7 +755,7 @@ async def test_1149(test_env):
     await pool.close()
 
 
-async def test_1150(test_env):
+async def test_pool_1150(test_env):
     "1150 - test force closing a pool wakes waiting acquire() calls"
     pool = test_env.get_pool_async(min=1, max=1)
 

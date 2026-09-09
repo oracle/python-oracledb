@@ -62,21 +62,21 @@ def external_cursor(conn):
         yield cursor
 
 
-def test_2600(external_cursor, conn):
+def test_cursor_2600(external_cursor, conn):
     "2600 - test fetchone()"
     cursor = conn.cursor(handle=external_cursor.handle)
     data = cursor.fetchone()
     assert data[0] == 1
 
 
-def test_2601(external_cursor, conn):
+def test_cursor_2601(external_cursor, conn):
     "2601 - test fetchall()"
     cursor = conn.cursor(handle=external_cursor.handle)
     fetched_data = cursor.fetchall()
     assert fetched_data == [(i + 1,) for i in range(10)]
 
 
-def test_2602(external_cursor, conn, test_env):
+def test_cursor_2602(external_cursor, conn, test_env):
     "2602 - test fetch_df_all()"
     ora_df = conn.fetch_df_all(handle=external_cursor.handle)
     fetched_df = pyarrow.table(ora_df).to_pandas()
@@ -84,7 +84,7 @@ def test_2602(external_cursor, conn, test_env):
     assert fetched_data == [(i + 1,) for i in range(10)]
 
 
-def test_2603(external_cursor, conn, test_env):
+def test_cursor_2603(external_cursor, conn, test_env):
     "2603 - test fetch_df_batches()"
     data = [(i + 1,) for i in range(10)]
     offset = 0
@@ -98,7 +98,7 @@ def test_2603(external_cursor, conn, test_env):
         offset += batch_size
 
 
-def test_2604(external_cursor, conn, test_env):
+def test_cursor_2604(external_cursor, conn, test_env):
     "2604 - test fetch_df_all() with requested_schema"
     requested_schema = pyarrow.schema([("1", pyarrow.int8())])
     ora_df = conn.fetch_df_all(
@@ -111,7 +111,7 @@ def test_2604(external_cursor, conn, test_env):
     assert fetched_data == [(i + 1,) for i in range(10)]
 
 
-def test_2605(external_cursor, conn, test_env):
+def test_cursor_2605(external_cursor, conn, test_env):
     "2605 - test fetch_df_batches() with requested_schema"
     data = [(i + 1,) for i in range(10)]
     requested_schema = pyarrow.schema([("1", pyarrow.int8())])
@@ -130,7 +130,7 @@ def test_2605(external_cursor, conn, test_env):
         offset += batch_size
 
 
-def test_2606(conn, test_env):
+def test_cursor_2606(conn, test_env):
     "2606 - test exception DPY-1004 is thrown when no statement is executed"
     cursor = conn.cursor()
     with test_env.assert_raises_full_code("DPY-1004"):

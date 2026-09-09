@@ -31,20 +31,20 @@ import collections
 import oracledb
 
 
-def test_1000(cursor):
+def test_cursor_1000(cursor):
     "1000 - test executing a statement without any arguments"
     result = cursor.execute("begin null; end;")
     assert result is None
 
 
-def test_1001(conn, test_env):
+def test_cursor_1001(conn, test_env):
     "1001 - test executing a None statement with bind variables"
     cursor = conn.cursor()
     with test_env.assert_raises_full_code("DPY-2001"):
         cursor.execute(None, x=5)
 
 
-def test_1002(cursor):
+def test_cursor_1002(cursor):
     "1002 - test executing a statement with args and empty keyword args"
     simple_var = cursor.var(oracledb.NUMBER)
     args = [simple_var]
@@ -54,7 +54,7 @@ def test_1002(cursor):
     assert simple_var.getvalue() == 25
 
 
-def test_1003(cursor):
+def test_cursor_1003(cursor):
     "1003 - test executing a statement with keyword arguments"
     simple_var = cursor.var(oracledb.NUMBER)
     result = cursor.execute("begin :value := 5; end;", value=simple_var)
@@ -62,7 +62,7 @@ def test_1003(cursor):
     assert simple_var.getvalue() == 5
 
 
-def test_1004(cursor):
+def test_cursor_1004(cursor):
     "1004 - test executing a statement with a dictionary argument"
     simple_var = cursor.var(oracledb.NUMBER)
     dict_arg = dict(value=simple_var)
@@ -71,7 +71,7 @@ def test_1004(cursor):
     assert simple_var.getvalue() == 10
 
 
-def test_1005(cursor, test_env):
+def test_cursor_1005(cursor, test_env):
     "1005 - test executing a statement with both a dict and keyword args"
     simple_var = cursor.var(oracledb.NUMBER)
     dict_arg = dict(value=simple_var)
@@ -79,14 +79,14 @@ def test_1005(cursor, test_env):
         cursor.execute("begin :value := 15; end;", dict_arg, value=simple_var)
 
 
-def test_1006(cursor):
+def test_cursor_1006(cursor):
     "1006 - test executing a statement and then changing the array size"
     cursor.execute("select IntCol from TestNumbers")
     cursor.arraysize = 20
     assert len(cursor.fetchall()) == 10
 
 
-def test_1007(cursor, test_env):
+def test_cursor_1007(cursor, test_env):
     "1007 - test that subsequent executes succeed after bad execute"
     sql = "begin raise_application_error(-20000, 'this); end;"
     with test_env.assert_raises_full_code("DPY-2041"):
@@ -94,7 +94,7 @@ def test_1007(cursor, test_env):
     cursor.execute("begin null; end;")
 
 
-def test_1008(cursor, test_env):
+def test_cursor_1008(cursor, test_env):
     "1008 - test that subsequent fetches fail after bad execute"
     with test_env.assert_raises_full_code("ORA-00904"):
         cursor.execute("select y from dual")
@@ -102,14 +102,14 @@ def test_1008(cursor, test_env):
         cursor.fetchall()
 
 
-def test_1009(cursor, test_env):
+def test_cursor_1009(cursor, test_env):
     "1009 - test executing a statement with an incorrect named bind"
     sql = "select * from TestStrings where IntCol = :value"
     with test_env.assert_raises_full_code("DPY-4008", "ORA-01036"):
         cursor.execute(sql, value2=3)
 
 
-def test_1010(cursor):
+def test_cursor_1010(cursor):
     "1010 - test executing a statement with named binds"
     result = cursor.execute(
         """
@@ -123,7 +123,7 @@ def test_1010(cursor):
     assert len(result.fetchall()) == 1
 
 
-def test_1011(cursor, test_env):
+def test_cursor_1011(cursor, test_env):
     "1011 - test executing a statement with an incorrect positional bind"
     sql = """
             select *
@@ -133,7 +133,7 @@ def test_1011(cursor, test_env):
         cursor.execute(sql, [3])
 
 
-def test_1012(cursor):
+def test_cursor_1012(cursor):
     "1012 - test executing a statement with positional binds"
     result = cursor.execute(
         """
@@ -146,7 +146,7 @@ def test_1012(cursor):
     assert len(result.fetchall()) == 1
 
 
-def test_1013(cursor):
+def test_cursor_1013(cursor):
     "1013 - test executing a statement after rebinding a named bind"
     statement = "begin :value := :value2 + 5; end;"
     simple_var = cursor.var(oracledb.NUMBER)
@@ -164,7 +164,7 @@ def test_1013(cursor):
     assert simple_var.getvalue() == 15
 
 
-def test_1014(cursor):
+def test_cursor_1014(cursor):
     "1014 - test executing a PL/SQL statement with duplicate binds"
     simple_var = cursor.var(oracledb.NUMBER)
     simple_var.setvalue(0, 5)
@@ -180,7 +180,7 @@ def test_1014(cursor):
     assert simple_var.getvalue() == 10
 
 
-def test_1015(cursor):
+def test_cursor_1015(cursor):
     "1015 - test executing a PL/SQL statement with duplicate binds"
     simple_var = cursor.var(oracledb.NUMBER)
     simple_var.setvalue(0, 5)
@@ -188,7 +188,7 @@ def test_1015(cursor):
     assert simple_var.getvalue() == 10
 
 
-def test_1016(cursor, test_env):
+def test_cursor_1016(cursor, test_env):
     "1016 - test executing a statement with an incorrect number of binds"
     statement = "begin :value := :value2 + 5; end;"
     var = cursor.var(oracledb.NUMBER)
@@ -201,7 +201,7 @@ def test_1016(cursor, test_env):
         cursor.execute(statement, value=var, value2=var, value3=var)
 
 
-def test_1017(conn, cursor):
+def test_cursor_1017(conn, cursor):
     "1017 - change in size on subsequent binds does not use optimised path"
     cursor.execute("truncate table TestTempTable")
     data = [(1, "Test String #1"), (2, "ABC" * 100)]
@@ -218,7 +218,7 @@ def test_1017(conn, cursor):
     assert cursor.fetchall() == data
 
 
-def test_1018(conn, cursor):
+def test_cursor_1018(conn, cursor):
     "1018 - test that dml can use optimised path"
     data_to_insert = [(i + 1, f"Test String #{i + 1}") for i in range(3)]
     cursor.execute("truncate table TestTempTable")
@@ -238,14 +238,14 @@ def test_1018(conn, cursor):
     assert cursor.fetchall() == data_to_insert
 
 
-def test_1019(cursor, test_env):
+def test_cursor_1019(cursor, test_env):
     "1019 - test calling execute() with invalid parameters"
     sql = "insert into TestTempTable (IntCol, StringCol1) values (:1, :2)"
     with test_env.assert_raises_full_code("DPY-2003"):
         cursor.execute(sql, "These are not valid parameters")
 
 
-def test_1020(cursor, test_env):
+def test_cursor_1020(cursor, test_env):
     "1020 - test calling execute() with mixed binds"
     cursor.execute("truncate table TestTempTable")
     cursor.setinputsizes(None, None, str)
@@ -261,7 +261,7 @@ def test_1020(cursor, test_env):
         )
 
 
-def test_1021(cursor):
+def test_cursor_1021(cursor):
     "1021 - test binding by name with double quotes"
     data = {'"_value1"': 1, '"VaLue_2"': 2, '"3VALUE"': 3}
     cursor.execute(
@@ -272,7 +272,7 @@ def test_1021(cursor):
     assert result == 6
 
 
-def test_1022(cursor):
+def test_cursor_1022(cursor):
     "1022 - test executing a statement with different input buffer sizes"
     sql = """
             insert into TestTempTable (IntCol, StringCol1, StringCol2)
@@ -299,7 +299,7 @@ def test_1022(cursor):
     assert ret_bind.values == [["3"]]
 
 
-def test_1023(conn, cursor):
+def test_cursor_1023(conn, cursor):
     "1023 - test using rowfactory"
     cursor.execute("truncate table TestTempTable")
     cursor.execute("""
@@ -318,7 +318,7 @@ def test_1023(conn, cursor):
     assert cursor.fetchall() == [{"INTCOL": 1, "STRINGCOL1": "Test 1"}]
 
 
-def test_1024(conn, cursor):
+def test_cursor_1024(conn, cursor):
     "1024 - test executing same query after setting rowfactory"
     cursor.execute("truncate table TestTempTable")
     data = [(1, "Test 1"), (2, "Test 2")]
@@ -339,7 +339,7 @@ def test_1024(conn, cursor):
     assert results1 == results2
 
 
-def test_1025(conn, cursor):
+def test_cursor_1025(conn, cursor):
     "1025 - test executing different query after setting rowfactory"
     cursor.execute("truncate table TestTempTable")
     data = [(1, "Test 1"), (2, "Test 2")]
@@ -363,7 +363,7 @@ def test_1025(conn, cursor):
     assert cursor.fetchall() == expected_data
 
 
-def test_1026(conn):
+def test_cursor_1026(conn):
     "1026 - test setting rowfactory on a REF cursor"
     with conn.cursor() as cursor:
         sql_function = "pkg_TestRefCursors.TestReturnCursor"
@@ -379,7 +379,7 @@ def test_1026(conn):
         assert ref_cursor.fetchall() == expected_value
 
 
-def test_1027(cursor):
+def test_cursor_1027(cursor):
     "1027 - test using a subclassed string as bind parameter keys"
 
     class my_str(str):
@@ -403,7 +403,7 @@ def test_1027(cursor):
     assert cursor.fetchall() == [(3927, "1027 - String Value")]
 
 
-def test_1028(cursor):
+def test_cursor_1028(cursor):
     "1028 - test using a sequence of parameters other than a list or tuple"
 
     class MySeq(collections.abc.Sequence):
@@ -434,7 +434,7 @@ def test_1028(cursor):
     assert cursor.fetchall() == expected_data
 
 
-def test_1029(cursor):
+def test_cursor_1029(cursor):
     "1029 - test an output type handler with prefetch > arraysize"
 
     def type_handler(cursor, metadata):
@@ -447,7 +447,7 @@ def test_1029(cursor):
     assert cursor.fetchall() == [(1,), (2,), (3,), (4,), (5,)]
 
 
-def test_1030(cursor, test_env):
+def test_cursor_1030(cursor, test_env):
     "1030 - test setinputsizes() but without binding"
     cursor.setinputsizes(None, int)
     sql = "select :1, : 2 from dual"
@@ -455,7 +455,7 @@ def test_1030(cursor, test_env):
         cursor.execute(sql, [])
 
 
-def test_1031(conn, cursor, test_env):
+def test_cursor_1031(conn, cursor, test_env):
     "1031 - test getting FetchInfo attributes"
     type_obj = conn.gettype("UDT_OBJECT")
     varchar_ratio, _ = test_env.charset_ratios
@@ -538,7 +538,7 @@ def test_1031(conn, cursor, test_env):
         assert fetch_info.vector_format is None
 
 
-def test_1032(cursor):
+def test_cursor_1032(cursor):
     "1032 - test FetchInfo repr() and str()"
     cursor.execute("select IntCol from TestObjects")
     (fetch_info,) = cursor.description
@@ -547,14 +547,14 @@ def test_1032(cursor):
     assert repr(fetch_info) == expected
 
 
-def test_1033(cursor):
+def test_cursor_1033(cursor):
     "1033 - test slicing FetchInfo"
     cursor.execute("select IntCol from TestObjects")
     (fetch_info,) = cursor.description
     assert fetch_info[1:3] == (oracledb.DB_TYPE_NUMBER, 10)
 
 
-def test_1034(cursor):
+def test_cursor_1034(cursor):
     "1034 - test rowcount is zero for PL/SQL"
     cursor.execute("begin null; end;")
     assert cursor.rowcount == 0
@@ -565,13 +565,13 @@ def test_1034(cursor):
     assert cursor.rowcount == 0
 
 
-def test_1035(cursor, test_env):
+def test_cursor_1035(cursor, test_env):
     "1035 - test raising no_data_found in PL/SQL"
     with test_env.assert_raises_full_code("ORA-01403"):
         cursor.execute("begin raise no_data_found; end;")
 
 
-def test_1036(cursor, test_env):
+def test_cursor_1036(cursor, test_env):
     "1036 - test executing an empty statement"
     with test_env.assert_raises_full_code("DPY-2066"):
         cursor.execute("")

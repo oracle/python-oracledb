@@ -37,32 +37,32 @@ def _test_bind_value_as_boolean(cursor, value):
     assert result == expected_result
 
 
-def test_2400(skip_unless_plsql_boolean_supported, cursor):
+def test_data_types_2400(skip_unless_plsql_boolean_supported, cursor):
     "2400 - test binding in a False value"
     result = cursor.callfunc("pkg_TestBooleans.GetStringRep", str, [False])
     assert result == "FALSE"
 
 
-def test_2401(skip_unless_plsql_boolean_supported, cursor):
+def test_data_types_2401(skip_unless_plsql_boolean_supported, cursor):
     "2401 - test binding in a float as a boolean"
     _test_bind_value_as_boolean(cursor, 0.0)
     _test_bind_value_as_boolean(cursor, 1.0)
 
 
-def test_2402(skip_unless_plsql_boolean_supported, cursor):
+def test_data_types_2402(skip_unless_plsql_boolean_supported, cursor):
     "2402 - test binding in an integer as a boolean"
     _test_bind_value_as_boolean(cursor, 0)
     _test_bind_value_as_boolean(cursor, 1)
 
 
-def test_2403(skip_unless_plsql_boolean_supported, cursor):
+def test_data_types_2403(skip_unless_plsql_boolean_supported, cursor):
     "2403 - test binding in a null value"
     cursor.setinputsizes(None, bool)
     result = cursor.callfunc("pkg_TestBooleans.GetStringRep", str, [None])
     assert result == "NULL"
 
 
-def test_2404(skip_unless_plsql_boolean_supported, cursor):
+def test_data_types_2404(skip_unless_plsql_boolean_supported, cursor):
     "2404 - test binding out a boolean value (False)"
     result = cursor.callfunc(
         "pkg_TestBooleans.IsLessThan10", oracledb.DB_TYPE_BOOLEAN, [15]
@@ -70,32 +70,34 @@ def test_2404(skip_unless_plsql_boolean_supported, cursor):
     assert not result
 
 
-def test_2405(skip_unless_plsql_boolean_supported, cursor, test_env):
+def test_data_types_2405(
+    skip_unless_plsql_boolean_supported, cursor, test_env
+):
     "2405 - test binding out a boolean value (True)"
     test_env.skip_unless_server_version(12, 2)
     result = cursor.callfunc("pkg_TestBooleans.IsLessThan10", bool, [5])
     assert result
 
 
-def test_2406(skip_unless_plsql_boolean_supported, cursor):
+def test_data_types_2406(skip_unless_plsql_boolean_supported, cursor):
     "2406 - test binding in a string as a boolean"
     _test_bind_value_as_boolean(cursor, "")
     _test_bind_value_as_boolean(cursor, "0")
 
 
-def test_2407(skip_unless_plsql_boolean_supported, cursor):
+def test_data_types_2407(skip_unless_plsql_boolean_supported, cursor):
     "2407 - test binding in a True value"
     result = cursor.callfunc("pkg_TestBooleans.GetStringRep", str, [True])
     assert result == "TRUE"
 
 
-def test_2408(skip_unless_plsql_boolean_supported, cursor):
+def test_data_types_2408(skip_unless_plsql_boolean_supported, cursor):
     "2408 - test binding out a boolean value (None)"
     result = cursor.callfunc("pkg_TestBooleans.TestOutValueNull", bool)
     assert result is None
 
 
-def test_2409(skip_unless_native_boolean_supported, cursor):
+def test_data_types_2409(skip_unless_native_boolean_supported, cursor):
     "2409 - test binding and fetching boolean with Oracle DB version 23"
     for value in (True, False):
         cursor.execute("select not :1 from dual", [value])
@@ -104,7 +106,7 @@ def test_2409(skip_unless_native_boolean_supported, cursor):
         assert fetched_value == (not value)
 
 
-def test_2410(skip_unless_native_boolean_supported, cursor):
+def test_data_types_2410(skip_unless_native_boolean_supported, cursor):
     "2410 - test binding and fetching string literals that represent True"
     cursor.execute("truncate table TestBooleans")
     true_values = ["true", "yes", "on", "1", "t", "y"]
@@ -120,7 +122,7 @@ def test_2410(skip_unless_native_boolean_supported, cursor):
     assert cursor.fetchall() == expected_values
 
 
-def test_2411(skip_unless_native_boolean_supported, cursor):
+def test_data_types_2411(skip_unless_native_boolean_supported, cursor):
     "2411 - test binding and fetching string literals that represent False"
     cursor.execute("truncate table TestBooleans")
     false_values = ["false", "no", "off", "0", "f", "n"]
@@ -136,26 +138,26 @@ def test_2411(skip_unless_native_boolean_supported, cursor):
     assert cursor.fetchall() == expected_value
 
 
-def test_2412(skip_unless_plsql_boolean_supported, cursor):
+def test_data_types_2412(skip_unless_plsql_boolean_supported, cursor):
     "2412 - test binding in and returning a True value"
     result = cursor.callfunc("pkg_TestBooleans.EchoValue", bool, [True])
     assert result
 
 
-def test_2413(skip_unless_plsql_boolean_supported, cursor):
+def test_data_types_2413(skip_unless_plsql_boolean_supported, cursor):
     "2413 - test binding in and returning a False value"
     result = cursor.callfunc("pkg_TestBooleans.EchoValue", bool, [False])
     assert not result
 
 
-def test_2414(skip_unless_plsql_boolean_supported, cursor):
+def test_data_types_2414(skip_unless_plsql_boolean_supported, cursor):
     "2414 - test binding in and out a True value"
     var = cursor.var(bool)
     cursor.callproc("pkg_TestBooleans.EchoValueOut", [True, var])
     assert var.getvalue()
 
 
-def test_2415(skip_unless_plsql_boolean_supported, cursor):
+def test_data_types_2415(skip_unless_plsql_boolean_supported, cursor):
     "2415 - test binding in and returning a False value"
     var = cursor.var(bool)
     cursor.callproc("pkg_TestBooleans.EchoValueOut", [False, var])

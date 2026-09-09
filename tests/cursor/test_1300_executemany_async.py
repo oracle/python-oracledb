@@ -42,7 +42,7 @@ async def empty_tab(async_cursor):
     await async_cursor.execute("truncate table TestTempTable")
 
 
-async def test_1300(async_conn, async_cursor, empty_tab):
+async def test_cursor_1300(async_conn, async_cursor, empty_tab):
     "1300 - test executing a statement multiple times (named args)"
     rows = [{"value": n} for n in range(250)]
     async_cursor.arraysize = 100
@@ -56,7 +56,7 @@ async def test_1300(async_conn, async_cursor, empty_tab):
     assert count == len(rows)
 
 
-async def test_1301(async_conn, async_cursor, empty_tab):
+async def test_cursor_1301(async_conn, async_cursor, empty_tab):
     "1301 - test executing a statement multiple times (positional args)"
     rows = [[n] for n in range(230)]
     async_cursor.arraysize = 100
@@ -70,7 +70,7 @@ async def test_1301(async_conn, async_cursor, empty_tab):
     assert count == len(rows)
 
 
-async def test_1302(async_conn, async_cursor, empty_tab):
+async def test_cursor_1302(async_conn, async_cursor, empty_tab):
     "1302 - test executing a statement multiple times (with prepare)"
     rows = [[n] for n in range(225)]
     async_cursor.arraysize = 100
@@ -82,7 +82,7 @@ async def test_1302(async_conn, async_cursor, empty_tab):
     assert count == len(rows)
 
 
-async def test_1303(async_conn, async_cursor, empty_tab):
+async def test_cursor_1303(async_conn, async_cursor, empty_tab):
     "1303 - test executing a statement multiple times (with rebind)"
     rows = [[n] for n in range(235)]
     async_cursor.arraysize = 100
@@ -95,7 +95,7 @@ async def test_1303(async_conn, async_cursor, empty_tab):
     assert count == len(rows)
 
 
-async def test_1304(async_conn):
+async def test_cursor_1304(async_conn):
     "1304 - test executing multiple times (with input sizes wrong)"
     cursor = async_conn.cursor()
     cursor.setinputsizes(oracledb.NUMBER)
@@ -103,14 +103,14 @@ async def test_1304(async_conn):
     await cursor.executemany("declare t number; begin t := :1; end;", data)
 
 
-async def test_1305(async_cursor, empty_tab):
+async def test_cursor_1305(async_cursor, empty_tab):
     "1305 - test executing multiple times (with multiple batches)"
     sql = "insert into TestTempTable (IntCol, StringCol1) values (:1, :2)"
     await async_cursor.executemany(sql, [(1, None), (2, None)])
     await async_cursor.executemany(sql, [(3, None), (4, "Testing")])
 
 
-async def test_1306(async_cursor, empty_tab):
+async def test_cursor_1306(async_cursor, empty_tab):
     "1306 - test executemany() with various numeric types"
     data = [
         (1, 5),
@@ -129,7 +129,7 @@ async def test_1306(async_cursor, empty_tab):
     assert await async_cursor.fetchall() == data
 
 
-async def test_1307(async_cursor, empty_tab):
+async def test_cursor_1307(async_cursor, empty_tab):
     "1307 - test executing a statement multiple times (with resize)"
     rows = [
         (1, "First"),
@@ -150,7 +150,7 @@ async def test_1307(async_cursor, empty_tab):
     assert await async_cursor.fetchall() == rows
 
 
-async def test_1308(async_cursor, empty_tab, test_env):
+async def test_cursor_1308(async_cursor, empty_tab, test_env):
     "1308 - test executing a statement multiple times (with exception)"
     rows = [{"value": n} for n in (1, 2, 3, 2, 5)]
     statement = "insert into TestTempTable (IntCol) values (:value)"
@@ -159,7 +159,7 @@ async def test_1308(async_cursor, empty_tab, test_env):
     assert async_cursor.rowcount == 3
 
 
-async def test_1309(async_cursor, test_env):
+async def test_cursor_1309(async_cursor, test_env):
     "1309 - test calling executemany() with invalid parameters"
     sql = """
             insert into TestTempTable (IntCol, StringCol1)
@@ -168,7 +168,7 @@ async def test_1309(async_cursor, test_env):
         await async_cursor.executemany(sql, "Not valid parameters")
 
 
-async def test_1310(async_cursor, empty_tab):
+async def test_cursor_1310(async_cursor, empty_tab):
     "1310 - test calling executemany() without any bind parameters"
     num_rows = 5
     await async_cursor.executemany(
@@ -191,7 +191,7 @@ async def test_1310(async_cursor, empty_tab):
     assert count == num_rows
 
 
-async def test_1311(async_cursor, empty_tab):
+async def test_cursor_1311(async_cursor, empty_tab):
     "1311 - test calling executemany() with binds performed earlier"
     num_rows = 9
     var = async_cursor.var(int, arraysize=num_rows)
@@ -218,7 +218,7 @@ async def test_1311(async_cursor, empty_tab):
     assert var.values == expected_data
 
 
-async def test_1312(async_cursor):
+async def test_cursor_1312(async_cursor):
     "1312 - test executing plsql statements multiple times (with binds)"
     var = async_cursor.var(int, arraysize=5)
     async_cursor.setinputsizes(var)
@@ -230,27 +230,27 @@ async def test_1312(async_cursor):
     assert var.values == exepected_data
 
 
-async def test_1313(async_cursor, test_env):
+async def test_cursor_1313(async_cursor, test_env):
     "1313 - test executemany with incorrect parameters"
     with test_env.assert_raises_full_code("DPY-2004"):
         await async_cursor.executemany("select :1 from dual", [1])
 
 
-async def test_1314(async_cursor, test_env):
+async def test_cursor_1314(async_cursor, test_env):
     "1314 - test executemany with mixed binds (pos first)"
     rows = [["test"], {"value": 1}]
     with test_env.assert_raises_full_code("DPY-2006"):
         await async_cursor.executemany("select :1 from dual", rows)
 
 
-async def test_1315(async_cursor, test_env):
+async def test_cursor_1315(async_cursor, test_env):
     "1315 - test executemany with mixed binds (name first)"
     rows = [{"value": 1}, ["test"]]
     with test_env.assert_raises_full_code("DPY-2006"):
         await async_cursor.executemany("select :value from dual", rows)
 
 
-async def test_1316(async_cursor, empty_tab):
+async def test_cursor_1316(async_cursor, empty_tab):
     "1316 - test executemany() with a pl/sql statement with dml returning"
     num_rows = 5
     out_var = async_cursor.var(oracledb.NUMBER, arraysize=5)
@@ -273,7 +273,7 @@ async def test_1316(async_cursor, empty_tab):
     assert out_var.values == [1, 2, 3, 4, 5]
 
 
-async def test_1317(async_cursor, empty_tab):
+async def test_cursor_1317(async_cursor, empty_tab):
     "1317 - test executemany() with pl/sql in binds and out binds"
     values = [5, 8, 17, 24, 6]
     data = [(i, f"Test {i}") for i in values]
@@ -292,7 +292,7 @@ async def test_1317(async_cursor, empty_tab):
     assert out_bind.values == values
 
 
-async def test_1318(async_cursor, empty_tab):
+async def test_cursor_1318(async_cursor, empty_tab):
     "1318 - test executemany() with pl/sql outbinds"
     out_bind = async_cursor.var(oracledb.NUMBER, arraysize=5)
     async_cursor.setinputsizes(out_bind)
@@ -300,7 +300,7 @@ async def test_1318(async_cursor, empty_tab):
     assert out_bind.values == [5, 5, 5, 5, 5]
 
 
-async def test_1319(async_cursor):
+async def test_cursor_1319(async_cursor):
     "1319 - test re-executemany() with pl/sql in binds and out binds"
     values = [5, 8, 17, 24, 6]
     data = [(i, f"Test {i}") for i in values]
@@ -321,7 +321,7 @@ async def test_1319(async_cursor):
         assert out_bind.values == values
 
 
-async def test_1320(async_cursor):
+async def test_cursor_1320(async_cursor):
     "1320 - test PL/SQL statement with single row bind"
     value = 4020
     var = async_cursor.var(int)
@@ -329,7 +329,7 @@ async def test_1320(async_cursor):
     assert var.values == [value]
 
 
-async def test_1321(async_conn, async_cursor, empty_tab):
+async def test_cursor_1321(async_conn, async_cursor, empty_tab):
     "1321 - test deferral of type assignment"
     data = [(1, None), (2, 25)]
     await async_cursor.executemany(
@@ -349,7 +349,7 @@ async def test_1321(async_conn, async_cursor, empty_tab):
     assert await async_cursor.fetchall() == data
 
 
-async def test_1322(async_cursor):
+async def test_cursor_1322(async_cursor):
     "1322 - test PL/SQL with a lerge number of binds"
     parts = []
     bind_names = []
@@ -382,20 +382,20 @@ async def test_1322(async_cursor):
         init_val += 6
 
 
-async def test_1323(async_conn, test_env):
+async def test_cursor_1323(async_conn, test_env):
     "1323 - test executing no statement"
     cursor = async_conn.cursor()
     with test_env.assert_raises_full_code("DPY-2001"):
         await cursor.executemany(None, [1, 2])
 
 
-async def test_1324(async_cursor):
+async def test_cursor_1324(async_cursor):
     "1324 - test executemany with empty parameter set"
     sql = "insert into TestTempTable values (:1)"
     await async_cursor.executemany(sql, [])
 
 
-async def test_1325(async_cursor, test_env):
+async def test_cursor_1325(async_cursor, test_env):
     "1325 - test executemany with an empty statement"
     with test_env.assert_raises_full_code("DPY-2066"):
         await async_cursor.executemany("", 5)
@@ -403,7 +403,7 @@ async def test_1325(async_cursor, test_env):
         await async_cursor.executemany("  ", 5)
 
 
-async def test_1326(cursor):
+async def test_cursor_1326(cursor):
     "1326 - test executemany with batch size 0"
     rows = [[1], [2]]
     with pytest.raises(TypeError):
@@ -415,7 +415,7 @@ async def test_1326(cursor):
 
 
 @pytest.mark.parametrize("batch_size", [1, 5, 99, 199, 200])
-async def test_1327(
+async def test_cursor_1327(
     batch_size, async_conn, async_cursor, empty_tab, round_trip_checker_async
 ):
     "1327 - test executemany with various batch sizes"
@@ -436,7 +436,7 @@ async def test_1327(
     assert await async_cursor.fetchall() == rows
 
 
-async def test_1328(async_conn, async_cursor, empty_tab):
+async def test_cursor_1328(async_conn, async_cursor, empty_tab):
     "1328 - test consecutive executemany() with all values null in first call"
     rows = [(i + 1, None) for i in range(10)] + [
         (i + 11, (i + 11) * 0.25) for i in range(10)
@@ -455,7 +455,7 @@ async def test_1328(async_conn, async_cursor, empty_tab):
     assert await async_cursor.fetchall() == rows
 
 
-async def test_1329(async_conn, async_cursor, empty_tab):
+async def test_cursor_1329(async_conn, async_cursor, empty_tab):
     "1329 - test batched executemany() with all values null in first chunks"
     rows = [(i + 1, None) for i in range(10)] + [
         (i + 11, (i + 11) * 0.25) for i in range(10)
@@ -472,7 +472,7 @@ async def test_1329(async_conn, async_cursor, empty_tab):
     assert await async_cursor.fetchall() == rows
 
 
-async def test_1330(async_conn, async_cursor):
+async def test_cursor_1330(async_conn, async_cursor):
     "1330 - test executemany() with PL/SQL in/out variables"
     typ = await async_conn.gettype("PKG_TESTRECORDS.UDT_RECORDARRAY")
     obj = typ.newobject()

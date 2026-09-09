@@ -68,7 +68,7 @@ def _verify_data_frame(conn, df, column_names, test_env):
     _verify_data(conn, data, column_names)
 
 
-def test_2000(empty_tab, conn, test_env):
+def test_connection_2000(empty_tab, conn, test_env):
     "2000 - test basic direct path load with list of tuples"
     data = [
         (
@@ -121,7 +121,7 @@ def test_2000(empty_tab, conn, test_env):
     _verify_data(conn, data, column_names)
 
 
-def test_2001(empty_tab, conn, test_env):
+def test_connection_2001(empty_tab, conn, test_env):
     "2001 - test basic direct path load with dataframe"
     data = {
         "Id": [1, 2, 3, 4, 5],
@@ -150,7 +150,7 @@ def test_2001(empty_tab, conn, test_env):
     _verify_data_frame(conn, df, column_names, test_env)
 
 
-def test_2002(empty_tab, conn, test_env):
+def test_connection_2002(empty_tab, conn, test_env):
     "200f - test with empty data"
     data = []
     column_names = ["Id", "FirstName"]
@@ -163,7 +163,7 @@ def test_2002(empty_tab, conn, test_env):
     _verify_data(conn, data, column_names)
 
 
-def test_2003(empty_tab, conn, test_env):
+def test_connection_2003(empty_tab, conn, test_env):
     "2003 - test with empty data frame"
     data = {
         "Id": [],
@@ -181,7 +181,9 @@ def test_2003(empty_tab, conn, test_env):
 
 
 @pytest.mark.parametrize("batch_size", [1, 5, 99, 199, 200])
-def test_2004(batch_size, conn, empty_tab, round_trip_checker, test_env):
+def test_connection_2004(
+    batch_size, conn, empty_tab, round_trip_checker, test_env
+):
     "2004 - test with various batch sizes"
     data = [(i + 1, f"String for row {i + 1}") for i in range(200)]
     column_names = ["Id", "FirstName"]
@@ -200,7 +202,9 @@ def test_2004(batch_size, conn, empty_tab, round_trip_checker, test_env):
 
 
 @pytest.mark.parametrize("batch_size", [1, 5, 99, 199, 200])
-def test_2005(batch_size, conn, empty_tab, round_trip_checker, test_env):
+def test_connection_2005(
+    batch_size, conn, empty_tab, round_trip_checker, test_env
+):
     "2005 - test with various batch sizes with a data frame"
     names = ["Id", "FirstName"]
     rows = [(i + 1, f"Name {i + 1}") for i in range(200)]
@@ -223,7 +227,7 @@ def test_2005(batch_size, conn, empty_tab, round_trip_checker, test_env):
     _verify_data_frame(conn, df, names, test_env)
 
 
-def test_2006(empty_tab, disable_fetch_lobs, conn, test_env):
+def test_connection_2006(empty_tab, disable_fetch_lobs, conn, test_env):
     "2007 - test with all basic data types"
     column_names = [
         "Id",
@@ -282,7 +286,7 @@ def test_2006(empty_tab, disable_fetch_lobs, conn, test_env):
     _verify_data(conn, rows, column_names)
 
 
-def test_2007(empty_tab, disable_fetch_lobs, conn, test_env):
+def test_connection_2007(empty_tab, disable_fetch_lobs, conn, test_env):
     "2007 - test with all basic data types with a data frame"
     current_time = datetime.datetime.now()
     column_names = [
@@ -340,7 +344,7 @@ def test_2007(empty_tab, disable_fetch_lobs, conn, test_env):
     _verify_data_frame(conn, df, column_names, test_env)
 
 
-def test_2008(empty_tab, conn, test_env):
+def test_connection_2008(empty_tab, conn, test_env):
     "2008 - test with null values"
     column_names = [
         "Id",
@@ -385,7 +389,7 @@ def test_2008(empty_tab, conn, test_env):
     _verify_data(conn, rows, column_names)
 
 
-def test_2009(empty_tab, conn, test_env):
+def test_connection_2009(empty_tab, conn, test_env):
     "2009 - test with null values using a data frame"
     data = {
         "Id": [1, 2, 3, 4],
@@ -413,7 +417,7 @@ def test_2009(empty_tab, conn, test_env):
     _verify_data_frame(conn, df, column_names, test_env)
 
 
-def test_2010(empty_tab, conn, test_env):
+def test_connection_2010(empty_tab, conn, test_env):
     "2010 - test with the wrong number of columns"
     column_names = ["Id", "FirstName", "LastName"]
     rows = [(1, "Alice"), (2, "Joe")]
@@ -426,7 +430,7 @@ def test_2010(empty_tab, conn, test_env):
         )
 
 
-def test_2011(empty_tab, conn, test_env):
+def test_connection_2011(empty_tab, conn, test_env):
     "2011 - test with the wrong number of columns using a data frame"
     column_names = ["Id", "FirstName"]
     data = {
@@ -444,7 +448,7 @@ def test_2011(empty_tab, conn, test_env):
         )
 
 
-def test_2012(empty_tab, conn, test_env):
+def test_connection_2012(empty_tab, conn, test_env):
     "2012 - test with decimal data"
     column_names = ["Id", "FirstName", "DecimalData"]
     rows = [
@@ -462,7 +466,7 @@ def test_2012(empty_tab, conn, test_env):
         _verify_data(conn, rows, column_names)
 
 
-def test_2013(empty_tab, conn, test_env):
+def test_connection_2013(empty_tab, conn, test_env):
     "2013 - test with decimal data using a data frame"
     data = {
         "Id": [
@@ -489,7 +493,7 @@ def test_2013(empty_tab, conn, test_env):
         _verify_data_frame(conn, df, column_names, test_env)
 
 
-def test_2014(empty_tab, conn, test_env):
+def test_connection_2014(empty_tab, conn, test_env):
     "2014 - test string data that exceeds the maximum length"
     column_names = ["Id", "FirstName"]
     rows = [(1, "Sally"), (2, "Jill" * 26)]
@@ -502,7 +506,7 @@ def test_2014(empty_tab, conn, test_env):
         )
 
 
-def test_2015(empty_tab, conn, test_env):
+def test_connection_2015(empty_tab, conn, test_env):
     "2015 - test string data that exceeds the maximum length with a data frame"
     data = {
         "Id": [1, 2, 3],
@@ -519,7 +523,7 @@ def test_2015(empty_tab, conn, test_env):
         )
 
 
-def test_2016(conn, test_env):
+def test_connection_2016(conn, test_env):
     "2016 - test data that is null"
     column_names = ["IntCol", "StringCol", "RawCol", "FixedCharCol"]
     rows = [(100, "String 100", b"Raw", "Fixed"), (2, None, b"Raw", "Fixed")]
@@ -532,7 +536,7 @@ def test_2016(conn, test_env):
         )
 
 
-def test_2017(conn, test_env):
+def test_connection_2017(conn, test_env):
     "2017 - test data that is null in a data frame"
     data = {
         "IntCol": [100, 200, 300],
@@ -551,7 +555,7 @@ def test_2017(conn, test_env):
         )
 
 
-def test_2018(conn, test_env):
+def test_connection_2018(conn, test_env):
     "2018 - test data containing empty string"
     column_names = ["IntCol", "StringCol", "RawCol", "FixedCharCol"]
     rows = [(100, "String 100", b"Raw", "Fixed"), (2, "", b"Raw", "Fixed")]
@@ -564,7 +568,7 @@ def test_2018(conn, test_env):
         )
 
 
-def test_2019(conn, test_env):
+def test_connection_2019(conn, test_env):
     "2019 - test data containing empty string in a data frame"
     data = {
         "IntCol": [100, 200, 300],
@@ -583,7 +587,7 @@ def test_2019(conn, test_env):
         )
 
 
-def test_2020(empty_tab, conn, test_env):
+def test_connection_2020(empty_tab, conn, test_env):
     "2020 - test data is committed on success"
     column_names = ["Id", "FirstName"]
     rows = [(1, "Sally"), (2, "Jill")]
@@ -597,7 +601,7 @@ def test_2020(empty_tab, conn, test_env):
     _verify_data(conn, rows, column_names)
 
 
-def test_2021(empty_tab, conn, test_env):
+def test_connection_2021(empty_tab, conn, test_env):
     "2021 - test data is committed on success using a data frame"
     data = {
         "Id": [1, 2, 3],
@@ -615,7 +619,9 @@ def test_2021(empty_tab, conn, test_env):
     _verify_data_frame(conn, df, column_names, test_env)
 
 
-def test_2022(skip_unless_native_boolean_supported, test_env, conn, cursor):
+def test_connection_2022(
+    skip_unless_native_boolean_supported, test_env, conn, cursor
+):
     "2022 - test data with boolean values"
     arrays = [
         pyarrow.array([1, 2, 3], pyarrow.int64()),
@@ -640,7 +646,7 @@ def test_2022(skip_unless_native_boolean_supported, test_env, conn, cursor):
     assert cursor.fetchall() == data
 
 
-def test_2023(test_env, conn, cursor):
+def test_connection_2023(test_env, conn, cursor):
     "2023 - test data with interval types"
     table_name = "TestAllTypes"
     cursor.execute(f"delete from {table_name}")

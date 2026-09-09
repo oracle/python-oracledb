@@ -60,14 +60,14 @@ def _verify_attr(obj, attrName, value):
     assert getattr(obj, attrName) == value
 
 
-async def test_1500(queue):
+async def test_aq_1500(queue):
     "1500 - test dequeuing an empty RAW queue"
     queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
     props = await queue.deqone()
     assert props is None
 
 
-async def test_1501(async_conn, queue):
+async def test_aq_1501(async_conn, queue):
     "1501 - test enqueuing and dequeuing multiple RAW messages"
     props = async_conn.msgproperties()
     for value in RAW_DATA:
@@ -87,7 +87,7 @@ async def test_1501(async_conn, queue):
     assert results == RAW_DATA
 
 
-async def test_1502(async_conn, queue):
+async def test_aq_1502(async_conn, queue):
     "1502 - test dequeuing with DEQ_REMOVE_NODATA in RAW queue"
     value = RAW_DATA[1]
     props = async_conn.msgproperties(payload=value)
@@ -100,7 +100,7 @@ async def test_1502(async_conn, queue):
     assert props.payload == b""
 
 
-async def test_1503(queue):
+async def test_aq_1503(queue):
     "1503 - test getting/setting dequeue options attributes"
     options = queue.deqoptions
     _verify_attr(options, "condition", "TEST_CONDITION")
@@ -114,20 +114,20 @@ async def test_1503(queue):
     _verify_attr(options, "msgid", b"mID")
 
 
-async def test_1504(queue):
+async def test_aq_1504(queue):
     "1504 - test enqueue options attributes RAW queue"
     options = queue.enqoptions
     _verify_attr(options, "visibility", oracledb.ENQ_IMMEDIATE)
 
 
-async def test_1505(queue):
+async def test_aq_1505(queue):
     "1505 - test errors for invalid values for enqueue"
     value = RAW_DATA[0]
     with pytest.raises(TypeError):
         await queue.enqone(value)
 
 
-async def test_1506(async_conn):
+async def test_aq_1506(async_conn):
     "1506 - test getting/setting message properties attributes"
     props = async_conn.msgproperties()
     _verify_attr(props, "correlation", "TEST_CORRELATION")
@@ -140,7 +140,7 @@ async def test_1506(async_conn):
     assert props.deliverymode == 0
 
 
-async def test_1507(async_conn, queue, test_env):
+async def test_aq_1507(async_conn, queue, test_env):
     "1507 - test enqueue visibility option - ENQ_ON_COMMIT"
     value = RAW_DATA[0]
     queue.enqoptions.visibility = oracledb.ENQ_ON_COMMIT
@@ -158,7 +158,7 @@ async def test_1507(async_conn, queue, test_env):
         assert props is not None
 
 
-async def test_1508(queue, async_conn, test_env):
+async def test_aq_1508(queue, async_conn, test_env):
     "1508 - test enqueue visibility option - ENQ_IMMEDIATE"
     value = RAW_DATA[0]
     queue.enqoptions.visibility = oracledb.ENQ_IMMEDIATE
@@ -177,7 +177,7 @@ async def test_1508(queue, async_conn, test_env):
         assert results == RAW_DATA[0]
 
 
-async def test_1509(queue, async_conn, test_env):
+async def test_aq_1509(queue, async_conn, test_env):
     "1509 - test enqueue/dequeue delivery modes identical - buffered"
     value = RAW_DATA[0]
     queue.enqoptions.deliverymode = oracledb.MSG_BUFFERED
@@ -199,7 +199,7 @@ async def test_1509(queue, async_conn, test_env):
         assert props.deliverymode == oracledb.MSG_BUFFERED
 
 
-async def test_1510(queue, async_conn, test_env):
+async def test_aq_1510(queue, async_conn, test_env):
     "1510 - test enqueue/dequeue delivery modes identical - persistent"
     value = RAW_DATA[0]
     queue.enqoptions.deliverymode = oracledb.MSG_PERSISTENT
@@ -221,7 +221,7 @@ async def test_1510(queue, async_conn, test_env):
         assert props.deliverymode == oracledb.MSG_PERSISTENT
 
 
-async def test_1511(queue, async_conn, test_env):
+async def test_aq_1511(queue, async_conn, test_env):
     "1511 - test enqueue/dequeue delivery modes the same"
     value = RAW_DATA[0]
     queue.enqoptions.deliverymode = oracledb.MSG_PERSISTENT_OR_BUFFERED
@@ -242,7 +242,7 @@ async def test_1511(queue, async_conn, test_env):
         assert results == RAW_DATA[0]
 
 
-async def test_1512(queue, async_conn, test_env):
+async def test_aq_1512(queue, async_conn, test_env):
     "1512 - test enqueue/dequeue delivery modes different"
     value = RAW_DATA[0]
     queue.enqoptions.deliverymode = oracledb.MSG_BUFFERED
@@ -260,7 +260,7 @@ async def test_1512(queue, async_conn, test_env):
         assert props is None
 
 
-async def test_1513(async_conn, test_env):
+async def test_aq_1513(async_conn, test_env):
     "1513 - test error for message with no payload"
     queue = async_conn.queue("TEST_RAW_QUEUE")
     props = async_conn.msgproperties()
@@ -268,7 +268,7 @@ async def test_1513(async_conn, test_env):
         await queue.enqone(props)
 
 
-async def test_1514(async_conn, async_cursor, queue):
+async def test_aq_1514(async_conn, async_cursor, queue):
     "1514 - verify that the msgid property is returned correctly"
     value = RAW_DATA[0]
     props = async_conn.msgproperties(payload=value)
@@ -281,7 +281,7 @@ async def test_1514(async_conn, async_cursor, queue):
     assert props.msgid == actual_msgid
 
 
-async def test_1515(async_conn, async_cursor, queue):
+async def test_aq_1515(async_conn, async_cursor, queue):
     "1515 - test message props enqtime"
     value = RAW_DATA[0]
     await async_cursor.execute("select current_timestamp from dual")
@@ -296,7 +296,7 @@ async def test_1515(async_conn, async_cursor, queue):
     assert start_date <= props.enqtime <= end_date
 
 
-async def test_1516(async_conn, queue):
+async def test_aq_1516(async_conn, queue):
     "1516 - test message props declared attributes"
     value = RAW_DATA[0]
     values = dict(
@@ -317,20 +317,20 @@ async def test_1516(async_conn, queue):
         assert getattr(prop, attr_name) == values[attr_name]
 
 
-async def test_1517(async_conn, queue):
+async def test_aq_1517(async_conn, queue):
     "1517 - test getting queue attributes"
     assert queue.name == "TEST_RAW_QUEUE"
     assert queue.connection is async_conn
 
 
-async def test_1518(queue):
+async def test_aq_1518(queue):
     "1518 - test getting write-only attributes"
     for options in (queue.enqoptions, queue.deqoptions):
         with pytest.raises(AttributeError):
             options.deliverymode
 
 
-async def test_1519(async_conn, queue):
+async def test_aq_1519(async_conn, queue):
     "1519 - test deqoption condition with priority"
     queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
     priorities = [5, 5, 5, 5, 10, 9, 9, 10, 9]
@@ -350,7 +350,7 @@ async def test_1519(async_conn, queue):
     assert len(results) == 3
 
 
-async def test_1520(async_conn, queue):
+async def test_aq_1520(async_conn, queue):
     "1520 - test deqoption correlation"
     queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
     correlations = [
@@ -378,7 +378,7 @@ async def test_1520(async_conn, queue):
     assert len(results) == 2
 
 
-async def test_1521(async_conn, queue):
+async def test_aq_1521(async_conn, queue):
     "1521 - test deqoption msgid"
     value = RAW_DATA[0]
     props = async_conn.msgproperties(payload=value)
@@ -395,18 +395,18 @@ async def test_1521(async_conn, queue):
     assert prop.msgid == msgid
 
 
-async def test_1522(queue):
+async def test_aq_1522(queue):
     "1522 - test payload_type returns the correct value"
     assert queue.payload_type is None
 
 
-async def test_1523(queue):
+async def test_aq_1523(queue):
     "1523 - test deprecated attributes (enqOptions, deqOptions)"
     assert queue.enqOptions is queue.enqoptions
     assert queue.deqOptions is queue.deqoptions
 
 
-async def test_1524(async_conn, queue, test_env):
+async def test_aq_1524(async_conn, queue, test_env):
     "1524 - test wrong payload type"
     typ = await async_conn.gettype("UDT_BOOK")
     obj = typ.newobject()
@@ -415,7 +415,7 @@ async def test_1524(async_conn, queue, test_env):
         await queue.enqone(props)
 
 
-async def test_1525(async_conn, queue):
+async def test_aq_1525(async_conn, queue):
     "1525 - test deq options correlation with buffered messages"
     value = RAW_DATA[0]
     props = async_conn.msgproperties(payload=value, correlation="sample")
@@ -432,7 +432,7 @@ async def test_1525(async_conn, queue):
     assert msg.payload == value
 
 
-async def test_1526(queue, test_env):
+async def test_aq_1526(queue, test_env):
     "1526 - test deq options with msgid > 16 bytes"
     queue.deqoptions.msgid = b"invalid_msgid_123456789"
     queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
@@ -440,7 +440,7 @@ async def test_1526(queue, test_env):
         await queue.deqone()
 
 
-async def test_1527(queue, test_env):
+async def test_aq_1527(queue, test_env):
     "1527 - test deq options with msgid < 16 bytes"
     queue.deqoptions.msgid = b"short_msgid"
     queue.deqoptions.wait = oracledb.DEQ_NO_WAIT

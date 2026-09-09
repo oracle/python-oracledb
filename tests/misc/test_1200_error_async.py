@@ -37,7 +37,7 @@ def module_checks(anyio_backend, skip_unless_thin_mode):
     pass
 
 
-async def test_1200(async_cursor):
+async def test_misc_1200(async_cursor):
     "1200 - test parse error returns offset correctly"
     with pytest.raises(oracledb.Error) as excinfo:
         await async_cursor.execute("begin t_Missing := 5; end;")
@@ -46,7 +46,7 @@ async def test_1200(async_cursor):
     assert error_obj.offset == 6
 
 
-async def test_1201(async_cursor):
+async def test_misc_1201(async_cursor):
     "1201 - test picking/unpickling an error object"
     with pytest.raises(oracledb.Error) as excinfo:
         await async_cursor.execute("""
@@ -70,7 +70,7 @@ async def test_1201(async_cursor):
     assert new_error_obj.isrecoverable == error_obj.isrecoverable
 
 
-async def test_1202(async_cursor):
+async def test_misc_1202(async_cursor):
     "1202 - test generation of full_code for ORA, DPI and DPY errors"
     with pytest.raises(oracledb.Error) as excinfo:
         await async_cursor.execute(None)
@@ -78,7 +78,7 @@ async def test_1202(async_cursor):
     assert error_obj.full_code == "DPY-2001"
 
 
-async def test_1203(async_cursor):
+async def test_misc_1203(async_cursor):
     "1203 - test generation of error help portal URL"
     with pytest.raises(oracledb.Error) as excinfo:
         await async_cursor.execute("select 1 / 0 from dual")
@@ -87,7 +87,7 @@ async def test_1203(async_cursor):
     assert to_check in error_obj.message
 
 
-async def test_1204(async_cursor):
+async def test_misc_1204(async_cursor):
     "1204 - verify warning is generated when creating a procedure"
     proc_name = "bad_proc_1704"
     assert async_cursor.warning is None
@@ -108,7 +108,7 @@ async def test_1204(async_cursor):
     await async_cursor.execute(f"drop procedure {proc_name}")
 
 
-async def test_1205(async_cursor):
+async def test_misc_1205(async_cursor):
     "1205 - verify warning is generated when creating a function"
     func_name = "bad_func_1705"
     await async_cursor.execute(f"""
@@ -123,7 +123,7 @@ async def test_1205(async_cursor):
     assert async_cursor.warning is None
 
 
-async def test_1206(async_cursor):
+async def test_misc_1206(async_cursor):
     "1206 - verify warning is generated when creating a type"
     type_name = "bad_type_1706"
     await async_cursor.execute(f"""
@@ -136,7 +136,7 @@ async def test_1206(async_cursor):
     assert async_cursor.warning is None
 
 
-async def test_1207(async_conn):
+async def test_misc_1207(async_conn):
     "1207 - verify warning is saved in a pipeline"
     proc_name = "bad_proc_1704"
     func_name = "bad_func_1705"
@@ -179,7 +179,7 @@ async def test_1207(async_conn):
     assert results[6].warning is None
 
 
-async def test_1208(async_conn, async_cursor):
+async def test_misc_1208(async_conn, async_cursor):
     "1208 - verify warning is saved in a pipeline with a single operation"
     proc_name = "bad_proc_6808"
     pipeline = oracledb.create_pipeline()
@@ -194,7 +194,7 @@ async def test_1208(async_conn, async_cursor):
     await async_cursor.execute(f"drop procedure {proc_name}")
 
 
-async def test_1209(skip_if_drcp, test_env):
+async def test_misc_1209(skip_if_drcp, test_env):
     "1209 - error from killed connection is deemed recoverable"
     admin_conn = await test_env.get_admin_connection_async()
     conn = await test_env.get_connection_async()

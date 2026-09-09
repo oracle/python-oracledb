@@ -53,7 +53,7 @@ def module_data_by_key(module_data):
     return data_by_key
 
 
-def test_1400(cursor, module_data_by_key):
+def test_data_types_1400(cursor, module_data_by_key):
     "1400 - test binding in an interval"
     value = oracledb.IntervalYM(1, 6)
     cursor.execute(
@@ -63,7 +63,7 @@ def test_1400(cursor, module_data_by_key):
     assert cursor.fetchall() == [module_data_by_key[6]]
 
 
-def test_1401(cursor):
+def test_data_types_1401(cursor):
     "1401 - test binding in a null"
     cursor.setinputsizes(value=oracledb.DB_TYPE_INTERVAL_YM)
     cursor.execute(
@@ -73,7 +73,7 @@ def test_1401(cursor):
     assert cursor.fetchall() == []
 
 
-def test_1402(cursor):
+def test_data_types_1402(cursor):
     "1402 - test binding out with set input sizes defined"
     bind_vars = cursor.setinputsizes(value=oracledb.DB_TYPE_INTERVAL_YM)
     cursor.execute("""
@@ -85,7 +85,7 @@ def test_1402(cursor):
     assert bind_vars["value"].getvalue() == expected_value
 
 
-def test_1403(cursor):
+def test_data_types_1403(cursor):
     "1403 - test binding in/out with set input sizes defined"
     bind_vars = cursor.setinputsizes(value=oracledb.DB_TYPE_INTERVAL_YM)
     cursor.execute(
@@ -100,7 +100,7 @@ def test_1403(cursor):
     assert bind_vars["value"].getvalue() == expected_value
 
 
-def test_1404(cursor):
+def test_data_types_1404(cursor):
     "1404 - test binding out with cursor.var() method"
     var = cursor.var(oracledb.DB_TYPE_INTERVAL_YM)
     cursor.execute(
@@ -115,7 +115,7 @@ def test_1404(cursor):
     assert var.getvalue() == expected_value
 
 
-def test_1405(cursor):
+def test_data_types_1405(cursor):
     "1405 - test binding in/out with cursor.var() method"
     var = cursor.var(oracledb.DB_TYPE_INTERVAL_YM)
     var.setvalue(0, oracledb.IntervalYM(years=3, months=10))
@@ -131,7 +131,7 @@ def test_1405(cursor):
     assert var.getvalue() == expected_value
 
 
-def test_1406(cursor):
+def test_data_types_1406(cursor):
     "1406 - test cursor description is accurate"
     cursor.execute("select * from TestIntervalYMs")
     expected_value = [
@@ -167,14 +167,14 @@ def test_1406(cursor):
     assert cursor.description == expected_value
 
 
-def test_1407(cursor, module_data):
+def test_data_types_1407(cursor, module_data):
     "1407 - test that fetching all of the data returns the correct results"
     cursor.execute("select * From TestIntervalYMs order by IntCol")
     assert cursor.fetchall() == module_data
     assert cursor.fetchall() == []
 
 
-def test_1408(cursor, module_data):
+def test_data_types_1408(cursor, module_data):
     "1408 - test that fetching data in chunks returns the correct results"
     cursor.execute("select * From TestIntervalYMs order by IntCol")
     assert cursor.fetchmany(3) == module_data[0:3]
@@ -184,7 +184,7 @@ def test_1408(cursor, module_data):
     assert cursor.fetchmany(3) == []
 
 
-def test_1409(cursor, module_data_by_key):
+def test_data_types_1409(cursor, module_data_by_key):
     "1409 - test that fetching a single row returns the correct results"
     cursor.execute("""
         select *
@@ -197,7 +197,7 @@ def test_1409(cursor, module_data_by_key):
     assert cursor.fetchone() is None
 
 
-def test_1410(cursor):
+def test_data_types_1410(cursor):
     "1410 - test binding and fetching a negative interval"
     value = oracledb.IntervalYM(years=-12, months=-5)
     cursor.execute("select :1 from dual", [value])

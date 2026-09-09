@@ -34,7 +34,7 @@ def module_checks(anyio_backend, skip_unless_thin_mode, test_env):
     test_env.skip_unless_server_version(12, 2)
 
 
-async def test_1700(async_conn):
+async def test_cursor_1700(async_conn):
     "1700 - test creating a scrollable cursor"
     cursor = async_conn.cursor()
     assert not cursor.scrollable
@@ -46,7 +46,7 @@ async def test_1700(async_conn):
     assert not cursor.scrollable
 
 
-async def test_1701(async_conn, test_env):
+async def test_cursor_1701(async_conn, test_env):
     "1701 - test scrolling absolute yields an exception (after result set)"
     cursor = async_conn.cursor(scrollable=True)
     await cursor.execute("select NumberCol from TestNumbers order by IntCol")
@@ -54,7 +54,7 @@ async def test_1701(async_conn, test_env):
         await cursor.scroll(12, "absolute")
 
 
-async def test_1702(async_conn):
+async def test_cursor_1702(async_conn):
     "1702 - test scrolling absolute (when in buffers)"
     cursor = async_conn.cursor(scrollable=True)
     cursor.prefetchrows = 0
@@ -69,7 +69,7 @@ async def test_1702(async_conn):
     assert cursor.rowcount == 1
 
 
-async def test_1703(async_conn):
+async def test_cursor_1703(async_conn):
     "1703 - test scrolling absolute (when not in buffers)"
     cursor = async_conn.cursor(scrollable=True)
     await cursor.execute("select NumberCol from TestNumbers order by IntCol")
@@ -79,7 +79,7 @@ async def test_1703(async_conn):
     assert cursor.rowcount == 6
 
 
-async def test_1704(async_conn):
+async def test_cursor_1704(async_conn):
     "1704 - test scrolling to first row in result set (in buffers)"
     cursor = async_conn.cursor(scrollable=True)
     cursor.prefetchrows = 0
@@ -91,7 +91,7 @@ async def test_1704(async_conn):
     assert cursor.rowcount == 1
 
 
-async def test_1705(async_conn):
+async def test_cursor_1705(async_conn):
     "1705 - test scrolling to first row in result set (not in buffers)"
     cursor = async_conn.cursor(scrollable=True)
     cursor.prefetchrows = 0
@@ -104,7 +104,7 @@ async def test_1705(async_conn):
     assert cursor.rowcount == 1
 
 
-async def test_1706(async_conn):
+async def test_cursor_1706(async_conn):
     "1706 - test scrolling to last row in result set"
     cursor = async_conn.cursor(scrollable=True)
     await cursor.execute("select NumberCol from TestNumbers order by IntCol")
@@ -114,7 +114,7 @@ async def test_1706(async_conn):
     assert cursor.rowcount == 10
 
 
-async def test_1707(async_conn, test_env):
+async def test_cursor_1707(async_conn, test_env):
     "1707 - test scrolling relative yields an exception (after result set)"
     cursor = async_conn.cursor(scrollable=True)
     await cursor.execute("select NumberCol from TestNumbers order by IntCol")
@@ -122,7 +122,7 @@ async def test_1707(async_conn, test_env):
         await cursor.scroll(15)
 
 
-async def test_1708(async_conn, test_env):
+async def test_cursor_1708(async_conn, test_env):
     "1708 - test scrolling relative yields exception (before result set)"
     cursor = async_conn.cursor(scrollable=True)
     await cursor.execute("select NumberCol from TestNumbers order by IntCol")
@@ -130,7 +130,7 @@ async def test_1708(async_conn, test_env):
         await cursor.scroll(-5)
 
 
-async def test_1709(async_conn):
+async def test_cursor_1709(async_conn):
     "1709 - test scrolling relative (when in buffers)"
     cursor = async_conn.cursor(scrollable=True)
     cursor.prefetchrows = 0
@@ -144,7 +144,7 @@ async def test_1709(async_conn):
     assert cursor.rowcount == 2
 
 
-async def test_1710(async_conn):
+async def test_cursor_1710(async_conn):
     "1710 - test scrolling relative (when not in buffers)"
     cursor = async_conn.cursor(scrollable=True)
     await cursor.execute("select NumberCol from TestNumbers order by IntCol")
@@ -158,7 +158,7 @@ async def test_1710(async_conn):
     assert cursor.rowcount == 3
 
 
-async def test_1711(async_conn, async_cursor, test_env):
+async def test_cursor_1711(async_conn, async_cursor, test_env):
     "1711 - test scrolling when there are no rows"
     await async_cursor.execute("truncate table TestTempTable")
     cursor = async_conn.cursor(scrollable=True)
@@ -171,7 +171,7 @@ async def test_1711(async_conn, async_cursor, test_env):
         await cursor.scroll(1, mode="absolute")
 
 
-async def test_1712(async_conn, async_cursor):
+async def test_cursor_1712(async_conn, async_cursor):
     "1712 - test scrolling with differing array and fetch array sizes"
     await async_cursor.execute("truncate table TestTempTable")
     for i in range(30):
@@ -206,7 +206,7 @@ async def test_1712(async_conn, async_cursor):
             assert cursor.rowcount == count
 
 
-async def test_1713(async_conn, test_env):
+async def test_cursor_1713(async_conn, test_env):
     "1713 - test calling scroll() with invalid mode"
     cursor = async_conn.cursor(scrollable=True)
     await cursor.execute("select NumberCol from TestNumbers order by IntCol")
@@ -215,7 +215,7 @@ async def test_1713(async_conn, test_env):
         await cursor.scroll(mode="middle")
 
 
-async def test_1714(async_conn):
+async def test_cursor_1714(async_conn):
     "1714 - test scroll after fetching all rows"
     cursor = async_conn.cursor(scrollable=True)
     cursor.arraysize = 5
@@ -228,7 +228,7 @@ async def test_1714(async_conn):
     assert cursor.rowcount == 5
 
 
-async def test_1715(async_conn):
+async def test_cursor_1715(async_conn):
     "1715 - test parse() on a scrollable cursor"
     cursor = async_conn.cursor(scrollable=True)
     statement = """
@@ -251,7 +251,7 @@ async def test_1715(async_conn):
     assert fetched_value == 5
 
 
-async def test_1716(async_conn):
+async def test_cursor_1716(async_conn):
     "1716 - test scroll operation with bind values"
     cursor = async_conn.cursor(scrollable=True)
     base_value = 4215
@@ -270,7 +270,7 @@ async def test_1716(async_conn):
     assert fetched_value == base_value + 3
 
 
-async def test_1717(async_conn, test_env):
+async def test_cursor_1717(async_conn, test_env):
     "8717 - test calling scroll() on a non-scrollable cursor"
     cursor = async_conn.cursor()
     await cursor.execute("select NumberCol from TestNumbers order by IntCol")

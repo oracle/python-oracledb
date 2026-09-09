@@ -87,7 +87,7 @@ def output_type_handler(cursor, metadata):
         )
 
 
-async def test_1200(async_cursor, test_env):
+async def test_hooks_1200(async_cursor, test_env):
     "1200 - binding unsupported python object without input type handler"
     await async_cursor.execute("truncate table TestTempTable")
     sql = "insert into TestTempTable (IntCol, StringCol1) values (:1, :2)"
@@ -96,7 +96,7 @@ async def test_1200(async_cursor, test_env):
         await async_cursor.execute(sql, [building.building_id, building])
 
 
-async def test_1201(async_conn, async_cursor):
+async def test_hooks_1201(async_conn, async_cursor):
     "1201 - not callable input type handler"
     await async_cursor.execute("truncate table TestTempTable")
     building = Building(1, "The First Building", 5)
@@ -107,7 +107,7 @@ async def test_1201(async_conn, async_cursor):
         await async_cursor.execute(sql, (building.building_id, building))
 
 
-async def test_1202(async_conn, async_cursor):
+async def test_hooks_1202(async_conn, async_cursor):
     "1202 - binding unsupported python object with input type handler"
     await async_cursor.execute("truncate table TestTempTable")
     building = Building(1, "The First Building", 5)
@@ -127,7 +127,7 @@ async def test_1202(async_conn, async_cursor):
     ]
 
 
-async def test_1203(async_conn, async_cursor, test_env):
+async def test_hooks_1203(async_conn, async_cursor, test_env):
     "1203 - input type handler and output type handler on cursor level"
     await async_cursor.execute("truncate table TestTempTable")
     building_one = Building(1, "The First Building", 5)
@@ -153,7 +153,7 @@ async def test_1203(async_conn, async_cursor, test_env):
     ]
 
 
-async def test_1204(async_conn, async_cursor, test_env):
+async def test_hooks_1204(async_conn, async_cursor, test_env):
     "1204 - input type handler and output type handler on connection level"
     await async_cursor.execute("truncate table TestTempTable")
     building_one = Building(1, "The First Building", 5)
@@ -188,7 +188,7 @@ async def test_1204(async_conn, async_cursor, test_env):
         )
 
 
-async def test_1205(async_conn, async_cursor):
+async def test_hooks_1205(async_conn, async_cursor):
     "1205 - output type handler with outconvert and null values"
     await async_cursor.execute("truncate table TestTempTable")
     data_to_insert = [(1, "String 1"), (2, None), (3, "String 2")]
@@ -220,7 +220,7 @@ async def test_1205(async_conn, async_cursor):
     assert await async_cursor.fetchall() == expected_data
 
 
-async def test_1206(skip_unless_native_json_supported, async_cursor):
+async def test_hooks_1206(skip_unless_native_json_supported, async_cursor):
     "1206 - output type handler for fetching 21c JSON"
 
     def output_type_handler(cursor, metadata):
@@ -245,7 +245,7 @@ async def test_1206(skip_unless_native_json_supported, async_cursor):
     assert await async_cursor.fetchall() == data_to_insert
 
 
-async def test_1207(async_conn):
+async def test_hooks_1207(async_conn):
     "1207 - output type handler with object implementing __call__()"
 
     class TimestampOutputTypeHandler:

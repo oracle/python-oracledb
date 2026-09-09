@@ -116,14 +116,14 @@ def _verify_attr(obj, attrName, value):
     assert getattr(obj, attrName) == value
 
 
-def test_1600(queue):
+def test_aq_1600(queue):
     "1600 - test dequeuing an empty JSON queue"
     queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
     props = queue.deqone()
     assert props is None
 
 
-def test_1601(queue, conn):
+def test_aq_1601(queue, conn):
     "1601 - test enqueuing and dequeuing multiple JSON messages"
     props = conn.msgproperties()
     for data in JSON_DATA:
@@ -143,7 +143,7 @@ def test_1601(queue, conn):
 
 
 @pytest.mark.skip("awaiting fix for bug 37746852")
-def test_1602(queue, conn):
+def test_aq_1602(queue, conn):
     "1602 - test dequeuing with DEQ_REMOVE_NODATA option"
     data = JSON_DATA[1]
     props = conn.msgproperties(payload=data)
@@ -156,7 +156,7 @@ def test_1602(queue, conn):
     assert props.payload is None
 
 
-def test_1603(queue):
+def test_aq_1603(queue):
     "1603 - test getting/setting dequeue options attributes"
     options = queue.deqoptions
     _verify_attr(options, "condition", "TEST_CONDITION")
@@ -170,7 +170,7 @@ def test_1603(queue):
     _verify_attr(options, "msgid", b"mID")
 
 
-def test_1604(queue, conn, test_env):
+def test_aq_1604(queue, conn, test_env):
     "1604 - test waiting for dequeue"
     results = []
     thread = threading.Thread(target=_deq_in_thread, args=(test_env, results))
@@ -183,13 +183,13 @@ def test_1604(queue, conn, test_env):
     assert results == [data]
 
 
-def test_1605(queue):
+def test_aq_1605(queue):
     "1605 - test getting/setting enqueue options attributes"
     options = queue.enqoptions
     _verify_attr(options, "visibility", oracledb.ENQ_IMMEDIATE)
 
 
-def test_1606(conn):
+def test_aq_1606(conn):
     "1606 - test getting/setting message properties attributes"
     props = conn.msgproperties()
     _verify_attr(props, "correlation", "TEST_CORRELATION")
@@ -202,7 +202,7 @@ def test_1606(conn):
     assert props.deliverymode == 0
 
 
-def test_1607(queue, conn, test_env):
+def test_aq_1607(queue, conn, test_env):
     "1607 - test enqueue visibility options - ENQ_ON_COMMIT"
     data = JSON_DATA[0]
     queue.enqoptions.visibility = oracledb.ENQ_ON_COMMIT
@@ -220,7 +220,7 @@ def test_1607(queue, conn, test_env):
         assert props is not None
 
 
-def test_1608(queue, conn, test_env):
+def test_aq_1608(queue, conn, test_env):
     "1608 - test enqueue visibility option - ENQ_IMMEDIATE"
     data = JSON_DATA[0]
     queue.enqoptions.visibility = oracledb.ENQ_IMMEDIATE
@@ -239,7 +239,7 @@ def test_1608(queue, conn, test_env):
         assert results == JSON_DATA[0]
 
 
-def test_1609(queue, conn, test_env):
+def test_aq_1609(queue, conn, test_env):
     "1609 - test enqueue/dequeue delivery modes identical - persistent"
     data = JSON_DATA[0]
     queue.enqoptions.deliverymode = oracledb.MSG_PERSISTENT
@@ -260,14 +260,14 @@ def test_1609(queue, conn, test_env):
         assert results == JSON_DATA[0]
 
 
-def test_1610(queue, conn, test_env):
+def test_aq_1610(queue, conn, test_env):
     "1610 - test error for message with no payload"
     props = conn.msgproperties()
     with test_env.assert_raises_full_code("DPY-2000"):
         queue.enqone(props)
 
 
-def test_1611(queue, conn, cursor):
+def test_aq_1611(queue, conn, cursor):
     "1611 - verify that the msgid property is returned correctly"
     data = JSON_DATA[0]
     props = conn.msgproperties(payload=data)
@@ -280,7 +280,7 @@ def test_1611(queue, conn, cursor):
     assert props.msgid == actual_msgid
 
 
-def test_1612(queue, conn, cursor):
+def test_aq_1612(queue, conn, cursor):
     "1612 - test message props enqtime"
     data = JSON_DATA[0]
     cursor.execute("select current_timestamp from dual")
@@ -295,7 +295,7 @@ def test_1612(queue, conn, cursor):
     assert start_date <= props.enqtime <= end_date
 
 
-def test_1613(queue, conn):
+def test_aq_1613(queue, conn):
     "1613 - test message props declared attributes"
     data = JSON_DATA[0]
     values = dict(
@@ -316,20 +316,20 @@ def test_1613(queue, conn):
         assert getattr(prop, attr_name) == values[attr_name]
 
 
-def test_1614(queue, conn):
+def test_aq_1614(queue, conn):
     "1614 - test getting queue attributes"
     assert queue.name == "TEST_JSON_QUEUE"
     assert queue.connection is conn
 
 
-def test_1615(queue):
+def test_aq_1615(queue):
     "1615 - test getting write-only attributes"
     for options in (queue.enqoptions, queue.deqoptions):
         with pytest.raises(AttributeError):
             options.deliverymode
 
 
-def test_1616(queue, conn):
+def test_aq_1616(queue, conn):
     "1616 - test deqoption condition with priority"
     queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
     priorities = [5, 5, 5, 5, 10, 9, 9, 10, 9]
@@ -349,7 +349,7 @@ def test_1616(queue, conn):
     assert len(results) == 3
 
 
-def test_1617(queue, conn):
+def test_aq_1617(queue, conn):
     "1617 - test deqoption correlation"
     queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
     correlations = [
@@ -375,7 +375,7 @@ def test_1617(queue, conn):
     assert len(results) == 2
 
 
-def test_1618(queue, conn):
+def test_aq_1618(queue, conn):
     "1618 - test deqoption msgid"
     data = JSON_DATA[0]
     props = conn.msgproperties(payload=data)
@@ -392,18 +392,18 @@ def test_1618(queue, conn):
     assert prop.msgid == msgid
 
 
-def test_1619(queue):
+def test_aq_1619(queue):
     "1619 - test payload_type returns the correct value"
     assert queue.payload_type == "JSON"
 
 
-def test_1620(queue):
+def test_aq_1620(queue):
     "1620 - test deprecated attributes (enqOptions, deqOptions)"
     assert queue.enqOptions is queue.enqoptions
     assert queue.deqOptions is queue.deqoptions
 
 
-def test_1621(queue, conn):
+def test_aq_1621(queue, conn):
     "1621 - test deprecated AQ methods (enqOne, deqOne)"
     data = JSON_DATA[0]
     queue.enqOne(conn.msgproperties(payload=data))
@@ -411,7 +411,7 @@ def test_1621(queue, conn):
     assert props.payload == data
 
 
-def test_1622(queue, conn, test_env):
+def test_aq_1622(queue, conn, test_env):
     "1622 - test wrong payload type"
     props = conn.msgproperties(payload="A string")
     with test_env.assert_raises_full_code("DPY-2062"):

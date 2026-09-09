@@ -32,7 +32,7 @@ import tempfile
 import oracledb
 
 
-def test_1500():
+def test_misc_1500():
     "1500 - test simple tnsnames.ora entry"
     host = "host_7200"
     port = 7200
@@ -52,7 +52,7 @@ def test_1500():
     assert params.service_name == service_name
 
 
-def test_1501(test_env):
+def test_misc_1501(test_env):
     "1501 - test missing entry in tnsnames.ora"
     with tempfile.TemporaryDirectory() as temp_dir:
         params = oracledb.ConnectParams(config_dir=temp_dir)
@@ -64,7 +64,7 @@ def test_1501(test_env):
         assert params.get_network_service_names() == []
 
 
-def test_1502(test_env):
+def test_misc_1502(test_env):
     "1502 - test missing tnsnames.ora in configuration directory"
     with tempfile.TemporaryDirectory() as temp_dir:
         params = oracledb.ConnectParams(config_dir=temp_dir)
@@ -74,7 +74,7 @@ def test_1502(test_env):
             params.get_network_service_names()
 
 
-def test_1503():
+def test_misc_1503():
     "1503 - test tnsnames.ora with invalid entries"
     host = "host_7203"
     port = 7203
@@ -95,7 +95,7 @@ def test_1503():
         assert params.service_name == service_name
 
 
-def test_1504():
+def test_misc_1504():
     "1504 - test tnsnames.ora with multiple aliases on one line"
     host = "host_7204"
     port = 7204
@@ -120,7 +120,7 @@ def test_1504():
         )
 
 
-def test_1505():
+def test_misc_1505():
     "1505 - test easy connect string in tnsnames.ora"
     host = "host_7205"
     port = 7205
@@ -141,7 +141,7 @@ def test_1505():
     assert params.service_name == service_name
 
 
-def test_1506():
+def test_misc_1506():
     "1506 - parse connect descriptor with / character in tnsnames.ora"
     host = "host_7206"
     port = 7206
@@ -164,7 +164,7 @@ def test_1506():
     assert params.wallet_location == wallet_location
 
 
-def test_1507():
+def test_misc_1507():
     "1507 - parse IFILE with files in same directory"
     host_a = "host_7207a"
     host_b = "host_7207b"
@@ -200,7 +200,7 @@ def test_1507():
         ]
 
 
-def test_1508():
+def test_misc_1508():
     "1508 - parse IFILE with files in different directories"
     host_a = "host_7208a"
     host_b = "host_7208b"
@@ -238,7 +238,7 @@ def test_1508():
         ]
 
 
-def test_1509(test_env):
+def test_misc_1509(test_env):
     "1509 - cycle detection in same file"
     with tempfile.TemporaryDirectory() as temp_dir:
         network_service_name = "nsn_7209"
@@ -251,7 +251,7 @@ def test_1509(test_env):
             params.parse_connect_string(network_service_name)
 
 
-def test_1510(test_env):
+def test_misc_1510(test_env):
     "1510 - cycle detection in directly included file"
     with tempfile.TemporaryDirectory() as temp_dir:
         network_service_name = "nsn_7210"
@@ -268,7 +268,7 @@ def test_1510(test_env):
             params.parse_connect_string(network_service_name)
 
 
-def test_1511(test_env):
+def test_misc_1511(test_env):
     "1511 - cycle detection in indirectly included file"
     with tempfile.TemporaryDirectory() as temp_dir:
         network_service_name = "nsn_7211"
@@ -289,7 +289,7 @@ def test_1511(test_env):
             params.parse_connect_string(network_service_name)
 
 
-def test_1512():
+def test_misc_1512():
     "1512 - duplicate entry in same file, but identical connect strings"
     host = "host_7212"
     port = 7212
@@ -309,7 +309,7 @@ def test_1512():
         assert params.service_name == service_name
 
 
-def test_1513():
+def test_misc_1513():
     "1513 - duplicate entry in same file, but different connect strings"
     host_a = "host_7213a"
     port = 7213
@@ -332,7 +332,7 @@ def test_1513():
         assert params.service_name == service_name_b
 
 
-def test_1514():
+def test_misc_1514():
     "1514 - duplicate entry in other file, but identical connect strings"
     host = "host_7214"
     port = 7214
@@ -355,7 +355,7 @@ def test_1514():
         assert params.service_name == service_name
 
 
-def test_1515():
+def test_misc_1515():
     "1515 - duplicate entry in other file, but different connect strings"
     host_a = "host_7215a"
     port = 7215
@@ -381,7 +381,7 @@ def test_1515():
         assert params.service_name == service_name_b
 
 
-def test_1516(test_env):
+def test_misc_1516(test_env):
     "1516 - test missing IFILE in tnsnames.ora"
     with tempfile.TemporaryDirectory() as temp_dir:
         file_name = os.path.join(temp_dir, "tnsnames.ora")
@@ -392,7 +392,7 @@ def test_1516(test_env):
             params.parse_connect_string("anything")
 
 
-def test_1517():
+def test_misc_1517():
     "1517 - test duplicate IFILE, same file"
     host = "host_7217"
     port = 7217
@@ -420,7 +420,7 @@ def test_1517():
         ]
 
 
-def test_1518():
+def test_misc_1518():
     "1518 - test duplicate IFILE, different files"
     host = "host_7218"
     port = 7218
@@ -460,7 +460,7 @@ def test_1518():
         ]
 
 
-def test_1519():
+def test_misc_1519():
     "1519 - test tnsnames.ora with multiple aliases on different lines"
     host = "host_7219"
     port = 7219
@@ -483,7 +483,7 @@ def test_1519():
         ]
 
 
-def test_1520():
+def test_misc_1520():
     "1520 - test tnsnames.ora with comment embedded in dsn"
     host = "host_7220"
     port = 7220
@@ -511,7 +511,7 @@ def test_1520():
         ]
 
 
-def test_1521():
+def test_misc_1521():
     "1521 - test tnsnames.ora with a comment between aliases"
     test_values = [
         ("nsn_7221_1", "tcp://host_7221:7221/service_7222_1"),
@@ -530,7 +530,7 @@ def test_1521():
             ]
 
 
-def test_1522():
+def test_misc_1522():
     "1522 - test tnsnames.ora with easy connect and connect descriptors"
     network_service_name1 = "nsn_7222_1"
     connect_string1 = """
@@ -552,7 +552,7 @@ def test_1522():
         ]
 
 
-def test_1523():
+def test_misc_1523():
     "1523 - parse IFILE enclosed in double quotes"
     host_a = "host_7223a"
     host_b = "host_7223b"

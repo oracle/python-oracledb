@@ -90,7 +90,7 @@ def _bind_scalar_as_json(cursor, data):
     assert out_var.values == [[value] for value in data]
 
 
-def test_3100(cursor, json_data):
+def test_data_types_3100(cursor, json_data):
     "3100 - insert and fetch single row with JSON"
     cursor.execute("delete from TestJson")
     cursor.setinputsizes(None, oracledb.DB_TYPE_JSON)
@@ -100,7 +100,7 @@ def test_3100(cursor, json_data):
     assert result == json_data
 
 
-def test_3101(cursor, json_data):
+def test_data_types_3101(cursor, json_data):
     "3101 - inserting single rows with JSON and DML returning"
     json_val = json_data[11]
     cursor.execute("delete from TestJson")
@@ -117,7 +117,7 @@ def test_3101(cursor, json_data):
     assert json_out.getvalue(0) == [json_val]
 
 
-def test_3102(cursor, json_data):
+def test_data_types_3102(cursor, json_data):
     "3102 - insert and fetch multiple rows with JSON"
     cursor.execute("delete from TestJson")
     cursor.setinputsizes(None, oracledb.DB_TYPE_JSON)
@@ -127,7 +127,7 @@ def test_3102(cursor, json_data):
     assert cursor.fetchall() == data
 
 
-def test_3103(cursor, json_data):
+def test_data_types_3103(cursor, json_data):
     "3103 - inserting multiple rows with JSON and DML returning"
     cursor.execute("delete from TestJson")
     int_values = [i for i in range(len(json_data))]
@@ -149,13 +149,13 @@ def test_3103(cursor, json_data):
     assert out_json_var.values == [[v] for v in json_data]
 
 
-def test_3104(cursor):
+def test_data_types_3104(cursor):
     "3104 - test binding boolean values as scalar JSON values"
     data = [True, False, True, True, False, True]
     _bind_scalar_as_json(cursor, data)
 
 
-def test_3105(cursor):
+def test_data_types_3105(cursor):
     "3105 - test binding strings/bytes values as scalar JSON values"
     data = [
         "String 1",
@@ -168,7 +168,7 @@ def test_3105(cursor):
     _bind_scalar_as_json(cursor, data)
 
 
-def test_3106(cursor):
+def test_data_types_3106(cursor):
     "3106 - test binding dates/intervals as scalar JSON values"
     data = [
         datetime.datetime.today(),
@@ -182,7 +182,7 @@ def test_3106(cursor):
     _bind_scalar_as_json(cursor, data)
 
 
-def test_3107(cursor):
+def test_data_types_3107(cursor):
     "3107 - test binding number in json values"
     data = [
         0,
@@ -197,7 +197,7 @@ def test_3107(cursor):
     _bind_scalar_as_json(cursor, data)
 
 
-def test_3108(cursor, test_env):
+def test_data_types_3108(cursor, test_env):
     "3108 - test binding unsupported python type with JSON"
     cursor.execute("delete from TestJson")
     cursor.setinputsizes(None, oracledb.DB_TYPE_JSON)
@@ -206,7 +206,7 @@ def test_3108(cursor, test_env):
         cursor.execute(insert_sql, [1, list])
 
 
-def test_3109(cursor, test_env):
+def test_data_types_3109(cursor, test_env):
     "3109 - test fetching an unsupported python type with JSON"
     cursor.prefetchrows = 0
     cursor.execute("select json(json_scalar(to_yminterval('8-04'))) from dual")
@@ -214,7 +214,7 @@ def test_3109(cursor, test_env):
         cursor.fetchone()
 
 
-def test_3110(cursor):
+def test_data_types_3110(cursor):
     "3110 - fetch all supported types"
     sql = """
         select json('{
@@ -271,7 +271,7 @@ def test_3110(cursor):
     assert actual_data == expected_data
 
 
-def test_3111(cursor, json_data):
+def test_data_types_3111(cursor, json_data):
     "3111 - test inserting and updating JSON"
     cursor.execute("delete from TestJSON")
     cursor.setinputsizes(None, oracledb.DB_TYPE_JSON)
@@ -289,7 +289,7 @@ def test_3111(cursor, json_data):
     assert cursor.fetchall() == data
 
 
-def test_3112(cursor, json_data):
+def test_data_types_3112(cursor, json_data):
     "3112 - test fetching json with json_query"
     cursor.execute("delete from TestJson")
     cursor.setinputsizes(None, oracledb.DB_TYPE_JSON)
@@ -308,7 +308,7 @@ def test_3112(cursor, json_data):
         assert len(result) == num_rows
 
 
-def test_3113(cursor, json_data):
+def test_data_types_3113(cursor, json_data):
     "3113 - test fetching json with json_exists"
     cursor.execute("delete from TestJson")
     cursor.setinputsizes(None, oracledb.DB_TYPE_JSON)
@@ -327,7 +327,7 @@ def test_3113(cursor, json_data):
         assert count == num_rows
 
 
-def test_3114(cursor, json_data):
+def test_data_types_3114(cursor, json_data):
     "3114 - test selecting json data"
     cursor.execute("delete from TestJson")
     cursor.setinputsizes(None, oracledb.DB_TYPE_JSON)
@@ -349,7 +349,7 @@ def test_3114(cursor, json_data):
     assert data == expected_data
 
 
-def test_3115(cursor):
+def test_data_types_3115(cursor):
     "3115 - test fetching json with json_serialize"
     cursor.execute("delete from TestJson")
     data = [{"a": 12.5}, {"b": True}, {"c": None}]
@@ -367,7 +367,7 @@ def test_3115(cursor):
     assert fetched_data == expected_data
 
 
-def test_3116(conn, test_env):
+def test_data_types_3116(conn, test_env):
     "3116 - test decoding invalid OSON"
     value_to_encode = dict(key_1="test_3116a", key_2="test_3116b")
     encoded_bytes = conn.encode_oson(value_to_encode)

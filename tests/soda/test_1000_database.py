@@ -53,7 +53,7 @@ def _verify_doc(
     assert doc.createdOn is None
 
 
-def test_1000(soda_db, test_env):
+def test_soda_1000(soda_db, test_env):
     "1000 - test creating documents with JSON data"
     val = {"testKey1": "testValue1", "testKey2": "testValue2"}
     if test_env.has_client_version(23, 4):
@@ -73,7 +73,7 @@ def test_1000(soda_db, test_env):
     _verify_doc(doc, bytes_val, str_val, bytes_val, key, media_type)
 
 
-def test_1001(soda_db):
+def test_soda_1001(soda_db):
     "1001 - test creating documents with raw data"
     val = b"<html/>"
     key = "MyRawKey"
@@ -86,7 +86,7 @@ def test_1001(soda_db):
     _verify_doc(doc, val, key=key, media_type=media_type)
 
 
-def test_1002(soda_db):
+def test_soda_1002(soda_db):
     "1002 - test getting collection names from the database"
     assert soda_db.getCollectionNames() == []
     names = ["zCol", "dCol", "sCol", "aCol", "gCol"]
@@ -101,7 +101,7 @@ def test_1002(soda_db):
     assert soda_db.getCollectionNames("z") == sorted_names[-1:]
 
 
-def test_1003(soda_db):
+def test_soda_1003(soda_db):
     "1003 - test opening a collection"
     coll = soda_db.openCollection("CollectionThatDoesNotExist")
     assert coll is None
@@ -110,13 +110,13 @@ def test_1003(soda_db):
     assert coll.name == created_coll.name
 
 
-def test_1004(soda_db, conn):
+def test_soda_1004(soda_db, conn):
     "1004 - test SodaDatabase repr() and str()"
     assert repr(soda_db) == f"<oracledb.SodaDatabase on {conn}>"
     assert str(soda_db) == f"<oracledb.SodaDatabase on {conn}>"
 
 
-def test_1005(soda_db, test_env):
+def test_soda_1005(soda_db, test_env):
     "1005 - test negative cases for SODA database methods"
     pytest.raises(TypeError, soda_db.createCollection)
     pytest.raises(TypeError, soda_db.createCollection, 1)
@@ -127,7 +127,7 @@ def test_1005(soda_db, test_env):
     pytest.raises(TypeError, soda_db.getCollectionNames, 1)
 
 
-def test_1006(soda_db, test_env):
+def test_soda_1006(soda_db, test_env):
     "1006 - test creating documents with JSON data using extended types"
     if not test_env.has_client_version(23, 4):
         pytest.skip("unsupported data types")
@@ -142,7 +142,7 @@ def test_1006(soda_db, test_env):
     _verify_doc(doc, bytes_val, str_val, val)
 
 
-def test_1007(soda_db):
+def test_soda_1007(soda_db):
     "1007 - test creating documents with int scalar value"
     val = 144
     str_val = "144"
@@ -157,7 +157,7 @@ def test_1007(soda_db):
     _verify_doc(doc, bytes_val, str_val, val, key, media_type)
 
 
-def test_1008(soda_db, test_env):
+def test_soda_1008(soda_db, test_env):
     "1008 - test creating documents with float scalar value"
     if not test_env.has_client_and_server_version(23, 4):
         pytest.skip("data types serialized differently")
@@ -175,7 +175,7 @@ def test_1008(soda_db, test_env):
     _verify_doc(doc, bytes_val, str_val, decimal_val, key, media_type)
 
 
-def test_1009(soda_db, test_env):
+def test_soda_1009(soda_db, test_env):
     "1009 - test creating documents with a list"
     if not test_env.has_client_and_server_version(23, 4):
         pytest.skip("unsupported data types")
@@ -201,7 +201,7 @@ def test_1009(soda_db, test_env):
     _verify_doc(doc, bytes_val, str_val, decimal_val, key, media_type)
 
 
-def test_1010(soda_db, test_env):
+def test_soda_1010(soda_db, test_env):
     "1010 - test creating documents with a boolean scalar value"
     if not test_env.has_client_and_server_version(23, 4):
         pytest.skip("data types serialized differently")
@@ -217,7 +217,7 @@ def test_1010(soda_db, test_env):
         _verify_doc(doc, bytes_val, str_val, val, key, media_type)
 
 
-def test_1011(soda_db, test_env):
+def test_soda_1011(soda_db, test_env):
     "1011 - test creating documents with unsupported types"
     if not test_env.has_client_and_server_version(23, 4):
         pytest.skip("data types serialized differently")

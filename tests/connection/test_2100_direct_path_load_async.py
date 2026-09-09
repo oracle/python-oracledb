@@ -68,7 +68,7 @@ async def _verify_data_frame(conn, df, column_names, test_env):
     await _verify_data(conn, data, column_names)
 
 
-async def test_2100(empty_tab, async_conn, test_env):
+async def test_connection_2100(empty_tab, async_conn, test_env):
     "2100 - test basic direct path load with list of tuples"
     data = [
         (
@@ -121,7 +121,7 @@ async def test_2100(empty_tab, async_conn, test_env):
     await _verify_data(async_conn, data, column_names)
 
 
-async def test_2101(empty_tab, async_conn, test_env):
+async def test_connection_2101(empty_tab, async_conn, test_env):
     "2101 - test basic direct path load with Pandas dataframe"
     data = {
         "Id": [1, 2, 3, 4, 5],
@@ -150,7 +150,7 @@ async def test_2101(empty_tab, async_conn, test_env):
     await _verify_data_frame(async_conn, df, column_names, test_env)
 
 
-async def test_2102(empty_tab, async_conn, test_env):
+async def test_connection_2102(empty_tab, async_conn, test_env):
     "2102 - test with empty data"
     data = []
     column_names = ["Id", "FirstName"]
@@ -163,7 +163,7 @@ async def test_2102(empty_tab, async_conn, test_env):
     await _verify_data(async_conn, data, column_names)
 
 
-async def test_2103(empty_tab, async_conn, test_env):
+async def test_connection_2103(empty_tab, async_conn, test_env):
     "2103 - test with empty data frame"
     data = {
         "Id": [],
@@ -181,7 +181,7 @@ async def test_2103(empty_tab, async_conn, test_env):
 
 
 @pytest.mark.parametrize("batch_size", [1, 5, 99, 199, 200])
-async def test_2104(
+async def test_connection_2104(
     batch_size, async_conn, empty_tab, round_trip_checker_async, test_env
 ):
     "2104 - test with various batch sizes"
@@ -202,7 +202,7 @@ async def test_2104(
 
 
 @pytest.mark.parametrize("batch_size", [1, 5, 99, 199, 200])
-async def test_2105(
+async def test_connection_2105(
     batch_size, async_conn, empty_tab, round_trip_checker_async, test_env
 ):
     "2105 - test with various batch sizes with a data frame"
@@ -227,7 +227,9 @@ async def test_2105(
     await _verify_data_frame(async_conn, df, names, test_env)
 
 
-async def test_2106(empty_tab, disable_fetch_lobs, async_conn, test_env):
+async def test_connection_2106(
+    empty_tab, disable_fetch_lobs, async_conn, test_env
+):
     "2107 - test with all basic data types"
     column_names = [
         "Id",
@@ -286,7 +288,9 @@ async def test_2106(empty_tab, disable_fetch_lobs, async_conn, test_env):
     await _verify_data(async_conn, rows, column_names)
 
 
-async def test_2107(empty_tab, disable_fetch_lobs, async_conn, test_env):
+async def test_connection_2107(
+    empty_tab, disable_fetch_lobs, async_conn, test_env
+):
     "2107 - test with all basic data types with a data frame"
     current_time = datetime.datetime.now()
     column_names = [
@@ -344,7 +348,7 @@ async def test_2107(empty_tab, disable_fetch_lobs, async_conn, test_env):
     await _verify_data_frame(async_conn, df, column_names, test_env)
 
 
-async def test_2108(empty_tab, async_conn, test_env):
+async def test_connection_2108(empty_tab, async_conn, test_env):
     "2108 - test with null values"
     column_names = [
         "Id",
@@ -389,7 +393,7 @@ async def test_2108(empty_tab, async_conn, test_env):
     await _verify_data(async_conn, rows, column_names)
 
 
-async def test_2109(empty_tab, async_conn, test_env):
+async def test_connection_2109(empty_tab, async_conn, test_env):
     "2109 - test with null values using a data frame"
     data = {
         "Id": [1, 2, 3, 4],
@@ -417,7 +421,7 @@ async def test_2109(empty_tab, async_conn, test_env):
     await _verify_data_frame(async_conn, df, column_names, test_env)
 
 
-async def test_2110(empty_tab, async_conn, test_env):
+async def test_connection_2110(empty_tab, async_conn, test_env):
     "2110 - test with the wrong number of columns"
     column_names = ["Id", "FirstName", "LastName"]
     rows = [(1, "Alice"), (2, "Joe")]
@@ -430,7 +434,7 @@ async def test_2110(empty_tab, async_conn, test_env):
         )
 
 
-async def test_2111(empty_tab, async_conn, test_env):
+async def test_connection_2111(empty_tab, async_conn, test_env):
     "2111 - test with the wrong number of columns using a data frame"
     column_names = ["Id", "FirstName"]
     data = {
@@ -448,7 +452,7 @@ async def test_2111(empty_tab, async_conn, test_env):
         )
 
 
-async def test_2112(empty_tab, async_conn, test_env):
+async def test_connection_2112(empty_tab, async_conn, test_env):
     "2112 - test with decimal data"
     column_names = ["Id", "FirstName", "DecimalData"]
     rows = [
@@ -466,7 +470,7 @@ async def test_2112(empty_tab, async_conn, test_env):
         await _verify_data(async_conn, rows, column_names)
 
 
-async def test_2113(empty_tab, async_conn, test_env):
+async def test_connection_2113(empty_tab, async_conn, test_env):
     "2113 - test with decimal data using a data frame"
     data = {
         "Id": [
@@ -493,7 +497,7 @@ async def test_2113(empty_tab, async_conn, test_env):
         await _verify_data_frame(async_conn, df, column_names, test_env)
 
 
-async def test_2114(empty_tab, async_conn, test_env):
+async def test_connection_2114(empty_tab, async_conn, test_env):
     "2114 - test string data that exceeds the maximum length"
     column_names = ["Id", "FirstName"]
     rows = [(1, "Sally"), (2, "Jill" * 26)]
@@ -506,7 +510,7 @@ async def test_2114(empty_tab, async_conn, test_env):
         )
 
 
-async def test_2115(empty_tab, async_conn, test_env):
+async def test_connection_2115(empty_tab, async_conn, test_env):
     "2115 - test string data that exceeds the maximum length with a data frame"
     data = {
         "Id": [1, 2, 3],
@@ -523,7 +527,7 @@ async def test_2115(empty_tab, async_conn, test_env):
         )
 
 
-async def test_2116(async_conn, test_env):
+async def test_connection_2116(async_conn, test_env):
     "2116 - test data that is null"
     column_names = ["IntCol", "StringCol", "RawCol", "FixedCharCol"]
     rows = [(100, "String 100", b"Raw", "Fixed"), (2, None, b"Raw", "Fixed")]
@@ -536,7 +540,7 @@ async def test_2116(async_conn, test_env):
         )
 
 
-async def test_2117(async_conn, test_env):
+async def test_connection_2117(async_conn, test_env):
     "2117 - test data that is null in a data frame"
     data = {
         "IntCol": [100, 200, 300],
@@ -555,7 +559,7 @@ async def test_2117(async_conn, test_env):
         )
 
 
-async def test_2118(async_conn, test_env):
+async def test_connection_2118(async_conn, test_env):
     "2118 - test data containing empty string"
     column_names = ["IntCol", "StringCol", "RawCol", "FixedCharCol"]
     rows = [(100, "String 100", b"Raw", "Fixed"), (2, "", b"Raw", "Fixed")]
@@ -568,7 +572,7 @@ async def test_2118(async_conn, test_env):
         )
 
 
-async def test_2119(async_conn, test_env):
+async def test_connection_2119(async_conn, test_env):
     "2119 - test data containing empty string in a data frame"
     data = {
         "IntCol": [100, 200, 300],
@@ -587,7 +591,7 @@ async def test_2119(async_conn, test_env):
         )
 
 
-async def test_2120(empty_tab, async_conn, test_env):
+async def test_connection_2120(empty_tab, async_conn, test_env):
     "2120 - test data is committed on success"
     column_names = ["Id", "FirstName"]
     rows = [(1, "Sally"), (2, "Jill")]
@@ -601,7 +605,7 @@ async def test_2120(empty_tab, async_conn, test_env):
     await _verify_data(async_conn, rows, column_names)
 
 
-async def test_2121(empty_tab, async_conn, test_env):
+async def test_connection_2121(empty_tab, async_conn, test_env):
     "2121 - test data is committed on success using a data frame"
     data = {
         "Id": [1, 2, 3],
@@ -619,7 +623,7 @@ async def test_2121(empty_tab, async_conn, test_env):
     await _verify_data_frame(async_conn, df, column_names, test_env)
 
 
-async def test_2122(
+async def test_connection_2122(
     skip_unless_native_boolean_supported, test_env, async_conn, async_cursor
 ):
     "2122 - test data with boolean values"
@@ -646,7 +650,7 @@ async def test_2122(
     assert await async_cursor.fetchall() == data
 
 
-async def test_2123(test_env, async_conn, async_cursor):
+async def test_connection_2123(test_env, async_conn, async_cursor):
     "2123 - test data with interval types"
     table_name = "TestAllTypes"
     await async_cursor.execute(f"delete from {table_name}")

@@ -62,7 +62,7 @@ def return_strings_as_bytes(cursor, metadata):
         return cursor.var(str, arraysize=cursor.arraysize, bypass_decode=True)
 
 
-def test_2000(cursor):
+def test_data_types_2000(cursor):
     "2000 - test creating array var and then increasing the internal size"
     val = ["12345678901234567890"] * 3
     var = cursor.arrayvar(str, len(val), 4)
@@ -70,7 +70,7 @@ def test_2000(cursor):
     assert var.getvalue() == val
 
 
-def test_2001(cursor, module_data_by_key):
+def test_data_types_2001(cursor, module_data_by_key):
     "2001 - test binding in a string"
     cursor.execute(
         "select * from TestStrings where StringCol = :value",
@@ -79,7 +79,7 @@ def test_2001(cursor, module_data_by_key):
     assert cursor.fetchall() == [module_data_by_key[5]]
 
 
-def test_2002(cursor):
+def test_data_types_2002(cursor):
     "2002 - test binding a different variable on second execution"
     retval_1 = cursor.var(oracledb.STRING, 30)
     retval_2 = cursor.var(oracledb.STRING, 30)
@@ -89,13 +89,13 @@ def test_2002(cursor):
     assert retval_2.getvalue() == "Called"
 
 
-def test_2003(cursor):
+def test_data_types_2003(cursor):
     "2003 - test exceeding the number of elements returns IndexError"
     var = cursor.var(str)
     pytest.raises(IndexError, var.getvalue, 1)
 
 
-def test_2004(cursor, module_data_by_key):
+def test_data_types_2004(cursor, module_data_by_key):
     "2004 - test binding in a string after setting input sizes to a number"
     cursor.setinputsizes(value=oracledb.NUMBER)
     cursor.execute(
@@ -105,7 +105,7 @@ def test_2004(cursor, module_data_by_key):
     assert cursor.fetchall() == [module_data_by_key[6]]
 
 
-def test_2005(cursor, module_data):
+def test_data_types_2005(cursor, module_data):
     "2005 - test binding in a string array"
     return_value = cursor.var(oracledb.NUMBER)
     array = [r[1] for r in module_data]
@@ -123,7 +123,7 @@ def test_2005(cursor, module_data):
     assert return_value.getvalue() == 163
 
 
-def test_2006(cursor, module_data):
+def test_data_types_2006(cursor, module_data):
     "2006 - test binding in a string array (with setinputsizes)"
     return_value = cursor.var(oracledb.NUMBER)
     cursor.setinputsizes(array=[oracledb.STRING, 10])
@@ -142,7 +142,7 @@ def test_2006(cursor, module_data):
     assert return_value.getvalue() == 87
 
 
-def test_2007(cursor, module_data):
+def test_data_types_2007(cursor, module_data):
     "2007 - test binding in a string array (with arrayvar)"
     return_value = cursor.var(oracledb.NUMBER)
     array = cursor.arrayvar(oracledb.STRING, 10, 20)
@@ -161,7 +161,7 @@ def test_2007(cursor, module_data):
     assert return_value.getvalue() == 88
 
 
-def test_2008(cursor, module_data):
+def test_data_types_2008(cursor, module_data):
     "2008 - test binding in/out a string array (with arrayvar)"
     array = cursor.arrayvar(oracledb.STRING, 10, 100)
     original_data = [r[1] for r in module_data]
@@ -183,7 +183,7 @@ def test_2008(cursor, module_data):
     assert array.getvalue() == expected_data
 
 
-def test_2009(cursor):
+def test_data_types_2009(cursor):
     "2009 - test binding out a string array (with arrayvar)"
     array = cursor.arrayvar(oracledb.STRING, 6, 100)
     expected_data = [f"Test out element # {i}" for i in range(1, 7)]
@@ -199,7 +199,7 @@ def test_2009(cursor):
     assert array.getvalue() == expected_data
 
 
-def test_2010(cursor, module_data_by_key):
+def test_data_types_2010(cursor, module_data_by_key):
     "2010 - test binding in a raw"
     cursor.setinputsizes(value=oracledb.BINARY)
     cursor.execute(
@@ -209,7 +209,7 @@ def test_2010(cursor, module_data_by_key):
     assert cursor.fetchall() == [module_data_by_key[4]]
 
 
-def test_2011(cursor, module_data_by_key):
+def test_data_types_2011(cursor, module_data_by_key):
     "2011 - test binding (and fetching) a rowid"
     cursor.execute("select rowid from TestStrings where IntCol = 3")
     (rowid,) = cursor.fetchone()
@@ -220,7 +220,7 @@ def test_2011(cursor, module_data_by_key):
     assert cursor.fetchall() == [module_data_by_key[3]]
 
 
-def test_2013(cursor):
+def test_data_types_2013(cursor):
     "2013 - test binding in a null"
     cursor.execute(
         "select * from TestStrings where StringCol = :value",
@@ -229,7 +229,7 @@ def test_2013(cursor):
     assert cursor.fetchall() == []
 
 
-def test_2014(cursor):
+def test_data_types_2014(cursor):
     "2014 - test binding out with set input sizes defined (by type)"
     bind_vars = cursor.setinputsizes(value=oracledb.STRING)
     cursor.execute("""
@@ -240,7 +240,7 @@ def test_2014(cursor):
     assert bind_vars["value"].getvalue() == "TSI"
 
 
-def test_2015(cursor):
+def test_data_types_2015(cursor):
     "2015 - test binding out with set input sizes defined (by integer)"
     bind_vars = cursor.setinputsizes(value=30)
     cursor.execute("""
@@ -251,7 +251,7 @@ def test_2015(cursor):
     assert bind_vars["value"].getvalue() == "TSI (I)"
 
 
-def test_2016(cursor):
+def test_data_types_2016(cursor):
     "2016 - test binding in/out with set input sizes defined (by type)"
     bind_vars = cursor.setinputsizes(value=oracledb.STRING)
     cursor.execute(
@@ -265,7 +265,7 @@ def test_2016(cursor):
     assert bind_vars["value"].getvalue() == "InVal TSI"
 
 
-def test_2017(cursor):
+def test_data_types_2017(cursor):
     "2017 - test binding in/out with set input sizes defined (by integer)"
     bind_vars = cursor.setinputsizes(value=30)
     cursor.execute(
@@ -279,7 +279,7 @@ def test_2017(cursor):
     assert bind_vars["value"].getvalue() == "InVal TSI (I)"
 
 
-def test_2018(cursor):
+def test_data_types_2018(cursor):
     "2018 - test binding out with cursor.var() method"
     var = cursor.var(oracledb.STRING)
     cursor.execute(
@@ -293,7 +293,7 @@ def test_2018(cursor):
     assert var.getvalue() == "TSI (VAR)"
 
 
-def test_2019(cursor):
+def test_data_types_2019(cursor):
     "2019 - test binding in/out with cursor.var() method"
     var = cursor.var(oracledb.STRING)
     var.setvalue(0, "InVal")
@@ -308,7 +308,7 @@ def test_2019(cursor):
     assert var.getvalue() == "InVal TSI (VAR)"
 
 
-def test_2020(cursor):
+def test_data_types_2020(cursor):
     "2020 - test that binding a long string succeeds"
     cursor.setinputsizes(big_string=oracledb.DB_TYPE_LONG)
     cursor.execute(
@@ -323,7 +323,7 @@ def test_2020(cursor):
     )
 
 
-def test_2021(cursor):
+def test_data_types_2021(cursor):
     "2021 - test that setinputsizes() returns a long variable"
     var = cursor.setinputsizes(test=90000)["test"]
     in_string = "1234567890" * 9000
@@ -336,7 +336,7 @@ def test_2021(cursor):
     assert in_string == out_string, msg
 
 
-def test_2022(cursor, test_env):
+def test_data_types_2022(cursor, test_env):
     "2022 - test cursor description is accurate"
     cursor.execute("select * from TestStrings")
     varchar_ratio, nvarchar_ratio = test_env.charset_ratios
@@ -374,14 +374,14 @@ def test_2022(cursor, test_env):
     assert cursor.description == expected_value
 
 
-def test_2023(cursor, module_data):
+def test_data_types_2023(cursor, module_data):
     "2023 - test that fetching all of the data returns the correct results"
     cursor.execute("select * From TestStrings order by IntCol")
     assert cursor.fetchall() == module_data
     assert cursor.fetchall() == []
 
 
-def test_2024(cursor, module_data):
+def test_data_types_2024(cursor, module_data):
     "2024 - test that fetching data in chunks returns the correct results"
     cursor.execute("select * From TestStrings order by IntCol")
     assert cursor.fetchmany(3) == module_data[0:3]
@@ -391,7 +391,7 @@ def test_2024(cursor, module_data):
     assert cursor.fetchmany(3) == []
 
 
-def test_2025(cursor, module_data_by_key):
+def test_data_types_2025(cursor, module_data_by_key):
     "2025 - test that fetching a single row returns the correct results"
     cursor.execute("""
         select *
@@ -404,7 +404,7 @@ def test_2025(cursor, module_data_by_key):
     assert cursor.fetchone() is None
 
 
-def test_2026(conn, cursor, test_env):
+def test_data_types_2026(conn, cursor, test_env):
     "2026 - test binding and fetching supplemental charcters"
     if test_env.charset != "AL32UTF8":
         pytest.skip("Database character set must be AL32UTF8")
@@ -429,7 +429,7 @@ def test_2026(conn, cursor, test_env):
     assert value == supplemental_chars
 
 
-def test_2027(conn, cursor):
+def test_data_types_2027(conn, cursor):
     "2027 - test binding twice with a larger string the second time"
     cursor.execute("truncate table TestTempTable")
     sql = "insert into TestTempTable (IntCol, StringCol1) values (:1, :2)"
@@ -446,7 +446,7 @@ def test_2027(conn, cursor):
     assert cursor.fetchall() == [(1, short_string), (2, long_string)]
 
 
-def test_2028(conn, test_env):
+def test_data_types_2028(conn, test_env):
     "2028 - test issue 50 - avoid error ORA-24816"
     if not test_env.has_server_version(12, 2):
         pytest.skip("not supported on this server")
@@ -487,14 +487,14 @@ def test_2028(conn, test_env):
     cursor.execute("drop table issue_50 purge")
 
 
-def test_2029(cursor, test_env):
+def test_data_types_2029(cursor, test_env):
     "2029 - test assigning a string to rowid"
     var = cursor.var(oracledb.ROWID)
     with test_env.assert_raises_full_code("DPY-3004"):
         var.setvalue(0, "ABDHRYTHFJGKDKKDH")
 
 
-def test_2030(cursor):
+def test_data_types_2030(cursor):
     "2030 - test fetching XMLType (< 1K) as a string"
     cursor.execute("""
         select XMLElement("string", stringCol) as xml
@@ -508,7 +508,7 @@ def test_2030(cursor):
     ]
 
 
-def test_2031(cursor):
+def test_data_types_2031(cursor):
     "2031 - test inserting and fetching XMLType (1K) as a string"
     cursor.execute("truncate table TestTempXML")
     chars = string.ascii_uppercase + string.ascii_lowercase
@@ -527,7 +527,7 @@ def test_2031(cursor):
     assert actual_value.strip() == xml_string
 
 
-def test_2032(cursor, module_data):
+def test_data_types_2032(cursor, module_data):
     "2032 - fetching null and not null values can use optimised path"
     sql = """
             select * from TestStrings
@@ -540,7 +540,7 @@ def test_2032(cursor, module_data):
     assert cursor.fetchall() == module_data[7:10]
 
 
-def test_2033(conn, cursor):
+def test_data_types_2033(conn, cursor):
     "2033 - test bypass string decode"
     cursor.execute("truncate table TestTempTable")
     string_val = "I bought a cafetière on the Champs-Élysées"
@@ -559,7 +559,7 @@ def test_2033(conn, cursor):
         assert cursor.fetchone() == (1, string_val)
 
 
-def test_2034(skip_unless_thin_mode, conn, cursor):
+def test_data_types_2034(skip_unless_thin_mode, conn, cursor):
     "2034 - test inserting and fetching XMLType (32K) as a string"
     cursor.execute("truncate table TestTempXML")
     chars = string.ascii_uppercase + string.ascii_lowercase

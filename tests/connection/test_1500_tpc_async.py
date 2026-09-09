@@ -35,7 +35,7 @@ def module_checks(anyio_backend, skip_unless_thin_mode):
     pass
 
 
-async def test_1500(async_conn, async_cursor):
+async def test_connection_1500(async_conn, async_cursor):
     "1500 - test begin, prepare, roll back global transaction"
     await async_cursor.execute("truncate table TestTempTable")
     xid = async_conn.xid(3900, b"txn3900", b"branchId")
@@ -53,7 +53,7 @@ async def test_1500(async_conn, async_cursor):
     assert count == 0
 
 
-async def test_1501(async_conn, async_cursor):
+async def test_connection_1501(async_conn, async_cursor):
     "1501 - test begin, prepare, commit global transaction"
     await async_cursor.execute("truncate table TestTempTable")
     xid = async_conn.xid(3901, "txn3901", "branchId")
@@ -68,7 +68,7 @@ async def test_1501(async_conn, async_cursor):
     assert await async_cursor.fetchall() == [(1, "tesName")]
 
 
-async def test_1502(async_conn, async_cursor):
+async def test_connection_1502(async_conn, async_cursor):
     "1502 - test multiple global transactions on the same connection"
     await async_cursor.execute("truncate table TestTempTable")
     xid1 = async_conn.xid(3902, "txn3902", "branch1")
@@ -98,7 +98,7 @@ async def test_1502(async_conn, async_cursor):
     assert await async_cursor.fetchall() == expected_rows
 
 
-async def test_1503(async_conn, async_cursor, test_env):
+async def test_connection_1503(async_conn, async_cursor, test_env):
     "1503 - test rollback with parameter xid"
     await async_cursor.execute("truncate table TestTempTable")
     xid1 = async_conn.xid(3901, b"txn3901", b"branch1")
@@ -126,7 +126,7 @@ async def test_1503(async_conn, async_cursor, test_env):
     assert await async_cursor.fetchall() == [(1, "tesName")]
 
 
-async def test_1504(async_conn, async_cursor):
+async def test_connection_1504(async_conn, async_cursor):
     "1504 - test resuming a transaction"
     await async_cursor.execute("truncate table TestTempTable")
     xid1 = async_conn.xid(3939, "txn3939", "branch39")
@@ -152,7 +152,7 @@ async def test_1504(async_conn, async_cursor):
         await async_conn.tpc_rollback(xid)
 
 
-async def test_1505(async_conn, async_cursor, test_env):
+async def test_connection_1505(async_conn, async_cursor, test_env):
     "1505 - test promoting a local transaction to a tpc transaction"
     await async_cursor.execute("truncate table TestTempTable")
     xid = async_conn.xid(3941, "txn3941", "branch41")
@@ -170,7 +170,7 @@ async def test_1505(async_conn, async_cursor, test_env):
     await async_conn.tpc_rollback(xid)
 
 
-async def test_1506(async_conn, async_cursor, test_env):
+async def test_connection_1506(async_conn, async_cursor, test_env):
     "1506 - test ending a transaction with parameter xid"
     await async_cursor.execute("truncate table TestTempTable")
     xid1 = async_conn.xid(7406, "txn7406a", "branch3")
@@ -194,7 +194,7 @@ async def test_1506(async_conn, async_cursor, test_env):
     await async_conn.tpc_rollback(xid2)
 
 
-async def test_1507(async_conn, async_cursor):
+async def test_connection_1507(async_conn, async_cursor):
     "1507 - test tpc_recover()"
     await async_cursor.execute("truncate table TestTempTable")
     n_xids = 10
@@ -227,7 +227,7 @@ async def test_1507(async_conn, async_cursor):
     assert len(recovers) == 0
 
 
-async def test_1508(async_conn, async_cursor):
+async def test_connection_1508(async_conn, async_cursor):
     "1508 - test tpc_recover() with read-only transaction"
     await async_cursor.execute("truncate table TestTempTable")
     for i in range(4):
@@ -239,7 +239,7 @@ async def test_1508(async_conn, async_cursor):
     assert len(recovers) == 0
 
 
-async def test_1509(async_conn, async_cursor):
+async def test_connection_1509(async_conn, async_cursor):
     "1509 - test tpc_commit() with one_phase parameter"
     await async_cursor.execute("truncate table TestTempTable")
     xid = async_conn.xid(7409, "txn7409", "branch1")
@@ -257,7 +257,7 @@ async def test_1509(async_conn, async_cursor):
     assert await async_cursor.fetchall() == [values]
 
 
-async def test_1510(async_conn, async_cursor, test_env):
+async def test_connection_1510(async_conn, async_cursor, test_env):
     "1510 - test negative cases for tpc_commit()"
     await async_cursor.execute("truncate table TestTempTable")
     xid = async_conn.xid(7410, "txn7410", "branch1")
@@ -275,7 +275,7 @@ async def test_1510(async_conn, async_cursor, test_env):
         await async_conn.tpc_commit(xid)
 
 
-async def test_1511(async_conn, async_cursor, test_env):
+async def test_connection_1511(async_conn, async_cursor, test_env):
     "1511 - test starting an already created transaction"
     await async_cursor.execute("truncate table TestTempTable")
     xid = async_conn.xid(7411, "txn7411", "branch1")
@@ -291,7 +291,7 @@ async def test_1511(async_conn, async_cursor, test_env):
     await async_conn.tpc_rollback(xid)
 
 
-async def test_1512(async_conn, async_cursor, test_env):
+async def test_connection_1512(async_conn, async_cursor, test_env):
     "1512 - test resuming a prepared transaction"
     await async_cursor.execute("truncate table TestTempTable")
     xid = async_conn.xid(7412, "txn7412", "branch1")
@@ -301,7 +301,7 @@ async def test_1512(async_conn, async_cursor, test_env):
         await async_conn.tpc_begin(xid, oracledb.TPC_BEGIN_RESUME)
 
 
-async def test_1513(async_conn, async_cursor, test_env):
+async def test_connection_1513(async_conn, async_cursor, test_env):
     "1513 - test tpc_begin and tpc_end with invalid parameters"
     await async_cursor.execute("truncate table TestTempTable")
     xid = async_conn.xid(7413, "txn7413", "branch1")
@@ -318,7 +318,7 @@ async def test_1513(async_conn, async_cursor, test_env):
             await tpc_function(xid, 70)
 
 
-async def test_1514(async_conn, async_cursor, test_env):
+async def test_connection_1514(async_conn, async_cursor, test_env):
     "1514 - test commiting transaction without tpc_commit"
     xid = async_conn.xid(7414, "txn7409", "branch1")
     await async_conn.tpc_begin(xid)
@@ -327,7 +327,7 @@ async def test_1514(async_conn, async_cursor, test_env):
     await async_conn.tpc_end(xid)
 
 
-async def test_1515(async_conn, async_cursor, test_env):
+async def test_connection_1515(async_conn, async_cursor, test_env):
     "1515 - test tpc_commit when a commit is not needed"
     xid = async_conn.xid(7416, "txn7416", "branch1")
     await async_conn.tpc_begin(xid)
@@ -338,7 +338,7 @@ async def test_1515(async_conn, async_cursor, test_env):
         await async_conn.tpc_commit(xid)
 
 
-async def test_1516(async_conn, async_cursor):
+async def test_connection_1516(async_conn, async_cursor):
     "1516 - test transaction_in_progress"
     await async_cursor.execute("truncate table TestTempTable")
     xid = async_conn.xid(7415, "txn7415", "branch1")

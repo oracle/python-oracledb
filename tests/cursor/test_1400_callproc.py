@@ -30,14 +30,14 @@ Module for testing the methods for calling stored procedures and functions
 import oracledb
 
 
-def test_1400(cursor):
+def test_cursor_1400(cursor):
     "1400 - test executing a stored procedure"
     var = cursor.var(oracledb.NUMBER)
     results = cursor.callproc("proc_Test", ("hi", 5, var))
     assert results == ["hi", 10, 2.0]
 
 
-def test_1401(cursor):
+def test_cursor_1401(cursor):
     "1401 - test executing a stored procedure with all args keyword args"
     inout_value = cursor.var(oracledb.NUMBER)
     inout_value.setvalue(0, 5)
@@ -51,7 +51,7 @@ def test_1401(cursor):
     assert out_value.getvalue() == 2.0
 
 
-def test_1402(cursor):
+def test_cursor_1402(cursor):
     "1402 - test executing a stored procedure with last arg as keyword arg"
     out_value = cursor.var(oracledb.NUMBER)
     kwargs = dict(a_OutValue=out_value)
@@ -60,32 +60,32 @@ def test_1402(cursor):
     assert out_value.getvalue() == 2.0
 
 
-def test_1403(cursor, test_env):
+def test_cursor_1403(cursor, test_env):
     "1403 - test executing a stored procedure, repeated keyword arg"
     kwargs = dict(a_InValue="hi", a_OutValue=cursor.var(oracledb.NUMBER))
     with test_env.assert_raises_full_code("ORA-06550"):
         cursor.callproc("proc_Test", ("hi", 5), kwargs)
 
 
-def test_1404(cursor):
+def test_cursor_1404(cursor):
     "1404 - test executing a stored procedure without any arguments"
     results = cursor.callproc("proc_TestNoArgs")
     assert results == []
 
 
-def test_1405(cursor):
+def test_cursor_1405(cursor):
     "1405 - test executing a stored function"
     results = cursor.callfunc("func_Test", oracledb.NUMBER, ("hi", 5))
     assert results == 7
 
 
-def test_1406(cursor):
+def test_cursor_1406(cursor):
     "1406 - test executing a stored function without any arguments"
     results = cursor.callfunc("func_TestNoArgs", oracledb.NUMBER)
     assert results == 712
 
 
-def test_1407(cursor, test_env):
+def test_cursor_1407(cursor, test_env):
     "1407 - test executing a stored function with wrong parameters"
     func_name = "func_Test"
     with test_env.assert_raises_full_code("DPY-2007"):
@@ -102,7 +102,7 @@ def test_1407(cursor, test_env):
         cursor.callfunc(func_name, oracledb.NUMBER, 5)
 
 
-def test_1408(cursor, test_env):
+def test_cursor_1408(cursor, test_env):
     "1408 - test to verify keywordParameters is deprecated"
     out_value = cursor.var(oracledb.NUMBER)
     kwargs = dict(a_OutValue=out_value)
@@ -123,7 +123,7 @@ def test_1408(cursor, test_env):
         )
 
 
-def test_1409(cursor, test_env):
+def test_cursor_1409(cursor, test_env):
     "1409 - test error for keyword args with invalid type"
     kwargs = [5]
     with test_env.assert_raises_full_code("DPY-2013"):
@@ -132,7 +132,7 @@ def test_1409(cursor, test_env):
         cursor.callfunc("func_Test", oracledb.NUMBER, [], kwargs)
 
 
-def test_1410(cursor):
+def test_cursor_1410(cursor):
     "1410 - test to verify that deprecated keywordParameters works"
     extra_amount = cursor.var(oracledb.DB_TYPE_NUMBER)
     extra_amount.setvalue(0, 5)
@@ -149,7 +149,7 @@ def test_1410(cursor):
     assert out_value.getvalue() == 2.0
 
 
-def test_1411(cursor, test_env):
+def test_cursor_1411(cursor, test_env):
     "1411 - test callproc with setinputsizes"
     test_env.skip_unless_server_version(12, 2)
     out_value = cursor.var(oracledb.DB_TYPE_BOOLEAN)
@@ -161,7 +161,7 @@ def test_1411(cursor, test_env):
     assert out_value.getvalue()
 
 
-def test_1412(cursor):
+def test_cursor_1412(cursor):
     "1412 - test callfunc with setinputsizes"
     cursor.setinputsizes(
         oracledb.DB_TYPE_NUMBER,
@@ -173,7 +173,7 @@ def test_1412(cursor):
     assert results == 7
 
 
-def test_1413(cursor, test_env):
+def test_cursor_1413(cursor, test_env):
     "1413 - test callproc with setinputsizes with kwargs"
     test_env.skip_unless_server_version(12, 2)
     out_value = cursor.var(oracledb.DB_TYPE_BOOLEAN)
@@ -205,7 +205,7 @@ def test_1413(cursor, test_env):
     assert out_value.getvalue()
 
 
-def test_1414(cursor, test_env):
+def test_cursor_1414(cursor, test_env):
     "1414 - test callproc with setinputsizes with kwargs in mixed order"
     out_value = cursor.var(oracledb.DB_TYPE_BOOLEAN)
     cursor.setinputsizes(
@@ -226,7 +226,7 @@ def test_1414(cursor, test_env):
         cursor.callproc("proc_Test2", keyword_parameters=kwargs)
 
 
-def test_1415(cursor):
+def test_cursor_1415(cursor):
     "1415 - test callfunc with setinputsizes with kwargs"
     extra_amount = cursor.var(oracledb.DB_TYPE_NUMBER)
     extra_amount.setvalue(0, 5)
@@ -250,7 +250,7 @@ def test_1415(cursor):
         assert results == 7
 
 
-def test_1416(cursor, test_env):
+def test_cursor_1416(cursor, test_env):
     "1416 - test callproc with setinputsizes with extra arguments"
     out_value = cursor.var(oracledb.DB_TYPE_BOOLEAN)
     test_values = [
@@ -269,7 +269,7 @@ def test_1416(cursor, test_env):
             cursor.callproc("proc_Test2", args, kwargs)
 
 
-def test_1417(cursor, test_env):
+def test_cursor_1417(cursor, test_env):
     "1417 - test callfunc with setinputsizes with extra arguments"
     extra_amount = cursor.var(oracledb.DB_TYPE_NUMBER)
     extra_amount.setvalue(0, 5)
@@ -292,7 +292,7 @@ def test_1417(cursor, test_env):
             )
 
 
-def test_1418(cursor, test_env):
+def test_cursor_1418(cursor, test_env):
     "1418 - test callproc with setinputsizes with too few parameters"
     test_env.skip_unless_server_version(12, 2)
     out_value = cursor.var(oracledb.DB_TYPE_BOOLEAN)
@@ -331,7 +331,7 @@ def test_1418(cursor, test_env):
     assert out_value.getvalue()
 
 
-def test_1419(cursor, test_env):
+def test_cursor_1419(cursor, test_env):
     """
     4119 - test callproc with setinputsizes with wrong order of parameters
     """
@@ -349,7 +349,7 @@ def test_1419(cursor, test_env):
         cursor.callproc("proc_Test2", [], kwargs)
 
 
-def test_1420(cursor):
+def test_cursor_1420(cursor):
     "1420 - test callfunc with setinputsizes with too few parameters"
     # setinputsizes for return_type and 1 kwargs (missed 2 kwargs)
     bool_var = cursor.var(oracledb.DB_TYPE_BOOLEAN)
@@ -375,7 +375,7 @@ def test_1420(cursor):
     assert results == 4
 
 
-def test_1421(cursor, test_env):
+def test_cursor_1421(cursor, test_env):
     "1421 - test callfunc with setinputsizes with wrong order of parameters"
     # setinputsizes for 2 args (missed 2 kwargs)
     bool_var = cursor.var(oracledb.DB_TYPE_BOOLEAN)
@@ -388,7 +388,7 @@ def test_1421(cursor, test_env):
         )
 
 
-def test_1422(cursor, test_env):
+def test_cursor_1422(cursor, test_env):
     "1422 - test callfunc with setinputsizes without type for return_type"
     # setinputsizes for 1 args and 1 kwargs
     bool_var = cursor.var(oracledb.DB_TYPE_BOOLEAN)
@@ -426,19 +426,19 @@ def test_1422(cursor, test_env):
     assert results == 6
 
 
-def test_1423(cursor, test_env):
+def test_cursor_1423(cursor, test_env):
     "1423 - test executing a procedure with callfunc"
     with test_env.assert_raises_full_code("ORA-06550"):
         cursor.callfunc("proc_Test2", oracledb.NUMBER, ("hello", 3, False))
 
 
-def test_1424(cursor, test_env):
+def test_cursor_1424(cursor, test_env):
     "1424 - test executing a function with callproc"
     with test_env.assert_raises_full_code("ORA-06550"):
         cursor.callproc("func_Test2", ("hello", 5, True))
 
 
-def test_1425(cursor):
+def test_cursor_1425(cursor):
     "1425 - test calling a procedure with a string > 32767 characters"
     data = "1425" * 16000
     size_var = cursor.var(int)
@@ -446,7 +446,7 @@ def test_1425(cursor):
     assert size_var.getvalue() == len(data)
 
 
-def test_1426(cursor):
+def test_cursor_1426(cursor):
     "1425 - test calling a procedure with raw data > 32767 bytes"
     data = b"1426" * 16250
     size_var = cursor.var(int)

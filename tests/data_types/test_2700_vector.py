@@ -92,7 +92,7 @@ def _test_plsql_insert_and_fetch(cursor, vec1, vec2, expected_distance):
     assert distance.getvalue() == pytest.approx(expected_distance, abs=0.01)
 
 
-def test_2700(cursor):
+def test_data_types_2700(cursor):
     "2700 - test binding in a vector from a Python list"
     value = [1, 2]
     cursor.setinputsizes(oracledb.DB_TYPE_VECTOR)
@@ -103,7 +103,7 @@ def test_2700(cursor):
     assert fetched_value == array.array("d", value)
 
 
-def test_2701(cursor):
+def test_data_types_2701(cursor):
     "2701 - test binding in a vector from a Python array of type float64"
     value = array.array("d", [3, 4, 5])
     cursor.execute("select :1 from dual", [value])
@@ -113,7 +113,7 @@ def test_2701(cursor):
     assert fetched_value == value
 
 
-def test_2702(cursor):
+def test_data_types_2702(cursor):
     "2702 - test binding in a vector from a Python array of type float32"
     value = array.array("f", [6, 7, 8, 9])
     cursor.execute("select :1 from dual", [value])
@@ -123,7 +123,7 @@ def test_2702(cursor):
     assert fetched_value == value
 
 
-def test_2703(cursor):
+def test_data_types_2703(cursor):
     "2702 - test binding in a vector from a Python array of type int8"
     value = array.array("b", [-10, 11, -12, 13, -14])
     cursor.execute("select :1 from dual", [value])
@@ -133,13 +133,13 @@ def test_2703(cursor):
     assert fetched_value == value
 
 
-def test_2704(cursor, test_env):
+def test_data_types_2704(cursor, test_env):
     "2704 - unspported array type for vector"
     with test_env.assert_raises_full_code("DPY-3013"):
         cursor.execute("select :1 from dual", [array.array("L", [4, 5])])
 
 
-def test_2705(cursor):
+def test_data_types_2705(cursor):
     "2705 - insert a float32 vector into a float32 column"
     value = array.array(
         "f",
@@ -165,7 +165,7 @@ def test_2705(cursor):
     _test_insert_and_fetch(cursor, value, "Vector32Col", "f")
 
 
-def test_2706(cursor):
+def test_data_types_2706(cursor):
     "2706 - insert a float32 vector into a float64 column"
     value = array.array(
         "f",
@@ -191,7 +191,7 @@ def test_2706(cursor):
     _test_insert_and_fetch(cursor, value, "Vector64Col", "d")
 
 
-def test_2707(cursor):
+def test_data_types_2707(cursor):
     "2707 - insert a float32 vector into a flexible format column"
     value = array.array(
         "f",
@@ -217,7 +217,7 @@ def test_2707(cursor):
     _test_insert_and_fetch(cursor, value, "VectorFlexAllCol", "f")
 
 
-def test_2708(cursor):
+def test_data_types_2708(cursor):
     "2708 - insert a float64 vector into a float64 column"
     value = array.array(
         "d",
@@ -243,7 +243,7 @@ def test_2708(cursor):
     _test_insert_and_fetch(cursor, value, "Vector64Col", "d")
 
 
-def test_2709(cursor):
+def test_data_types_2709(cursor):
     "2709 - insert float64 vector into a float32 column"
     value = array.array(
         "d",
@@ -269,7 +269,7 @@ def test_2709(cursor):
     _test_insert_and_fetch(cursor, value, "Vector32Col", "f")
 
 
-def test_2710(cursor):
+def test_data_types_2710(cursor):
     "2710 - insert float64 vector into a flexible type column"
     value = array.array(
         "d",
@@ -295,7 +295,7 @@ def test_2710(cursor):
     _test_insert_and_fetch(cursor, value, "VectorFlexAllCol", "d")
 
 
-def test_2711(cursor, test_env):
+def test_data_types_2711(cursor, test_env):
     "2711 - insert a vector with an invalid size"
     cursor.execute("truncate table TestVectors")
     for num_elems in [4, 20]:
@@ -307,7 +307,7 @@ def test_2711(cursor, test_env):
             cursor.execute(statement, [vector])
 
 
-def test_2712(cursor):
+def test_data_types_2712(cursor):
     "2712 - verify fetch info for vectors"
     attr_names = [
         "name",
@@ -369,7 +369,7 @@ def test_2712(cursor):
     assert cursor.description[3].vector_format is oracledb.VectorFormat.INT8
 
 
-def test_2713(cursor):
+def test_data_types_2713(cursor):
     "2713 - insert an int8 vector into an int8 column"
     value = array.array(
         "b", [-5, 4, -7, 6, -9, 8, -127, 127, 0, -128, 1, 4, -3, 2, -8, 0]
@@ -377,7 +377,7 @@ def test_2713(cursor):
     _test_insert_and_fetch(cursor, value, "Vector8Col", "b")
 
 
-def test_2714(cursor):
+def test_data_types_2714(cursor):
     "2714 - insert an int8 vector into a float32 column"
     value = array.array(
         "b", [-5, 4, -7, 6, -9, 8, -127, 127, 0, -128, 1, 4, -3, 2, -8, 0]
@@ -385,7 +385,7 @@ def test_2714(cursor):
     _test_insert_and_fetch(cursor, value, "Vector32Col", "f")
 
 
-def test_2715(cursor):
+def test_data_types_2715(cursor):
     "2715 - insert an int8 vector into a float64 column"
     value = array.array(
         "b", [-5, 4, -7, 6, -9, 8, -127, 127, 0, -128, 1, 4, -3, 2, -8, 0]
@@ -393,7 +393,7 @@ def test_2715(cursor):
     _test_insert_and_fetch(cursor, value, "Vector64Col", "d")
 
 
-def test_2716(cursor):
+def test_data_types_2716(cursor):
     "2716 - insert an int8 vector into a flexible column"
     value = array.array(
         "b", [-5, 4, -7, 6, -9, 8, -127, 127, 0, -128, 1, 4, -3, 2, -8, 0]
@@ -401,7 +401,7 @@ def test_2716(cursor):
     _test_insert_and_fetch(cursor, value, "VectorFlexAllCol", "b")
 
 
-def test_2717(cursor):
+def test_data_types_2717(cursor):
     "2717 - insert a float32 vector into an int8 column"
     value = array.array(
         "f", [-5, 4, -7, 6, -9, 8, -127, 127, 0, -128, 1, 4, -3, 2, -8, 0]
@@ -409,7 +409,7 @@ def test_2717(cursor):
     _test_insert_and_fetch(cursor, value, "Vector8Col", "b")
 
 
-def test_2718(cursor):
+def test_data_types_2718(cursor):
     "2718 - insert a float64 vector into an int8 column"
     value = array.array(
         "d", [-5, 4, -7, 6, -9, 8, -127, 127, 0, -128, 1, 4, -3, 2, -8, 0]
@@ -417,7 +417,7 @@ def test_2718(cursor):
     _test_insert_and_fetch(cursor, value, "Vector8Col", "b")
 
 
-def test_2719(conn, cursor):
+def test_data_types_2719(conn, cursor):
     "2719 - test dml returning vector type"
     value = array.array("d", [6423.5, 6423.625])
     out_var = cursor.var(oracledb.DB_TYPE_VECTOR)
@@ -434,7 +434,7 @@ def test_2719(conn, cursor):
     assert value == out_var.getvalue()[0]
 
 
-def test_2720(conn, cursor):
+def test_data_types_2720(conn, cursor):
     "2720 - test handling of NULL vector value"
     cursor.execute("delete from TestVectors")
     cursor.execute("insert into TestVectors (IntCol) values (1)")
@@ -444,7 +444,7 @@ def test_2720(conn, cursor):
     assert fetched_value is None
 
 
-def test_2721(cursor, test_env):
+def test_data_types_2721(cursor, test_env):
     "2721 - insert a float32 vector into an int8 column (negative)"
     value = array.array(
         "f",
@@ -454,25 +454,25 @@ def test_2721(cursor, test_env):
         _test_insert_and_fetch(cursor, value, "Vector8Col", "b")
 
 
-def test_2722(cursor):
+def test_data_types_2722(cursor):
     "2722 - insert a float64 vector with 65,533 dimensions"
     value = array.array("d", [2.5] * 65533)
     _test_insert_and_fetch(cursor, value, "VectorFlexAllCol", "d")
 
 
-def test_2723(cursor):
+def test_data_types_2723(cursor):
     "2723 - insert a float32 vector with 65,533 dimensions"
     value = array.array("f", [2.5] * 65533)
     _test_insert_and_fetch(cursor, value, "VectorFlexAllCol", "f")
 
 
-def test_2724(cursor):
+def test_data_types_2724(cursor):
     "2724 - insert an int8 vector with 65,533 dimensions"
     value = array.array("b", [2] * 65533)
     _test_insert_and_fetch(cursor, value, "VectorFlexAllCol", "b")
 
 
-def test_2725(cursor):
+def test_data_types_2725(cursor):
     "2725 - insert vectors with different dimensions"
     for dim in [30, 70, 255, 256, 65534, 65535]:
         for typ in ["f", "d", "b"]:
@@ -482,7 +482,7 @@ def test_2725(cursor):
 
 
 @pytest.mark.skip("awaiting database support")
-def test_2726(conn, cursor):
+def test_data_types_2726(conn, cursor):
     "2726 - insert and fetch VECTOR data using CLOB"
     value = [6426, -15.75, 283.125, -8.625]
     clob = conn.createlob(oracledb.DB_TYPE_CLOB)
@@ -510,7 +510,7 @@ def test_2726(conn, cursor):
     assert fetched_value == value
 
 
-def test_2727(cursor):
+def test_data_types_2727(cursor):
     "2727 - insert and fetch VECTOR data using strings"
     value = [6427, -25.75, 383.125, -18.625]
     cursor.execute("delete from TestVectors")
@@ -535,7 +535,7 @@ def test_2727(cursor):
     assert json.loads(fetched_value) == value
 
 
-def test_2728(cursor):
+def test_data_types_2728(cursor):
     "2728 - insert vectors with flexible dimensions and conversion"
     for dim in [30, 255, 256, 257, 32768, 65535]:
         for source_type in ["f", "d", "b"]:
@@ -552,7 +552,7 @@ def test_2728(cursor):
 
 
 @pytest.mark.skip("awaiting database support")
-def test_2729(cursor):
+def test_data_types_2729(cursor):
     "2727 - insert and fetch large VECTOR data using strings"
     value = [0.12345678925] * 35625
     cursor.execute("delete from TestVectors")
@@ -577,7 +577,7 @@ def test_2729(cursor):
     assert json.loads(fetched_value) == value
 
 
-def test_2730(cursor, test_env):
+def test_data_types_2730(cursor, test_env):
     "2730 - test binding a vector with inf values (negative)"
     value = array.array(
         "d", [float("inf") if i % 2 else float("-inf") for i in range(16)]
@@ -586,13 +586,13 @@ def test_2730(cursor, test_env):
         cursor.execute("select :1 from dual", [value])
 
 
-def test_2731(cursor):
+def test_data_types_2731(cursor):
     "2731 - test setting an invalid type to a vector"
     var = cursor.var(oracledb.DB_TYPE_VECTOR)
     pytest.raises(TypeError, var.setvalue, 0, [[i] for i in range(16)])
 
 
-def test_2732(cursor):
+def test_data_types_2732(cursor):
     "2732 - fetch JSON value with an embedded vector"
     cursor.execute("""
         select json_object(
@@ -606,7 +606,7 @@ def test_2732(cursor):
     assert result == expected_val
 
 
-def test_2733(conn, cursor):
+def test_data_types_2733(conn, cursor):
     "2733 - bind JSON value with an embedded vector"
     value = dict(id=6433, vector=array.array("d", [6433, 6433.25, 6433.5]))
     cursor.execute("delete from TestJson")
@@ -618,7 +618,7 @@ def test_2733(conn, cursor):
     assert fetched_val == value
 
 
-def test_2734(cursor):
+def test_data_types_2734(cursor):
     "2734 - executemany() without setinputsizes()"
     cursor.execute("delete from TestVectors")
     values = [array.array("f", [3.1416, 4]), [3.14159, 5]]
@@ -637,7 +637,7 @@ def test_2734(cursor):
     assert cursor.fetchall() == expected_value
 
 
-def test_2735(cursor):
+def test_data_types_2735(cursor):
     "2735 - executemany() with setinputsizes()"
     cursor.execute("delete from TestVectors")
     values = [[144, 1000], array.array("d", [66.0, 7.14])]
@@ -657,7 +657,7 @@ def test_2735(cursor):
     assert cursor.fetchall() == expected_value
 
 
-def test_2736(cursor, test_env):
+def test_data_types_2736(cursor, test_env):
     "2736 - vector with zero dimensions"
     with test_env.assert_raises_full_code("DPY-4031"):
         cursor.setinputsizes(oracledb.DB_TYPE_VECTOR)
@@ -666,55 +666,55 @@ def test_2736(cursor, test_env):
         cursor.execute("select :1", [array.array("d", [])])
 
 
-def test_2737(cursor):
+def test_data_types_2737(cursor):
     "2737 - insert a list vector into a flexible format column"
     value = [1.5, 9.9]
     _test_insert_and_fetch(cursor, value, "VectorFlexTypeCol", "d")
 
 
-def test_2738(cursor):
+def test_data_types_2738(cursor):
     "2738 - insert a list vector into a flexible size column"
     value = [1.5, 9.9, 3, 8, 4.25, 7, 5, 6.125, 0, 2, 6, 4, 5, 6, 7, 8]
     _test_insert_and_fetch(cursor, value, "VectorFlexAllCol", "d")
 
 
-def test_2739(cursor):
+def test_data_types_2739(cursor):
     "2739 - insert a list vector into a flexible float32 column"
     value = [1.5, 9.9, 3, 8, 4.25, 7, 5, 6.125, 0, 2, 6, 4, 5, 6, 7, 8]
     _test_insert_and_fetch(cursor, value, "VectorFlex32Col", "f")
 
 
-def test_2740(cursor):
+def test_data_types_2740(cursor):
     "2740 - insert a list vector into a flexible float64 column"
     value = [1.5, 9.9, 3, 8, 4.25, 7, 5, 6.125, 0, 2, 6, 4, 5, 6, 7, 8]
     _test_insert_and_fetch(cursor, value, "VectorFlex64Col", "d")
 
 
-def test_2741(cursor):
+def test_data_types_2741(cursor):
     "2741 - insert a list vector into a float32 column"
     value = [1.5, 9.9, 3, 8, 4.25, 7, 5, 6.125, 0, 2, 6, 4, 5, 6, 7, 8]
     _test_insert_and_fetch(cursor, value, "Vector32Col", "f")
 
 
-def test_2742(cursor):
+def test_data_types_2742(cursor):
     "2742 - insert a list vector into a float64 column"
     value = [1.5, 9.9, 3, 8, 4.25, 7, 5, 6.125, 0, 2, 6, 4, 5, 6, 7, 8]
     _test_insert_and_fetch(cursor, value, "Vector64Col", "d")
 
 
-def test_2743(cursor):
+def test_data_types_2743(cursor):
     "2743 - insert a list vector into a flexible int8 column"
     value = [1, 9, 3, 8, 4, 7, 5, 6, 0, 2, 6, 4, 5, 6, 7, 8]
     _test_insert_and_fetch(cursor, value, "VectorFlex8Col", "b")
 
 
-def test_2744(cursor):
+def test_data_types_2744(cursor):
     "2744 - insert a list vector into an int8 column"
     value = [1, 9, 3, 8, 4, 7, 5, 6, 0, 2, 6, 4, 5, 6, 7, 8]
     _test_insert_and_fetch(cursor, value, "Vector8Col", "b")
 
 
-def test_2745(cursor):
+def test_data_types_2745(cursor):
     "2745 - test setting a PL-SQL type to a float32 vector"
     vec1 = array.array("f", [1, 1.5, 2, 2.5])
     vec2 = array.array("f", [4, 4.5, 5, 5.5])
@@ -725,7 +725,7 @@ def test_2745(cursor):
     _test_plsql_insert_and_fetch(cursor, vec3, vec4, 256)
 
 
-def test_2746(cursor):
+def test_data_types_2746(cursor):
     "2746 - test setting a PL-SQL type to a float64 vector"
     vec1 = array.array("d", [1, 1.5, 2, 2.5])
     vec2 = array.array("d", [4, 4.5, 5, 5.5])
@@ -736,7 +736,7 @@ def test_2746(cursor):
     _test_plsql_insert_and_fetch(cursor, vec3, vec4, 256)
 
 
-def test_2747(cursor):
+def test_data_types_2747(cursor):
     "2747 - test setting a PL-SQL type to a int8 vector"
     vec1 = array.array("b", [1, 2, 3, 4])
     vec2 = array.array("b", [5, 6, 7, 8])

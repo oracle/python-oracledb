@@ -130,7 +130,7 @@ def _fetch_with_vector(
     assert fetched_value.values.typecode == expected_typecode
 
 
-def test_3000(cursor):
+def test_data_types_3000(cursor):
     "3000 - test binding in a sparse vector with oracledb.SparseVector"
     vector = oracledb.SparseVector(3, [1], [9])
     cursor.execute("select :1 from dual", [vector])
@@ -141,7 +141,7 @@ def test_3000(cursor):
     assert fetched_value.values == vector.values
 
 
-def test_3001(cursor):
+def test_data_types_3001(cursor):
     "3001 - test binding in a sparse vector of type float32"
     vector = oracledb.SparseVector(3, [1], array.array("f", [0.5]))
     cursor.execute("select :1 from dual", [vector])
@@ -152,7 +152,7 @@ def test_3001(cursor):
     assert fetched_value.values.typecode == "f"
 
 
-def test_3002(cursor):
+def test_data_types_3002(cursor):
     "3002 - test binding in a sparse vector of type float64"
     vector = oracledb.SparseVector(3, [1], array.array("d", [0.25]))
     cursor.execute("select :1 from dual", [vector])
@@ -164,7 +164,7 @@ def test_3002(cursor):
     assert isinstance(fetched_value, oracledb.SparseVector)
 
 
-def test_3003(cursor):
+def test_data_types_3003(cursor):
     "3003 - test binding in a sparse vector of type int8"
     vector = oracledb.SparseVector(3, [1], array.array("b", [3]))
     cursor.execute("select :1 from dual", [vector])
@@ -176,7 +176,7 @@ def test_3003(cursor):
     assert isinstance(fetched_value, oracledb.SparseVector)
 
 
-def test_3004(cursor):
+def test_data_types_3004(cursor):
     "3004 - insert a float32 sparse vector into a float32 column"
     value = oracledb.SparseVector(
         16, [1, 3, 5], array.array("f", [1.5, 0.25, 0.5])
@@ -185,7 +185,7 @@ def test_3004(cursor):
     _test_insert_and_fetch_sparse(cursor, value, "SparseVector32Col", "f")
 
 
-def test_3005(cursor):
+def test_data_types_3005(cursor):
     "3005 - insert a float32 vector into a float64 column"
     value = oracledb.SparseVector(
         16, [1, 3, 5], array.array("d", [1.5, 0.25, 0.5])
@@ -194,7 +194,7 @@ def test_3005(cursor):
     _test_insert_and_fetch_sparse(cursor, value, "SparseVector64Col", "d")
 
 
-def test_3006(cursor):
+def test_data_types_3006(cursor):
     "3006 - insert a float32 vector into a flexible format column"
     value = oracledb.SparseVector(
         16, [1, 3, 5], array.array("f", [1.5, 0.25, 0.5])
@@ -203,7 +203,7 @@ def test_3006(cursor):
     _test_insert_and_fetch_sparse(cursor, value, "SparseVectorFlexAllCol", "f")
 
 
-def test_3007(cursor):
+def test_data_types_3007(cursor):
     "3007 - insert a float64 vector into a float64 column"
     value = oracledb.SparseVector(
         16, [1, 3, 5], array.array("d", [1.5, 0.25, 0.5])
@@ -212,7 +212,7 @@ def test_3007(cursor):
     _test_insert_and_fetch_sparse(cursor, value, "SparseVector64Col", "d")
 
 
-def test_3008(cursor):
+def test_data_types_3008(cursor):
     "3008 - insert float64 vector into a float32 column"
     value = oracledb.SparseVector(
         16, [1, 3, 5], array.array("f", [1.5, 0.25, 0.5])
@@ -221,7 +221,7 @@ def test_3008(cursor):
     _test_insert_and_fetch_sparse(cursor, value, "SparseVector32Col", "f")
 
 
-def test_3009(cursor):
+def test_data_types_3009(cursor):
     "3009 - insert float64 vector into a flexible type column"
     value = oracledb.SparseVector(
         16, [1, 3, 5], array.array("d", [1.5, 0.25, 0.5])
@@ -230,7 +230,7 @@ def test_3009(cursor):
     _test_insert_and_fetch_sparse(cursor, value, "SparseVectorFlexAllCol", "d")
 
 
-def test_3010(cursor, test_env):
+def test_data_types_3010(cursor, test_env):
     "3010 - insert a vector with an invalid size"
     cursor.execute("delete from TestVectors")
     cursor.execute("delete from TestSparseVectors")
@@ -253,7 +253,7 @@ def test_3010(cursor, test_env):
                 cursor.execute(statement, [vector])
 
 
-def test_3011(cursor):
+def test_data_types_3011(cursor):
     "3011 - verify fetch info for vectors"
     attr_names = [
         "name",
@@ -327,49 +327,49 @@ def test_3011(cursor):
     assert cursor.description[6].vector_format is oracledb.VectorFormat.INT8
 
 
-def test_3012(cursor):
+def test_data_types_3012(cursor):
     "3012 - insert an int8 vector into an int8 column"
     value = oracledb.SparseVector(16, [1, 3, 5], array.array("f", [1, 0, 5]))
     _test_insert_and_fetch(cursor, value, "Vector8Col", "b")
     _test_insert_and_fetch_sparse(cursor, value, "SparseVector8Col", "b")
 
 
-def test_3013(cursor):
+def test_data_types_3013(cursor):
     "3013 - insert an int8 vector into a float32 column"
     value = oracledb.SparseVector(16, [1, 3, 5], array.array("f", [1, 0, 5]))
     _test_insert_and_fetch(cursor, value, "Vector32Col", "f")
     _test_insert_and_fetch_sparse(cursor, value, "SparseVector32Col", "f")
 
 
-def test_3014(cursor):
+def test_data_types_3014(cursor):
     "3014 - insert an int8 vector into a float64 column"
     value = oracledb.SparseVector(16, [1, 3, 5], array.array("b", [1, 0, 5]))
     _test_insert_and_fetch(cursor, value, "Vector64Col", "d")
     _test_insert_and_fetch_sparse(cursor, value, "SparseVector64Col", "d")
 
 
-def test_3015(cursor):
+def test_data_types_3015(cursor):
     "3015 - insert an int8 vector into a flexible column"
     value = oracledb.SparseVector(16, [1, 3, 5], array.array("b", [1, 0, 5]))
     _test_insert_and_fetch(cursor, value, "VectorFlexAllCol", "b")
     _test_insert_and_fetch_sparse(cursor, value, "SparseVectorFlexAllCol", "b")
 
 
-def test_3016(cursor):
+def test_data_types_3016(cursor):
     "3016 - insert a float32 vector into an int8 column"
     value = oracledb.SparseVector(16, [1, 3, 5], array.array("f", [1, 0, 5]))
     _test_insert_and_fetch(cursor, value, "Vector8Col", "b")
     _test_insert_and_fetch_sparse(cursor, value, "SparseVector8Col", "b")
 
 
-def test_3017(cursor):
+def test_data_types_3017(cursor):
     "3017 - insert a float64 vector into an int8 column"
     value = oracledb.SparseVector(16, [1, 3, 5], array.array("d", [1, 0, 5]))
     _test_insert_and_fetch(cursor, value, "Vector8Col", "b")
     _test_insert_and_fetch_sparse(cursor, value, "SparseVector8Col", "b")
 
 
-def test_3018(conn, cursor):
+def test_data_types_3018(conn, cursor):
     "3018 - test dml returning vector type"
     value = oracledb.SparseVector(16, [1, 3, 5], array.array("f", [1, 0, 5]))
     out_var = cursor.var(oracledb.DB_TYPE_VECTOR)
@@ -389,7 +389,7 @@ def test_3018(conn, cursor):
     assert vector.num_dimensions == value.num_dimensions
 
 
-def test_3019(conn, cursor):
+def test_data_types_3019(conn, cursor):
     "3019 - test handling of NULL vector value"
     cursor.execute("delete from TestSparseVectors")
     cursor.execute("insert into TestSparseVectors (IntCol) values (1)")
@@ -399,7 +399,7 @@ def test_3019(conn, cursor):
     assert fetched_value is None
 
 
-def test_3020(cursor, test_env):
+def test_data_types_3020(cursor, test_env):
     "3020 - insert a float32 vector into an int8 column (negative)"
     value = oracledb.SparseVector(
         16, [1, 3, 5], array.array("f", [-130, 400, 5])
@@ -410,7 +410,7 @@ def test_3020(cursor, test_env):
         _test_insert_and_fetch_sparse(cursor, value, "SparseVector8Col", "b")
 
 
-def test_3021(cursor):
+def test_data_types_3021(cursor):
     "3021 - insert a float32 vector with 65,533 dimensions"
     value = oracledb.SparseVector(
         65533, [1, 3, 5], array.array("f", [1, 0, 5])
@@ -419,7 +419,7 @@ def test_3021(cursor):
     _test_insert_and_fetch_sparse(cursor, value, "SparseVectorFlexAllCol", "f")
 
 
-def test_3022(cursor):
+def test_data_types_3022(cursor):
     "3022 - insert vectors with different dimensions"
     for dim in [30, 70, 255, 256, 65534, 65535]:
         for typ in ["f", "d", "b"]:
@@ -433,7 +433,7 @@ def test_3022(cursor):
             )
 
 
-def test_3023(cursor):
+def test_data_types_3023(cursor):
     "3023 - insert and fetch VECTOR data using strings"
     values = [16, [1, 3, 5], [1, 0, 5]]
     vector = oracledb.SparseVector(*values)
@@ -459,7 +459,7 @@ def test_3023(cursor):
     assert json.loads(fetched_value) == values
 
 
-def test_3024(cursor):
+def test_data_types_3024(cursor):
     "3024 - insert vectors with flexible dimensions and conversion"
     for dim in [30, 255, 256, 257, 32768, 65535]:
         for source_type in ["f", "d", "b"]:
@@ -482,7 +482,7 @@ def test_3024(cursor):
                 )
 
 
-def test_3025(cursor, test_env):
+def test_data_types_3025(cursor, test_env):
     "3025 - test binding a vector with inf values (negative)"
     value = oracledb.SparseVector(
         16,
@@ -493,7 +493,7 @@ def test_3025(cursor, test_env):
         cursor.execute("select :1 from dual", [value])
 
 
-def test_3026(cursor):
+def test_data_types_3026(cursor):
     "3026 - test setting a sparse vector to a vector variable"
     value = oracledb.SparseVector(16, [1, 3, 5], array.array("f", [1, 0, 5]))
     var = cursor.var(oracledb.DB_TYPE_VECTOR)
@@ -504,7 +504,7 @@ def test_3026(cursor):
     assert vector.num_dimensions == value.num_dimensions
 
 
-def test_3027(cursor):
+def test_data_types_3027(cursor):
     "3027 - fetch JSON value with an embedded vector"
     cursor.execute("delete from TestSparseVectors")
     vector = oracledb.SparseVector(
@@ -532,7 +532,7 @@ def test_3027(cursor):
     assert fetched_vector.num_dimensions == vector.num_dimensions
 
 
-def test_3028(cursor):
+def test_data_types_3028(cursor):
     "3028 - executemany() without setinputsizes()"
     cursor.execute("delete from TestSparseVectors")
     vector = oracledb.SparseVector(16, [1, 3, 5], array.array("f", [1, 0, 5]))
@@ -556,7 +556,7 @@ def test_3028(cursor):
     assert fetched_vector2.num_dimensions == 16
 
 
-def test_3029(cursor):
+def test_data_types_3029(cursor):
     "3029 - executemany() with setinputsizes()"
     cursor.execute("delete from TestSparseVectors")
     vector = oracledb.SparseVector(16, [1, 3, 5], array.array("d", [1, 0, 5]))
@@ -582,7 +582,7 @@ def test_3029(cursor):
     assert fetched_vector2.num_dimensions == vector.num_dimensions
 
 
-def test_3030(skip_unless_thin_mode, cursor, test_env):
+def test_data_types_3030(skip_unless_thin_mode, cursor, test_env):
     "3030 - sparse vector with zero dimensions"
     if not test_env.has_client_and_server_version(23, 26):
         pytest.skip("no zero dimension sparse vector support")
@@ -592,7 +592,7 @@ def test_3030(skip_unless_thin_mode, cursor, test_env):
     assert fetched_vector == vector
 
 
-def test_3031(cursor):
+def test_data_types_3031(cursor):
     "3031 - test inserting a vector as a string and fetching it"
     cursor.execute("delete from TestSparseVectors")
     cursor.execute("""
@@ -606,7 +606,7 @@ def test_3031(cursor):
     assert vector.indices == array.array("I", [1, 3])
 
 
-def test_3032():
+def test_data_types_3032():
     "3032 - SparseVector() with invalid values"
     # pass strings instead of number or list/array.array
     with pytest.raises(TypeError):
@@ -642,7 +642,7 @@ def test_3032():
         oracledb.SparseVector(0, [], [])
 
 
-def test_3033():
+def test_data_types_3033():
     "3033 - SparseVector() with indices and values of different length"
     with pytest.raises(TypeError):
         oracledb.SparseVector(10, [1], [1.5, 3.5])
@@ -650,7 +650,7 @@ def test_3033():
         oracledb.SparseVector(10, [1, 2, 3, 4], [6.75])
 
 
-def test_3035(cursor):
+def test_data_types_3035(cursor):
     "3035 - select with vector()"
     dense_vector = array.array(
         "f", [1, 2, 3, 4, 0, 5, 6, 7, 8, 9, 10, 11, 12, 13, 0, 0]
@@ -681,7 +681,7 @@ def test_3035(cursor):
             _fetch_with_vector(cursor, vector, column_name, 2, "FLOAT64", "d")
 
 
-def test_3036(cursor):
+def test_data_types_3036(cursor):
     "3036 - test from_vector() with returning and vector storage format"
     cursor.execute("delete from TestSparseVectors")
     values = [16, [1, 2, 15], [2, 45.5, 73.25]]

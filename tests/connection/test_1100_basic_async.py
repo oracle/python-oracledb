@@ -77,7 +77,7 @@ async def _verify_connect_arg(test_env, arg_name, arg_value, sql):
     assert fetched_value == arg_value
 
 
-async def test_1100(test_env):
+async def test_connection_1100(test_env):
     "1100 - simple connection to database"
     async with test_env.get_connection_async() as conn:
         assert conn.username == test_env.main_user, "user name differs"
@@ -85,7 +85,7 @@ async def test_1100(test_env):
         assert conn.thin
 
 
-async def test_1103(test_env):
+async def test_connection_1103(test_env):
     "1103 - test connection end-to-end tracing attributes"
     async with test_env.get_connection_async() as conn:
         if not test_env.is_on_oracle_cloud:
@@ -109,7 +109,7 @@ async def test_1103(test_env):
         await _verify_attributes(conn, "client_identifier", None, sql)
 
 
-async def test_1104(test_env):
+async def test_connection_1104(test_env):
     "1104 - test use of autocommit"
     async with test_env.get_connection_async() as conn:
         cursor = conn.cursor()
@@ -127,7 +127,7 @@ async def test_1104(test_env):
         assert await other_cursor.fetchall() == [(1,), (2,)]
 
 
-async def test_1105(test_env):
+async def test_connection_1105(test_env):
     "1105 - connection to database with bad connect string"
     with test_env.assert_raises_full_code(
         "DPY-4000", "DPY-4026", "DPY-4027", "ORA-12154"
@@ -139,7 +139,7 @@ async def test_1105(test_env):
         )
 
 
-async def test_1106(test_env):
+async def test_connection_1106(test_env):
     "1106 - connection to database with bad password"
     with test_env.assert_raises_full_code("ORA-01017"):
         await test_env.get_connection_async(
@@ -147,7 +147,7 @@ async def test_1106(test_env):
         )
 
 
-async def test_1107(skip_if_drcp, test_env):
+async def test_connection_1107(skip_if_drcp, test_env):
     "1107 - test changing password"
     if test_env.is_on_oracle_cloud:
         pytest.skip("passwords on Oracle Cloud are strictly controlled")
@@ -158,7 +158,7 @@ async def test_1107(skip_if_drcp, test_env):
         await conn.changepassword(new_password, test_env.main_password)
 
 
-async def test_1108(skip_if_drcp, test_env):
+async def test_connection_1108(skip_if_drcp, test_env):
     "1108 - test changing password to an invalid value"
     if test_env.is_on_oracle_cloud:
         pytest.skip("passwords on Oracle Cloud are strictly controlled")
@@ -172,7 +172,7 @@ async def test_1108(skip_if_drcp, test_env):
             await conn.changepassword("incorrect old password", new_password)
 
 
-async def test_1109(skip_if_drcp, test_env):
+async def test_connection_1109(skip_if_drcp, test_env):
     "1109 - test connecting with password containing / and @ symbols"
     if test_env.is_on_oracle_cloud:
         pytest.skip("passwords on Oracle Cloud are strictly controlled")
@@ -189,7 +189,7 @@ async def test_1109(skip_if_drcp, test_env):
             await conn.changepassword(new_password, test_env.main_password)
 
 
-async def test_1110(test_env):
+async def test_connection_1110(test_env):
     "1110 - confirm an exception is raised after closing a connection"
     async with await test_env.get_connection_async() as conn:
         await conn.close()
@@ -197,13 +197,13 @@ async def test_1110(test_env):
             await conn.rollback()
 
 
-async def test_1112(test_env):
+async def test_connection_1112(test_env):
     "1112 - connection version is a string"
     async with test_env.get_connection_async() as conn:
         assert isinstance(conn.version, str)
 
 
-async def test_1113(test_env):
+async def test_connection_1113(test_env):
     "1113 - connection rolls back before close"
     async with test_env.get_connection_async() as conn:
         cursor = conn.cursor()
@@ -220,13 +220,13 @@ async def test_1113(test_env):
         assert count == 0
 
 
-async def test_1115(test_env):
+async def test_connection_1115(test_env):
     "1115 - multiple connections to database with multiple threads"
     coroutines = [_connect_and_drop(test_env) for i in range(20)]
     await asyncio.gather(*coroutines)
 
 
-async def test_1116(test_env):
+async def test_connection_1116(test_env):
     "1116 - test string format of connection"
     async with test_env.get_connection_async() as conn:
         expected_value = "<oracledb.AsyncConnection to %s@%s>" % (
@@ -236,7 +236,7 @@ async def test_1116(test_env):
         assert str(conn) == expected_value
 
 
-async def test_1117(test_env):
+async def test_connection_1117(test_env):
     "1117 - test context manager - close"
     async with test_env.get_connection_async() as conn:
         cursor = conn.cursor()
@@ -253,7 +253,7 @@ async def test_1117(test_env):
     assert count == 1
 
 
-async def test_1118(test_env):
+async def test_connection_1118(test_env):
     "1118 - test connection attribute values"
     async with test_env.get_connection_async() as conn:
         assert conn.ltxid == b""
@@ -272,7 +272,7 @@ async def test_1118(test_env):
         assert conn.warning is None
 
 
-async def test_1119(test_env):
+async def test_connection_1119(test_env):
     "1119 - test closed connection attribute values"
     conn = await test_env.get_connection_async()
     await conn.close()
@@ -290,19 +290,19 @@ async def test_1119(test_env):
             getattr(conn, name)
 
 
-async def test_1120(test_env, async_conn, round_trip_checker_async):
+async def test_connection_1120(test_env, async_conn, round_trip_checker_async):
     "1120 - test connection ping makes a round trip"
     await async_conn.ping()
     assert (await round_trip_checker_async.get_value_async()) == 1
 
 
-async def test_1125(async_conn):
+async def test_connection_1125(async_conn):
     "1125 - single connection to database with multiple threads"
     coroutines = [_verify_fetched_data(async_conn) for i in range(3)]
     await asyncio.gather(*coroutines)
 
 
-async def test_1126(skip_if_implicit_pooling, async_conn, test_env):
+async def test_connection_1126(skip_if_implicit_pooling, async_conn, test_env):
     "1126 - test connection cancel"
 
     async def perform_cancel():
@@ -322,7 +322,7 @@ async def test_1126(skip_if_implicit_pooling, async_conn, test_env):
         assert user == test_env.main_user.upper()
 
 
-async def test_1127(skip_if_drcp, test_env):
+async def test_connection_1127(skip_if_drcp, test_env):
     "1127 - test changing password during connect"
     if test_env.is_on_oracle_cloud:
         pytest.skip("passwords on Oracle Cloud are strictly controlled")
@@ -333,7 +333,7 @@ async def test_1127(skip_if_drcp, test_env):
         await conn.changepassword(new_password, test_env.main_password)
 
 
-async def test_1128(test_env):
+async def test_connection_1128(test_env):
     "1128 - test use of autocommit during reexecute"
     sql = "insert into TestTempTable (IntCol, StringCol1) values (:1, :2)"
     data_to_insert = [(1, "Test String #1"), (2, "Test String #2")]
@@ -355,7 +355,7 @@ async def test_1128(test_env):
         assert await other_cursor.fetchall() == data_to_insert
 
 
-async def test_1129(test_env):
+async def test_connection_1129(test_env):
     "1129 - test current_schema is set properly"
     async with test_env.get_connection_async() as conn:
         assert conn.current_schema is None
@@ -376,7 +376,7 @@ async def test_1129(test_env):
         assert result == user
 
 
-async def test_1130(test_env):
+async def test_connection_1130(test_env):
     "1130 - test dbms_output package"
     async with test_env.get_connection_async() as conn:
         cursor = conn.cursor()
@@ -389,7 +389,7 @@ async def test_1130(test_env):
         assert string_var.getvalue() == test_string
 
 
-async def test_1131(test_env):
+async def test_connection_1131(test_env):
     "1131 - test connection call_timeout"
     async with test_env.get_connection_async() as conn:
         conn.call_timeout = 500  # milliseconds
@@ -399,7 +399,7 @@ async def test_1131(test_env):
                 await cursor.callproc(test_env.sleep_proc_name, [2])
 
 
-async def test_1132(test_env):
+async def test_connection_1132(test_env):
     "1132 - test Connection repr()"
 
     class MyConnection(oracledb.AsyncConnection):
@@ -415,7 +415,7 @@ async def test_1132(test_env):
     assert repr(conn) == expected_value
 
 
-async def test_1133(test_env):
+async def test_connection_1133(test_env):
     "1133 - test getting write-only attributes"
     async with test_env.get_connection_async() as conn:
         with pytest.raises(AttributeError):
@@ -432,7 +432,7 @@ async def test_1133(test_env):
             conn.client_identifier
 
 
-async def test_1134(test_env):
+async def test_connection_1134(test_env):
     "1134 - test error for invalid type for params and pool"
     pool = test_env.get_pool_async()
     await pool.close()
@@ -446,7 +446,7 @@ async def test_1134(test_env):
         await oracledb.connect_async(params={"number": 7})
 
 
-async def test_1135(test_env):
+async def test_connection_1135(test_env):
     "1135 - test connection instance name"
     async with test_env.get_connection_async() as conn:
         cursor = conn.cursor()
@@ -458,7 +458,7 @@ async def test_1135(test_env):
         assert conn.instance_name.upper() == instance_name
 
 
-async def test_1137(
+async def test_connection_1137(
     skip_if_drcp, skip_unless_long_passwords_supported, test_env
 ):
     if test_env.is_on_oracle_cloud:
@@ -481,7 +481,7 @@ async def test_1137(
             await conn.changepassword(original_password, new_password_1025)
 
 
-async def test_1138(test_env):
+async def test_connection_1138(test_env):
     "1138 - test getting db_name"
     async with test_env.get_connection_async() as conn:
         cursor = conn.cursor()
@@ -490,7 +490,7 @@ async def test_1138(test_env):
         assert conn.db_name.upper() == db_name.upper()
 
 
-async def test_1139(test_env):
+async def test_connection_1139(test_env):
     "1139 - test getting max_open_cursors"
     async with test_env.get_connection_async() as conn:
         cursor = conn.cursor()
@@ -501,7 +501,7 @@ async def test_1139(test_env):
         assert conn.max_open_cursors == int(max_open_cursors)
 
 
-async def test_1140(test_env):
+async def test_connection_1140(test_env):
     "1140 - test getting service_name"
     async with test_env.get_connection_async() as conn:
         cursor = conn.cursor()
@@ -512,7 +512,7 @@ async def test_1140(test_env):
         assert conn.service_name == service_name
 
 
-async def test_1141(test_env):
+async def test_connection_1141(test_env):
     "1141 - test transaction_in_progress"
     async with test_env.get_connection_async() as conn:
         assert not conn.transaction_in_progress
@@ -528,7 +528,7 @@ async def test_1141(test_env):
         assert not conn.transaction_in_progress
 
 
-async def test_1142(test_env):
+async def test_connection_1142(test_env):
     "1142 - test getting db_domain"
     async with test_env.get_connection_async() as conn:
         (db_domain,) = await conn.fetchone(
@@ -537,19 +537,19 @@ async def test_1142(test_env):
         assert conn.db_domain == db_domain
 
 
-async def test_1143(test_env):
+async def test_connection_1143(test_env):
     "1143 - test connection with invalid conn_class"
     with test_env.assert_raises_full_code("DPY-2023"):
         await test_env.get_connection_async(conn_class=oracledb.ConnectionPool)
 
 
-async def test_1144(test_env):
+async def test_connection_1144(test_env):
     "1144 - test connection with an invalid pool"
     with pytest.raises(TypeError):
         await oracledb.connect_async(pool="not a pool object")
 
 
-async def test_1146(test_env):
+async def test_connection_1146(test_env):
     "1146 - test passing program when creating a connection"
     sql = (
         "select program from v$session "
@@ -558,7 +558,7 @@ async def test_1146(test_env):
     await _verify_connect_arg(test_env, "program", "newprogram", sql)
 
 
-async def test_1147(test_env):
+async def test_connection_1147(test_env):
     "1147 - test passing machine when creating a connection"
     sql = (
         "select machine from v$session "
@@ -567,7 +567,7 @@ async def test_1147(test_env):
     await _verify_connect_arg(test_env, "machine", "newmachine", sql)
 
 
-async def test_1148(test_env):
+async def test_connection_1148(test_env):
     "1148 - test passing terminal when creating a connection"
     sql = (
         "select terminal from v$session "
@@ -576,7 +576,7 @@ async def test_1148(test_env):
     await _verify_connect_arg(test_env, "terminal", "newterminal", sql)
 
 
-async def test_1149(test_env):
+async def test_connection_1149(test_env):
     "1149 - test passing osuser when creating a connection"
     sql = (
         "select osuser from v$session "
@@ -585,7 +585,7 @@ async def test_1149(test_env):
     await _verify_connect_arg(test_env, "osuser", "newosuser", sql)
 
 
-async def test_1150(test_env):
+async def test_connection_1150(test_env):
     "1150 - test passing driver_name when creating a connection"
     sql = (
         "select distinct client_driver from v$session_connect_info "
@@ -594,7 +594,7 @@ async def test_1150(test_env):
     await _verify_connect_arg(test_env, "driver_name", "newdriver", sql)
 
 
-async def test_1151(test_env):
+async def test_connection_1151(test_env):
     "1151 - test getting session id"
     async with test_env.get_connection_async() as conn:
         cursor = conn.cursor()
@@ -605,7 +605,7 @@ async def test_1151(test_env):
         assert conn.session_id == fetched_value
 
 
-async def test_1152(test_env):
+async def test_connection_1152(test_env):
     "1152 - test getting session serial number"
     async with test_env.get_connection_async() as conn:
         cursor = conn.cursor()
@@ -616,7 +616,7 @@ async def test_1152(test_env):
         assert conn.serial_num == fetched_value
 
 
-async def test_1153(test_env):
+async def test_connection_1153(test_env):
     "1153 - test passed params in hook with standalone connection"
     sdu = 4096
     params = test_env.get_connect_params()
@@ -638,7 +638,7 @@ async def test_1153(test_env):
         oracledb.register_protocol(protocol, None)
 
 
-async def test_1154(test_env):
+async def test_connection_1154(test_env):
     "1154 - test altering connection edition"
     conn = await test_env.get_admin_connection_async()
     assert conn.edition is None
@@ -654,7 +654,7 @@ async def test_1154(test_env):
         assert conn.edition == edition.upper()
 
 
-async def test_1155(test_env):
+async def test_connection_1155(test_env):
     "1155 - test connect() with edition"
     edition = test_env.edition_name
     conn = await test_env.get_connection_async(edition=edition)
@@ -667,7 +667,7 @@ async def test_1155(test_env):
     assert conn.edition == edition
 
 
-async def test_1156(test_env):
+async def test_connection_1156(test_env):
     "1156 - test error in the middle of a database response"
     conn = await test_env.get_connection_async()
     cursor = conn.cursor()
@@ -692,7 +692,7 @@ async def test_1156(test_env):
         await cursor.fetchall()
 
 
-async def test_1157(test_env):
+async def test_connection_1157(test_env):
     "1157 - test on_connect_callback is triggered for standalone connections"
     counter = 0
 
@@ -705,7 +705,7 @@ async def test_1157(test_env):
 
 
 @pytest.mark.parametrize("attr_name", ["host", "port", "protocol"])
-async def test_1158(test_env, attr_name):
+async def test_connection_1158(test_env, attr_name):
     "1158 - test getting connection networking attributes"
     params = test_env.get_connect_params()
     params.parse_connect_string(test_env.connect_string)
@@ -717,7 +717,7 @@ async def test_1158(test_env, attr_name):
         )
 
 
-async def test_1159(async_cursor, test_env):
+async def test_connection_1159(async_cursor, test_env):
     "1159 - test getting db_unique_name"
     test_env.skip_unless_server_version(18, 5)
     await async_cursor.execute(
@@ -727,7 +727,7 @@ async def test_1159(async_cursor, test_env):
     assert async_cursor.connection.db_unique_name == expected_name
 
 
-async def test_1160(async_conn, test_env):
+async def test_connection_1160(async_conn, test_env):
     "1160 - test application context raises ValueError with invalid inputs"
     with pytest.raises(ValueError):
         async_conn.set_app_context("", attr="value")
@@ -745,7 +745,7 @@ async def test_1160(async_conn, test_env):
         await async_conn.ping()
 
 
-async def test_1161(async_conn, async_cursor):
+async def test_connection_1161(async_conn, async_cursor):
     "1161 - test set_app_context() behaviour"
     namespace = "CLIENTCONTEXT"
     async_conn.set_app_context(namespace, ATTR1="VALUE1")
@@ -765,7 +765,9 @@ async def test_1161(async_conn, async_cursor):
     assert await async_cursor.fetchone() == (None, None)
 
 
-async def test_1162(skip_unless_transaction_priority_supported, test_env):
+async def test_connection_1162(
+    skip_unless_transaction_priority_supported, test_env
+):
     "1162 - test getting and setting transaction priority"
     async with test_env.get_connection_async() as conn:
         default_priority = conn.transaction_priority

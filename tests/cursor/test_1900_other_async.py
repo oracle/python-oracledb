@@ -37,7 +37,7 @@ def module_checks(anyio_backend, skip_unless_thin_mode):
     pass
 
 
-async def test_1900(async_cursor):
+async def test_cursor_1900(async_cursor):
     "1900 - test preparing a statement and executing it multiple times"
     assert async_cursor.statement is None
     statement = "begin :value := :value + 5; end;"
@@ -53,7 +53,7 @@ async def test_1900(async_cursor):
     assert var.getvalue() == 3
 
 
-async def test_1901(async_conn, test_env):
+async def test_cursor_1901(async_conn, test_env):
     "1901 - confirm an exception is raised after closing a cursor"
     with async_conn.cursor() as cursor:
         pass
@@ -61,7 +61,7 @@ async def test_1901(async_conn, test_env):
         await cursor.execute("select 1 from dual")
 
 
-async def test_1902(async_cursor):
+async def test_cursor_1902(async_cursor):
     "1902 - test iterators"
     await async_cursor.execute("""
         select IntCol
@@ -73,7 +73,7 @@ async def test_1902(async_cursor):
     assert rows == [1, 2, 3]
 
 
-async def test_1903(async_cursor, test_env):
+async def test_cursor_1903(async_cursor, test_env):
     "1903 - test iterators (with intermediate execute)"
     await async_cursor.execute("truncate table TestTempTable")
     await async_cursor.execute("""
@@ -89,14 +89,14 @@ async def test_1903(async_cursor, test_env):
         await test_iter.__anext__()
 
 
-async def test_1904(async_cursor):
+async def test_cursor_1904(async_cursor):
     "1904 - test setting input sizes without any parameters"
     async_cursor.setinputsizes()
     await async_cursor.execute("select :val from dual", val="Test Value")
     assert await async_cursor.fetchall() == [("Test Value",)]
 
 
-async def test_1905(async_cursor):
+async def test_cursor_1905(async_cursor):
     "1905 - test setting input sizes with an empty dictionary"
     empty_dict = {}
     async_cursor.prepare("select 236 from dual")
@@ -105,7 +105,7 @@ async def test_1905(async_cursor):
     assert await async_cursor.fetchall() == [(236,)]
 
 
-async def test_1906(async_cursor):
+async def test_cursor_1906(async_cursor):
     "1906 - test setting input sizes with an empty list"
     empty_list = []
     async_cursor.prepare("select 239 from dual")
@@ -114,7 +114,7 @@ async def test_1906(async_cursor):
     assert await async_cursor.fetchall() == [(239,)]
 
 
-async def test_1907(async_cursor):
+async def test_cursor_1907(async_cursor):
     "1907 - test setting input sizes with positional args"
     var = async_cursor.var(oracledb.STRING, 100)
     async_cursor.setinputsizes(None, 5, None, 10, None, oracledb.NUMBER)
@@ -129,7 +129,7 @@ async def test_1907(async_cursor):
     assert var.getvalue() == "test_5_second_37"
 
 
-async def test_1908(async_cursor):
+async def test_cursor_1908(async_cursor):
     "1908 - test parsing query statements"
     sql = "select LongIntCol from TestNumbers where IntCol = :val"
     await async_cursor.parse(sql)
@@ -139,7 +139,7 @@ async def test_1908(async_cursor):
     ]
 
 
-async def test_1909(async_cursor):
+async def test_cursor_1909(async_cursor):
     "1909 - test binding boolean data without the use of PL/SQL"
     await async_cursor.execute("truncate table TestTempTable")
     sql = "insert into TestTempTable (IntCol, StringCol1) values (:1, :2)"
@@ -152,7 +152,7 @@ async def test_1909(async_cursor):
     assert await async_cursor.fetchall() == expected_value
 
 
-async def test_1910(async_conn, test_env):
+async def test_cursor_1910(async_conn, test_env):
     "1910 - test using a cursor as a context manager"
     with async_conn.cursor() as cursor:
         await cursor.execute("truncate table TestTempTable")
@@ -163,7 +163,7 @@ async def test_1910(async_conn, test_env):
         cursor.close()
 
 
-async def test_1911(async_cursor):
+async def test_cursor_1911(async_cursor):
     "1911 - test that rowcount attribute is reset to zero on query execute"
     for num in [0, 1, 1, 0]:
         await async_cursor.execute("select * from dual where 1 = :s", [num])
@@ -171,7 +171,7 @@ async def test_1911(async_cursor):
         assert async_cursor.rowcount == num
 
 
-async def test_1912(async_conn, async_cursor):
+async def test_cursor_1912(async_conn, async_cursor):
     "1912 - test that an object type can be used as type in cursor.var()"
     obj_type = await async_conn.gettype("UDT_OBJECT")
     var = async_cursor.var(obj_type)
@@ -186,7 +186,7 @@ async def test_1912(async_conn, async_cursor):
     assert result == exp
 
 
-async def test_1913(async_cursor):
+async def test_cursor_1913(async_cursor):
     "1913 - test that fetching an XMLType returns a string"
     int_val = 5
     label = "IntCol"
@@ -203,7 +203,7 @@ async def test_1913(async_cursor):
     assert result == expected_result
 
 
-async def test_1914(async_cursor):
+async def test_cursor_1914(async_cursor):
     "1914 - test last rowid"
 
     # no statement executed: no rowid
@@ -270,7 +270,7 @@ async def test_1914(async_cursor):
     assert row[0] == "Row %s" % rows[-3]
 
 
-async def test_1915(async_conn, round_trip_checker_async):
+async def test_cursor_1915(async_conn, round_trip_checker_async):
     "1915 - test prefetch rows"
 
     # perform simple query and verify only one round trip is needed
@@ -322,7 +322,7 @@ async def test_1915(async_conn, round_trip_checker_async):
         assert await round_trip_checker_async.get_value_async() == 2
 
 
-async def test_1916(async_conn, round_trip_checker_async):
+async def test_cursor_1916(async_conn, round_trip_checker_async):
     "1916 - test prefetch rows using existing cursor"
 
     # Set prefetch rows on an existing cursor
@@ -343,7 +343,7 @@ async def test_1916(async_conn, round_trip_checker_async):
         assert await round_trip_checker_async.get_value_async() == 7
 
 
-async def test_1917(async_cursor):
+async def test_cursor_1917(async_cursor):
     "1917 - test parsing plsql statements"
     sql = "begin :value := 5; end;"
     await async_cursor.parse(sql)
@@ -351,7 +351,7 @@ async def test_1917(async_cursor):
     assert async_cursor.description is None
 
 
-async def test_1918(async_cursor):
+async def test_cursor_1918(async_cursor):
     "1918 - test parsing ddl statements"
     sql = "truncate table TestTempTable"
     await async_cursor.parse(sql)
@@ -359,7 +359,7 @@ async def test_1918(async_cursor):
     assert async_cursor.description is None
 
 
-async def test_1919(async_cursor):
+async def test_cursor_1919(async_cursor):
     "1919 - test parsing dml statements"
     sql = "insert into TestTempTable (IntCol) values (1)"
     await async_cursor.parse(sql)
@@ -367,7 +367,7 @@ async def test_1919(async_cursor):
     assert async_cursor.description is None
 
 
-async def test_1920(async_cursor):
+async def test_cursor_1920(async_cursor):
     "1920 - test binding by name with leading colon"
     params = {":arg1": 5}
     await async_cursor.execute("select :arg1 from dual", params)
@@ -375,7 +375,7 @@ async def test_1920(async_cursor):
     assert result == params[":arg1"]
 
 
-async def test_1921(async_cursor):
+async def test_cursor_1921(async_cursor):
     "1921 - test binding mixed null and not null values in a PL/SQL block"
     out_vars = [async_cursor.var(str) for i in range(4)]
     await async_cursor.execute(
@@ -393,7 +393,7 @@ async def test_1921(async_cursor):
     assert values == [None, "Value 1", None, "Value 2"]
 
 
-async def test_1922(async_conn, parse_count_checker_async):
+async def test_cursor_1922(async_conn, parse_count_checker_async):
     "1922 - test excluding statement from statement cache"
     num_iters = 10
     sql = "select user from dual"
@@ -413,7 +413,7 @@ async def test_1922(async_conn, parse_count_checker_async):
     assert await parse_count_checker_async.get_value_async() == num_iters - 1
 
 
-async def test_1923(async_cursor):
+async def test_cursor_1923(async_cursor):
     "1923 - test repeated DDL"
     await async_cursor.execute("truncate table TestTempTable")
     await async_cursor.execute("insert into TestTempTable (IntCol) values (1)")
@@ -421,34 +421,34 @@ async def test_1923(async_cursor):
     await async_cursor.execute("insert into TestTempTable (IntCol) values (1)")
 
 
-async def test_1924(async_cursor):
+async def test_cursor_1924(async_cursor):
     "1924 - test executing SQL with non-ASCII characters"
     await async_cursor.execute("select 'FÖÖ' from dual")
     (result,) = await async_cursor.fetchone()
     assert result in ("FÖÖ", "F¿¿")
 
 
-async def test_1925(async_cursor):
+async def test_cursor_1925(async_cursor):
     "1925 - test case sensitivity of unquoted bind names"
     await async_cursor.execute("select :test from dual", {"TEST": "a"})
     (result,) = await async_cursor.fetchone()
     assert result == "a"
 
 
-async def test_1926(async_cursor, test_env):
+async def test_cursor_1926(async_cursor, test_env):
     "1926 - test case sensitivity of quoted bind names"
     with test_env.assert_raises_full_code("ORA-01036", "DPY-4008"):
         await async_cursor.execute('select :"test" from dual', {'"TEST"': "a"})
 
 
-async def test_1927(async_cursor, test_env):
+async def test_cursor_1927(async_cursor, test_env):
     "1927 - test using a reserved keywords as a bind name"
     sql = "select :ROWID from dual"
     with test_env.assert_raises_full_code("ORA-01745"):
         await async_cursor.parse(sql)
 
 
-async def test_1928(async_conn):
+async def test_cursor_1928(async_conn):
     "1928 - test array size less than prefetch rows"
     for i in range(2):
         with async_conn.cursor() as cursor:
@@ -457,7 +457,7 @@ async def test_1928(async_conn):
             assert await cursor.fetchall() == [(1,), (2,)]
 
 
-async def test_1929(async_conn, async_cursor):
+async def test_cursor_1929(async_conn, async_cursor):
     "1929 - test re-executing a query with blob as bytes"
 
     def type_handler(cursor, metadata):
@@ -483,7 +483,7 @@ async def test_1929(async_conn, async_cursor):
     assert await async_cursor.fetchall() == [(1, blob_data)]
 
 
-async def test_1930(async_cursor, test_env):
+async def test_cursor_1930(async_cursor, test_env):
     "1930 - test re-executing a statement after raising an error"
     sql = "select * from TestFakeTable"
     with test_env.assert_raises_full_code("ORA-00942"):
@@ -498,7 +498,7 @@ async def test_1930(async_cursor, test_env):
         await async_cursor.execute(sql)
 
 
-async def test_1931(async_conn):
+async def test_cursor_1931(async_conn):
     "1931 - test executing a statement that raises ORA-01007"
     with async_conn.cursor() as cursor:
         await cursor.execute("""
@@ -522,7 +522,7 @@ async def test_1931(async_conn):
         assert await cursor.fetchone() == (1, "Another String")
 
 
-async def test_1932(async_cursor):
+async def test_cursor_1932(async_cursor):
     "1932 - test updating an empty row"
     int_var = async_cursor.var(int)
     await async_cursor.execute("truncate table TestTempTable")
@@ -539,7 +539,7 @@ async def test_1932(async_cursor):
     assert int_var.values == [None]
 
 
-async def test_1933(async_conn):
+async def test_cursor_1933(async_conn):
     "1933 - fetch duplicate data from query in statement cache"
     sql = """
             select 'A', 'B', 'C' from dual
@@ -558,7 +558,7 @@ async def test_1933(async_conn):
         assert await cursor.fetchall() == expected_data
 
 
-async def test_1934(async_cursor):
+async def test_cursor_1934(async_cursor):
     "1934 - fetch duplicate data with outconverter"
 
     def out_converter(value):
@@ -583,7 +583,7 @@ async def test_1934(async_cursor):
     assert await async_cursor.fetchall() == expected_data
 
 
-async def test_1935(skip_if_drcp, test_env):
+async def test_cursor_1935(skip_if_drcp, test_env):
     "1935 - kill connection with open cursor"
     admin_conn = await test_env.get_admin_connection_async()
     conn = await test_env.get_connection_async()
@@ -598,7 +598,7 @@ async def test_1935(skip_if_drcp, test_env):
     assert not conn.is_healthy()
 
 
-async def test_1936(skip_if_drcp, test_env):
+async def test_cursor_1936(skip_if_drcp, test_env):
     "1936 - kill connection in cursor context manager"
     admin_conn = await test_env.get_admin_connection_async()
     conn = await test_env.get_connection_async()
@@ -614,7 +614,7 @@ async def test_1936(skip_if_drcp, test_env):
     assert not conn.is_healthy()
 
 
-async def test_1937(async_conn):
+async def test_cursor_1937(async_conn):
     "1937 - fetchmany() with and without parameters"
     sql_part = "select user from dual"
     sql = " union all ".join([sql_part] * 10)
@@ -629,7 +629,7 @@ async def test_1937(async_conn):
         await cursor.execute(sql)
 
 
-async def test_1938(async_conn):
+async def test_cursor_1938(async_conn):
     "1938 - access cursor.rowcount after closing cursor"
     with async_conn.cursor() as cursor:
         await cursor.execute("select user from dual")
@@ -638,7 +638,7 @@ async def test_1938(async_conn):
     assert cursor.rowcount == -1
 
 
-async def test_1939(disable_fetch_lobs, async_cursor):
+async def test_cursor_1939(disable_fetch_lobs, async_cursor):
     "1939 - changing bind type with define needed"
     await async_cursor.execute("delete from TestClobs")
     row_for_1 = (1, "Short value 1")
@@ -657,7 +657,7 @@ async def test_1939(disable_fetch_lobs, async_cursor):
     assert await async_cursor.fetchone() == row_for_1
 
 
-async def test_1940(async_cursor):
+async def test_cursor_1940(async_cursor):
     "1940 - test calling cursor.parse() twice with the same statement"
     await async_cursor.execute("truncate table TestTempTable")
     data = (4363, "Value for test 4363")
@@ -671,7 +671,7 @@ async def test_1940(async_cursor):
         await async_cursor.execute(sql, ("Updated value", data[0]))
 
 
-async def test_1941(async_conn, async_cursor):
+async def test_cursor_1941(async_conn, async_cursor):
     "1941 - test addition of column to cached query"
     table_name = "test_4365"
     try:
@@ -697,7 +697,7 @@ async def test_1941(async_conn, async_cursor):
     assert await async_cursor.fetchall() == [data]
 
 
-async def test_1942(async_cursor):
+async def test_cursor_1942(async_cursor):
     "1942 - test executemany() with PL/SQL and increasing data lengths"
     sql = "begin :1 := length(:2); end;"
     var = async_cursor.var(int, arraysize=3)
@@ -715,7 +715,7 @@ async def test_1942(async_cursor):
     assert var.values == [4, 3, 3]
 
 
-async def test_1943(async_cursor):
+async def test_cursor_1943(async_cursor):
     "1943 - test cursor.rowcount values for queries"
     max_rows = 93
     async_cursor.arraysize = 10
@@ -736,7 +736,7 @@ async def test_1943(async_cursor):
     assert async_cursor.rowcount == max_rows
 
 
-async def test_1944(disable_fetch_lobs, async_conn, async_cursor):
+async def test_cursor_1944(disable_fetch_lobs, async_conn, async_cursor):
     "1944 - test bind order for PL/SQL"
     await async_cursor.execute("delete from TestClobs")
     sql = """
@@ -756,7 +756,7 @@ async def test_1944(disable_fetch_lobs, async_conn, async_cursor):
     assert await async_cursor.fetchall() == rows
 
 
-async def test_1945(disable_fetch_lobs, async_cursor):
+async def test_cursor_1945(disable_fetch_lobs, async_cursor):
     "1945 - test rebuild of table with LOB in cached query (as string)"
     table_name = "test_4370"
     drop_sql = f"drop table {table_name} purge"
@@ -785,7 +785,7 @@ async def test_1945(disable_fetch_lobs, async_cursor):
     assert await async_cursor.fetchall() == data
 
 
-async def test_1946(async_cursor):
+async def test_cursor_1946(async_cursor):
     "1946 - test rebuild of table with LOB in cached query (as LOB)"
     table_name = "test_4371"
     drop_sql = f"drop table {table_name} purge"
@@ -816,7 +816,9 @@ async def test_1946(async_cursor):
     assert fetched_data == data
 
 
-async def test_1947(skip_unless_domains_supported, async_cursor, test_env):
+async def test_cursor_1947(
+    skip_unless_domains_supported, async_cursor, test_env
+):
     "1947 - fetch table with domain and annotations"
     await async_cursor.execute("select * from TableWithDomainAndAnnotations")
     assert await async_cursor.fetchall() == [(1, 25)]
@@ -835,7 +837,7 @@ async def test_1947(skip_unless_domains_supported, async_cursor, test_env):
     assert column_2.annotations == expected_annotations
 
 
-async def test_1948(async_cursor, test_env):
+async def test_cursor_1948(async_cursor, test_env):
     "1948 - test fetching LOBs after an error"
     sql = """
         select
@@ -850,7 +852,7 @@ async def test_1948(async_cursor, test_env):
     assert num_val == 1
 
 
-async def test_1949(test_env):
+async def test_cursor_1949(test_env):
     "1949 - test parse() with autocommit enabled"
     async with test_env.get_connection_async() as conn:
         conn.autocommit = True
@@ -860,7 +862,7 @@ async def test_1949(test_env):
         await cursor.execute(None, [1])
 
 
-async def test_1950(async_cursor, test_env):
+async def test_cursor_1950(async_cursor, test_env):
     "1950 - test cursor.setinputsizes() with early failed execute"
     async_cursor.setinputsizes(a=int, b=str)
     with test_env.assert_raises_full_code("DPY-2006"):
@@ -871,7 +873,7 @@ async def test_1950(async_cursor, test_env):
     assert fetched_value == value
 
 
-async def test_1951(async_cursor, test_env):
+async def test_cursor_1951(async_cursor, test_env):
     "1951 - fetch JSON columns as Python objects"
     test_env.skip_unless_server_version(21)
     expected_data = [
@@ -882,7 +884,7 @@ async def test_1951(async_cursor, test_env):
     assert await async_cursor.fetchall() == expected_data
 
 
-async def test_1952(async_conn):
+async def test_cursor_1952(async_conn):
     "1952 - test fetching nested cursors repeatedly"
     sql = """
         select
@@ -920,14 +922,14 @@ async def test_1952(async_conn):
             assert nested_rows == [("Nested String for Top Level String 2",)]
 
 
-async def test_1953(test_env):
+async def test_cursor_1953(test_env):
     "1953 - access cursor.rowcount after closing connection"
     async with test_env.get_connection_async() as conn:
         cursor = conn.cursor()
     assert cursor.rowcount == -1
 
 
-async def test_1954(async_conn, async_cursor):
+async def test_cursor_1954(async_conn, async_cursor):
     "1954 - execute PL/SQL with out vars after query with duplicate data"
     await async_cursor.execute("truncate table TestTempTable")
     await async_cursor.executemany(
@@ -941,7 +943,7 @@ async def test_1954(async_conn, async_cursor):
     assert var.getvalue() == 4370
 
 
-async def test_1955(async_cursor):
+async def test_cursor_1955(async_cursor):
     "1955 - test cursor with fetch_decimals=True specified"
     value = 4371
     await async_cursor.execute(
@@ -951,7 +953,7 @@ async def test_1955(async_cursor):
     assert isinstance(rows[0][0], decimal.Decimal)
 
 
-async def test_1956(async_cursor):
+async def test_cursor_1956(async_cursor):
     "1956 - test cursor.parse() uses oracledb.defaults.fetch_lobs"
     await async_cursor.parse("select to_clob('some_value') from dual")
     fetch_info = async_cursor.description[0]

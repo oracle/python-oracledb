@@ -67,14 +67,14 @@ def _verify_attr(obj, attrName, value):
     assert getattr(obj, attrName) == value
 
 
-def test_1000(queue):
+def test_aq_1000(queue):
     "1000 - test dequeuing an empty queue"
     queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
     props = queue.deqone()
     assert props is None
 
 
-def test_1001(conn, queue, book_data):
+def test_aq_1001(conn, queue, book_data):
     "1001 - test enqueuing and dequeuing multiple messages"
     props = conn.msgproperties()
     for title, authors, price in book_data:
@@ -97,7 +97,7 @@ def test_1001(conn, queue, book_data):
     assert results == book_data
 
 
-def test_1002(conn, queue, book_data):
+def test_aq_1002(conn, queue, book_data):
     "1002 - test dequeuing with DEQ_REMOVE_NODATA option"
     book = queue.payload_type.newobject()
     book.TITLE, book.AUTHORS, book.PRICE = book_data[1]
@@ -111,7 +111,7 @@ def test_1002(conn, queue, book_data):
     assert props.payload.TITLE is None
 
 
-def test_1003(queue):
+def test_aq_1003(queue):
     "1003 - test getting/setting dequeue options attributes"
     options = queue.deqoptions
     _verify_attr(options, "condition", "TEST_CONDITION")
@@ -125,7 +125,7 @@ def test_1003(queue):
     _verify_attr(options, "msgid", b"mID")
 
 
-def test_1004(conn, queue, book_data, test_env):
+def test_aq_1004(conn, queue, book_data, test_env):
     "1004 - test waiting for dequeue"
     results = []
     thread = threading.Thread(
@@ -149,19 +149,19 @@ def test_1004(conn, queue, book_data, test_env):
     assert results == [(title, authors, price)]
 
 
-def test_1005(queue):
+def test_aq_1005(queue):
     "1005 - test getting/setting enqueue options attributes"
     options = queue.enqoptions
     _verify_attr(options, "visibility", oracledb.ENQ_IMMEDIATE)
 
 
-def test_1006(queue):
+def test_aq_1006(queue):
     "1006 - test errors for invalid values for enqueue"
     book = queue.payload_type.newobject()
     pytest.raises(TypeError, queue.enqone, book)
 
 
-def test_1007(conn):
+def test_aq_1007(conn):
     "1007 - test getting/setting message properties attributes"
     props = conn.msgproperties()
     _verify_attr(props, "correlation", "TEST_CORRELATION")
@@ -174,7 +174,7 @@ def test_1007(conn):
     assert props.deliverymode == 0
 
 
-def test_1008(conn, queue, book_data, test_env):
+def test_aq_1008(conn, queue, book_data, test_env):
     "1008 - test enqueue visibility option - ENQ_ON_COMMIT"
     book = queue.payload_type.newobject()
     book.TITLE, book.AUTHORS, book.PRICE = book_data[0]
@@ -195,7 +195,7 @@ def test_1008(conn, queue, book_data, test_env):
         assert props is not None
 
 
-def test_1009(conn, queue, book_data, test_env):
+def test_aq_1009(conn, queue, book_data, test_env):
     "1009 - test enqueue visibility option - ENQ_IMMEDIATE"
     book = queue.payload_type.newobject()
     book.TITLE, book.AUTHORS, book.PRICE = book_data[0]
@@ -216,7 +216,7 @@ def test_1009(conn, queue, book_data, test_env):
         assert results == book_data[0]
 
 
-def test_1010(conn, queue, book_data, test_env):
+def test_aq_1010(conn, queue, book_data, test_env):
     "1010 - test enqueue/dequeue delivery modes identical - buffered"
     book = queue.payload_type.newobject()
     book.TITLE, book.AUTHORS, book.PRICE = book_data[0]
@@ -240,7 +240,7 @@ def test_1010(conn, queue, book_data, test_env):
         assert results == book_data[0]
 
 
-def test_1011(conn, queue, book_data, test_env):
+def test_aq_1011(conn, queue, book_data, test_env):
     "1011 - test enqueue/dequeue delivery modes identical - persistent"
     book = queue.payload_type.newobject()
     book.TITLE, book.AUTHORS, book.PRICE = book_data[0]
@@ -264,7 +264,7 @@ def test_1011(conn, queue, book_data, test_env):
         assert results == book_data[0]
 
 
-def test_1012(conn, queue, book_data, test_env):
+def test_aq_1012(conn, queue, book_data, test_env):
     "1012 - test enqueue/dequeue delivery modes the same"
     book = queue.payload_type.newobject()
     book.TITLE, book.AUTHORS, book.PRICE = book_data[0]
@@ -288,7 +288,7 @@ def test_1012(conn, queue, book_data, test_env):
         assert results == book_data[0]
 
 
-def test_1013(conn, queue, book_data, test_env):
+def test_aq_1013(conn, queue, book_data, test_env):
     "1013 - test enqueue/dequeue delivery modes different"
     book = queue.payload_type.newobject()
     book.TITLE, book.AUTHORS, book.PRICE = book_data[0]
@@ -308,7 +308,7 @@ def test_1013(conn, queue, book_data, test_env):
         assert props is None
 
 
-def test_1014(skip_unless_thick_mode, conn, queue, book_data, test_env):
+def test_aq_1014(skip_unless_thick_mode, conn, queue, book_data, test_env):
     "1014 - test dequeue transformation"
     book = queue.payload_type.newobject()
     book.TITLE, book.AUTHORS, book.PRICE = book_data[0]
@@ -330,7 +330,7 @@ def test_1014(skip_unless_thick_mode, conn, queue, book_data, test_env):
         assert props.payload.PRICE == expected_price
 
 
-def test_1015(skip_unless_thick_mode, conn, queue, book_data, test_env):
+def test_aq_1015(skip_unless_thick_mode, conn, queue, book_data, test_env):
     "1015 - test enqueue transformation"
     book = queue.payload_type.newobject()
     book.TITLE, book.AUTHORS, book.PRICE = book_data[0]
@@ -355,7 +355,7 @@ def test_1015(skip_unless_thick_mode, conn, queue, book_data, test_env):
         assert props.payload.PRICE == expected_price
 
 
-def test_1016(conn, queue, test_env):
+def test_aq_1016(conn, queue, test_env):
     "1016 - test to verify payloadType is deprecated"
     books_type = conn.gettype(queue.payload_type.name)
     assert queue.payload_type == books_type
@@ -364,14 +364,14 @@ def test_1016(conn, queue, test_env):
         conn.queue(queue.name, books_type, payloadType=books_type)
 
 
-def test_1017(conn, queue, test_env):
+def test_aq_1017(conn, queue, test_env):
     "1017 - test error for message with no payload"
     props = conn.msgproperties()
     with test_env.assert_raises_full_code("DPY-2000"):
         queue.enqone(props)
 
 
-def test_1018(conn, cursor, queue, book_data):
+def test_aq_1018(conn, cursor, queue, book_data):
     "1018 - verify that the msgid property is returned correctly"
     book = queue.payload_type.newobject()
     book.TITLE, book.AUTHORS, book.PRICE = book_data[0]
@@ -385,7 +385,7 @@ def test_1018(conn, cursor, queue, book_data):
     assert props.msgid == actual_msgid
 
 
-def test_1019(conn, queue, book_data):
+def test_aq_1019(conn, queue, book_data):
     "1019 - verify use of recipients property"
     books_type = conn.gettype(queue.payload_type.name)
     book = books_type.newobject()
@@ -407,7 +407,7 @@ def test_1019(conn, queue, book_data):
     assert props1 is None
 
 
-def test_1020(conn, book_data, test_env):
+def test_aq_1020(conn, book_data, test_env):
     "1020 - verify attributes of AQ message which spawned notification"
     if test_env.is_on_oracle_cloud:
         pytest.skip("AQ notification not supported on the cloud")
@@ -449,7 +449,7 @@ def test_1020(conn, book_data, test_env):
     other_conn.close()
 
 
-def test_1021(conn, cursor, queue):
+def test_aq_1021(conn, cursor, queue):
     "1021 - test message props enqtime"
     book = queue.payload_type.newobject()
     cursor.execute("select current_timestamp from dual")
@@ -464,7 +464,7 @@ def test_1021(conn, cursor, queue):
     assert start_date <= props.enqtime <= end_date
 
 
-def test_1022(conn, queue):
+def test_aq_1022(conn, queue):
     "1022 - test message props declared attributes"
     book = queue.payload_type.newobject()
     values = dict(
@@ -480,12 +480,12 @@ def test_1022(conn, queue):
         assert getattr(props, attr_name) == values[attr_name]
 
 
-def test_1023(conn):
+def test_aq_1023(conn):
     "1023 - test error for invalid type for payload_type"
     pytest.raises(TypeError, conn.queue, "THE QUEUE", payload_type=4)
 
 
-def test_1024(conn):
+def test_aq_1024(conn):
     "1024 - test setting bytes to payload"
     props = conn.msgproperties()
     bytes_val = b"Hello there"
@@ -493,14 +493,14 @@ def test_1024(conn):
     assert props.payload == bytes_val
 
 
-def test_1025(conn, queue):
+def test_aq_1025(conn, queue):
     "1025 - test getting queue attributes"
     other_queue = conn.queue(queue.name, queue.payload_type)
     assert other_queue.name == queue.name
     assert queue.connection is conn
 
 
-def test_1026(queue):
+def test_aq_1026(queue):
     "1026 - test getting write-only attributes"
     with pytest.raises(AttributeError):
         queue.enqoptions.deliverymode
@@ -508,7 +508,7 @@ def test_1026(queue):
         queue.deqoptions.deliverymode
 
 
-def test_1027(conn, queue, book_data, test_env):
+def test_aq_1027(conn, queue, book_data, test_env):
     "1027 - test correlation deqoption"
     book = queue.payload_type.newobject()
     book.TITLE, book.AUTHORS, book.PRICE = book_data[0]
@@ -533,7 +533,7 @@ def test_1027(conn, queue, book_data, test_env):
     assert len(correlated_messages) == num_messages
 
 
-def test_1028(conn, queue, book_data):
+def test_aq_1028(conn, queue, book_data):
     "1028 - test correlation deqoption with pattern-matching characters"
     book = queue.payload_type.newobject()
     book.TITLE, book.AUTHORS, book.PRICE = book_data[0]
@@ -546,7 +546,7 @@ def test_1028(conn, queue, book_data):
     assert len(messages) == 2
 
 
-def test_1029(conn, queue, book_data):
+def test_aq_1029(conn, queue, book_data):
     "1029 - test condition deqoption with priority"
     queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
 
@@ -571,7 +571,7 @@ def test_1029(conn, queue, book_data):
         assert data == book_data[ix]
 
 
-def test_1030(conn, queue, book_data):
+def test_aq_1030(conn, queue, book_data):
     "1030 - test mode deqoption with DEQ_REMOVE_NODATA"
     queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
     queue.deqoptions.mode = oracledb.DEQ_REMOVE_NODATA
@@ -590,20 +590,20 @@ def test_1030(conn, queue, book_data):
         assert message.payload.PRICE is None
 
 
-def test_1031(conn, queue):
+def test_aq_1031(conn, queue):
     "1031 - test payload_type returns the correct value"
     books_type = conn.gettype(queue.payload_type.name)
     other_queue = conn.queue(queue.name, books_type)
     assert other_queue.payload_type == books_type
 
 
-def test_1032(queue):
+def test_aq_1032(queue):
     "1032 - test deprecated attributes (enqOptions, deqOptions)"
     assert queue.enqOptions == queue.enqoptions
     assert queue.deqOptions == queue.deqoptions
 
 
-def test_1033(conn, queue, book_data):
+def test_aq_1033(conn, queue, book_data):
     "1033 - test deprecated AQ methods (enqOne, deqOne)"
     book = queue.payload_type.newobject()
     book.TITLE, book.AUTHORS, book.PRICE = book_data[0]
@@ -614,7 +614,7 @@ def test_1033(conn, queue, book_data):
     assert results == book_data[0]
 
 
-def test_1034(conn, queue, test_env):
+def test_aq_1034(conn, queue, test_env):
     "1034 - test enqueuing to an object queue with the wrong payload"
     props = conn.msgproperties(payload="A string")
     with test_env.assert_raises_full_code("DPY-2062"):

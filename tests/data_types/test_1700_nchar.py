@@ -53,7 +53,7 @@ def module_data_by_key(module_data):
     return data_by_key
 
 
-def test_1700(cursor):
+def test_data_types_1700(cursor):
     "1700 - test value length"
     return_value = cursor.var(int)
     cursor.execute(
@@ -68,7 +68,7 @@ def test_1700(cursor):
     assert return_value.getvalue() == 7
 
 
-def test_1701(cursor, module_data_by_key):
+def test_data_types_1701(cursor, module_data_by_key):
     "1701 - test binding in a unicode"
     cursor.setinputsizes(value=oracledb.DB_TYPE_NVARCHAR)
     cursor.execute(
@@ -78,7 +78,7 @@ def test_1701(cursor, module_data_by_key):
     assert cursor.fetchall() == [module_data_by_key[5]]
 
 
-def test_1702(cursor):
+def test_data_types_1702(cursor):
     "1702 - test binding a different variable on second execution"
     retval_1 = cursor.var(oracledb.DB_TYPE_NVARCHAR, 30)
     retval_2 = cursor.var(oracledb.DB_TYPE_NVARCHAR, 30)
@@ -90,7 +90,7 @@ def test_1702(cursor):
     assert retval_2.getvalue() == "Called"
 
 
-def test_1703(cursor, module_data_by_key):
+def test_data_types_1703(cursor, module_data_by_key):
     "1703 - test binding in a string after setting input sizes to a number"
     unicode_val = cursor.var(oracledb.DB_TYPE_NVARCHAR)
     unicode_val.setvalue(0, "Unicode \u3042 6")
@@ -102,7 +102,7 @@ def test_1703(cursor, module_data_by_key):
     assert cursor.fetchall() == [module_data_by_key[6]]
 
 
-def test_1704(cursor, module_data):
+def test_data_types_1704(cursor, module_data):
     "1704 - test binding in a unicode array"
     return_value = cursor.var(oracledb.NUMBER)
     array = [r[1] for r in module_data]
@@ -122,7 +122,7 @@ def test_1704(cursor, module_data):
     assert return_value.getvalue() == 208
 
 
-def test_1705(cursor, module_data):
+def test_data_types_1705(cursor, module_data):
     "1705 - test binding in a unicode array (with setinputsizes)"
     return_value = cursor.var(oracledb.NUMBER)
     cursor.setinputsizes(array=[oracledb.DB_TYPE_NVARCHAR, 10])
@@ -141,7 +141,7 @@ def test_1705(cursor, module_data):
     assert return_value.getvalue() == 117
 
 
-def test_1706(cursor, module_data):
+def test_data_types_1706(cursor, module_data):
     "1706 - test binding in a unicode array (with arrayvar)"
     return_value = cursor.var(oracledb.NUMBER)
     array = cursor.arrayvar(oracledb.DB_TYPE_NVARCHAR, 10, 20)
@@ -160,7 +160,7 @@ def test_1706(cursor, module_data):
     assert return_value.getvalue() == 118
 
 
-def test_1707(cursor, module_data):
+def test_data_types_1707(cursor, module_data):
     "1707 - test binding in/out a unicode array (with arrayvar)"
     array = cursor.arrayvar(oracledb.DB_TYPE_NVARCHAR, 10, 100)
     original_data = [r[1] for r in module_data]
@@ -181,7 +181,7 @@ def test_1707(cursor, module_data):
     assert array.getvalue() == expected_data
 
 
-def test_1708(cursor):
+def test_data_types_1708(cursor):
     "1708 - test binding out a unicode array (with arrayvar)"
     array = cursor.arrayvar(oracledb.DB_TYPE_NVARCHAR, 6, 100)
     fmt = "Test out element \u3042 # %d"
@@ -198,7 +198,7 @@ def test_1708(cursor):
     assert array.getvalue() == expected_data
 
 
-def test_1709(cursor):
+def test_data_types_1709(cursor):
     "1709 - test binding in a null"
     cursor.execute(
         "select * from TestUnicodes where UnicodeCol = :value",
@@ -207,7 +207,7 @@ def test_1709(cursor):
     assert cursor.fetchall() == []
 
 
-def test_1710(cursor):
+def test_data_types_1710(cursor):
     "1710 - test binding out with set input sizes defined (by type)"
     bind_vars = cursor.setinputsizes(value=oracledb.DB_TYPE_NVARCHAR)
     cursor.execute(r"""
@@ -218,7 +218,7 @@ def test_1710(cursor):
     assert bind_vars["value"].getvalue() == "TSI \u3042"
 
 
-def test_1711(cursor):
+def test_data_types_1711(cursor):
     "1711 - test binding in/out with set input sizes defined (by type)"
     bind_vars = cursor.setinputsizes(value=oracledb.DB_TYPE_NVARCHAR)
     cursor.execute(
@@ -232,7 +232,7 @@ def test_1711(cursor):
     assert bind_vars["value"].getvalue() == "InVal \u3041 TSI \u3042"
 
 
-def test_1712(cursor):
+def test_data_types_1712(cursor):
     "1712 - test binding out with cursor.var() method"
     var = cursor.var(oracledb.DB_TYPE_NVARCHAR)
     cursor.execute(
@@ -246,7 +246,7 @@ def test_1712(cursor):
     assert var.getvalue() == "TSI (VAR) \u3042"
 
 
-def test_1713(cursor):
+def test_data_types_1713(cursor):
     "1713 - test binding in/out with cursor.var() method"
     var = cursor.var(oracledb.DB_TYPE_NVARCHAR)
     var.setvalue(0, "InVal \u3041")
@@ -261,7 +261,7 @@ def test_1713(cursor):
     assert var.getvalue() == "InVal \u3041 TSI (VAR) \u3042"
 
 
-def test_1714(cursor, test_env):
+def test_data_types_1714(cursor, test_env):
     "1714 - test cursor description is accurate"
     cursor.execute("select * from TestUnicodes")
     varchar_ratio, nvarchar_ratio = test_env.charset_ratios
@@ -298,14 +298,14 @@ def test_1714(cursor, test_env):
     assert cursor.description == expected_value
 
 
-def test_1715(cursor, module_data):
+def test_data_types_1715(cursor, module_data):
     "1715 - test that fetching all of the data returns the correct results"
     cursor.execute("select * From TestUnicodes order by IntCol")
     assert cursor.fetchall() == module_data
     assert cursor.fetchall() == []
 
 
-def test_1716(cursor, module_data):
+def test_data_types_1716(cursor, module_data):
     "1716 - test that fetching data in chunks returns the correct results"
     cursor.execute("select * From TestUnicodes order by IntCol")
     assert cursor.fetchmany(3) == module_data[0:3]
@@ -315,7 +315,7 @@ def test_1716(cursor, module_data):
     assert cursor.fetchmany(3) == []
 
 
-def test_1717(cursor, module_data_by_key):
+def test_data_types_1717(cursor, module_data_by_key):
     "1717 - test that fetching a single row returns the correct results"
     cursor.execute("""
         select *

@@ -31,7 +31,7 @@ import datetime
 import oracledb
 
 
-def test_2700(cursor, test_env):
+def test_cursor_2700(cursor, test_env):
     "2700 - test executing with arraydmlrowcounts mode disabled"
     cursor.execute("truncate table TestArrayDML")
     rows = [(1, "First"), (2, "Second")]
@@ -45,7 +45,7 @@ def test_2700(cursor, test_env):
         cursor.getarraydmlrowcounts()
 
 
-def test_2701(conn, cursor):
+def test_cursor_2701(conn, cursor):
     "2701 - test executing with arraydmlrowcounts mode enabled"
     cursor.execute("truncate table TestArrayDML")
     rows = [
@@ -70,7 +70,7 @@ def test_2701(conn, cursor):
     assert count == len(rows)
 
 
-def test_2702(conn, cursor):
+def test_cursor_2702(conn, cursor):
     "2702 - test binding a boolean collection (in)"
     type_obj = conn.gettype("PKG_TESTBOOLEANS.UDT_BOOLEANLIST")
     obj = type_obj.newobject()
@@ -80,7 +80,7 @@ def test_2702(conn, cursor):
     assert result == 5
 
 
-def test_2703(conn, cursor):
+def test_cursor_2703(conn, cursor):
     "2703 - test binding a boolean collection (out)"
     type_obj = conn.gettype("PKG_TESTBOOLEANS.UDT_BOOLEANLIST")
     obj = type_obj.newobject()
@@ -88,7 +88,7 @@ def test_2703(conn, cursor):
     assert obj.aslist() == [True, False, True, False, True, False]
 
 
-def test_2704(conn, cursor):
+def test_cursor_2704(conn, cursor):
     "2704 - test binding a PL/SQL date collection (in)"
     type_obj = conn.gettype("PKG_TESTDATEARRAYS.UDT_DATELIST")
     obj = type_obj.newobject()
@@ -103,7 +103,7 @@ def test_2704(conn, cursor):
     assert result == 24.75
 
 
-def test_2705(conn, cursor):
+def test_cursor_2705(conn, cursor):
     "2705 - test binding a PL/SQL date collection (in/out)"
     type_obj = conn.gettype("PKG_TESTDATEARRAYS.UDT_DATELIST")
     obj = type_obj.newobject()
@@ -121,7 +121,7 @@ def test_2705(conn, cursor):
     assert obj.aslist() == expected_values
 
 
-def test_2706(conn, cursor):
+def test_cursor_2706(conn, cursor):
     "2706 - test binding a PL/SQL date collection (out)"
     type_obj = conn.gettype("PKG_TESTDATEARRAYS.UDT_DATELIST")
     obj = type_obj.newobject()
@@ -134,7 +134,7 @@ def test_2706(conn, cursor):
     assert obj.aslist() == expected_values
 
 
-def test_2707(conn, cursor):
+def test_cursor_2707(conn, cursor):
     "2707 - test binding a PL/SQL number collection (in)"
     type_name = "PKG_TESTNUMBERARRAYS.UDT_NUMBERLIST"
     type_obj = conn.gettype(type_name)
@@ -147,7 +147,7 @@ def test_2707(conn, cursor):
     assert result == 155
 
 
-def test_2708(conn, cursor):
+def test_cursor_2708(conn, cursor):
     "2708 - test binding a PL/SQL number collection (in/out)"
     type_name = "PKG_TESTNUMBERARRAYS.UDT_NUMBERLIST"
     type_obj = conn.gettype(type_name)
@@ -158,7 +158,7 @@ def test_2708(conn, cursor):
     assert obj.aslist() == [50, 80, 30, 20]
 
 
-def test_2709(conn, cursor):
+def test_cursor_2709(conn, cursor):
     "2709 - test binding a PL/SQL number collection (out)"
     type_name = "PKG_TESTNUMBERARRAYS.UDT_NUMBERLIST"
     type_obj = conn.gettype(type_name)
@@ -167,7 +167,7 @@ def test_2709(conn, cursor):
     assert obj.aslist() == [100, 200, 300]
 
 
-def test_2710(conn, cursor):
+def test_cursor_2710(conn, cursor):
     "2710 - test binding an array of PL/SQL records (in)"
     rec_type = conn.gettype("PKG_TESTRECORDS.UDT_RECORD")
     array_type = conn.gettype("PKG_TESTRECORDS.UDT_RECORDARRAY")
@@ -200,7 +200,7 @@ def test_2710(conn, cursor):
     assert result == expected_value
 
 
-def test_2711(conn, cursor):
+def test_cursor_2711(conn, cursor):
     "2711 - test binding a PL/SQL record (in)"
     type_obj = conn.gettype("PKG_TESTRECORDS.UDT_RECORD")
     obj = type_obj.newobject()
@@ -221,7 +221,7 @@ def test_2711(conn, cursor):
     assert result == expected_value
 
 
-def test_2712(conn, cursor):
+def test_cursor_2712(conn, cursor):
     "2712 - test binding a PL/SQL record (out)"
     type_obj = conn.gettype("PKG_TESTRECORDS.UDT_RECORD")
     obj = type_obj.newobject()
@@ -242,7 +242,7 @@ def test_2712(conn, cursor):
     assert obj.BINARYINTEGERVALUE == 10
 
 
-def test_2713(conn, cursor):
+def test_cursor_2713(conn, cursor):
     "2713 - test binding a PL/SQL string collection (in)"
     type_name = "PKG_TESTSTRINGARRAYS.UDT_STRINGLIST"
     type_obj = conn.gettype(type_name)
@@ -256,7 +256,7 @@ def test_2713(conn, cursor):
     assert result == 45
 
 
-def test_2714(conn, cursor):
+def test_cursor_2714(conn, cursor):
     "2714 - test binding a PL/SQL string collection (in/out)"
     type_name = "PKG_TESTSTRINGARRAYS.UDT_STRINGLIST"
     type_obj = conn.gettype(type_name)
@@ -273,7 +273,7 @@ def test_2714(conn, cursor):
     assert obj.aslist() == expected_values
 
 
-def test_2715(conn, cursor):
+def test_cursor_2715(conn, cursor):
     "2715 - test binding a PL/SQL string collection (out)"
     type_name = "PKG_TESTSTRINGARRAYS.UDT_STRINGLIST"
     type_obj = conn.gettype(type_name)
@@ -283,7 +283,7 @@ def test_2715(conn, cursor):
     assert obj.aslist() == expected_values
 
 
-def test_2716(conn, cursor):
+def test_cursor_2716(conn, cursor):
     "2716 - test binding a PL/SQL string collection (out with holes)"
     type_name = "PKG_TESTSTRINGARRAYS.UDT_STRINGLIST"
     type_obj = conn.gettype(type_name)
@@ -321,7 +321,7 @@ def test_2716(conn, cursor):
     assert obj.asdict() == expected_dict
 
 
-def test_2717(cursor, test_env):
+def test_cursor_2717(cursor, test_env):
     "2717 - test executing with arraydmlrowcounts with exception"
     cursor.execute("truncate table TestArrayDML")
     rows = [(1, "First"), (2, "Second"), (2, "Third"), (4, "Fourth")]
@@ -331,7 +331,7 @@ def test_2717(cursor, test_env):
     assert cursor.getarraydmlrowcounts() == [1, 1]
 
 
-def test_2718(cursor):
+def test_cursor_2718(cursor):
     "2718 - test executing delete statement with arraydmlrowcount mode"
     cursor.execute("truncate table TestArrayDML")
     rows = [
@@ -361,7 +361,7 @@ def test_2718(cursor):
     assert cursor.rowcount == 6
 
 
-def test_2719(cursor):
+def test_cursor_2719(cursor):
     "2719 - test executing update statement with arraydmlrowcount mode"
     cursor.execute("truncate table TestArrayDML")
     rows = [
@@ -391,7 +391,7 @@ def test_2719(cursor):
     assert cursor.rowcount == 7
 
 
-def test_2720(cursor):
+def test_cursor_2720(cursor):
     "2720 - test getimplicitresults() returns the correct data"
     cursor.execute("""
         declare
@@ -424,13 +424,13 @@ def test_2720(cursor):
     ]
 
 
-def test_2721(cursor, test_env):
+def test_cursor_2721(cursor, test_env):
     "2721 - test getimplicitresults() without executing a statement"
     with test_env.assert_raises_full_code("DPY-1004"):
         cursor.getimplicitresults()
 
 
-def test_2722(cursor):
+def test_cursor_2722(cursor):
     "2722 - test executing insert with multiple distinct batch errors"
     cursor.execute("truncate table TestArrayDML")
     rows = [
@@ -456,7 +456,7 @@ def test_2722(cursor):
     assert cursor.getarraydmlrowcounts() == [1, 1, 0, 1, 0]
 
 
-def test_2723(cursor, test_env):
+def test_cursor_2723(cursor, test_env):
     "2723 - test batcherrors mode set to False"
     cursor.execute("truncate table TestArrayDML")
     rows = [(1, "First", 100), (2, "Second", 200), (2, "Third", 300)]
@@ -466,7 +466,7 @@ def test_2723(cursor, test_env):
         cursor.executemany(sql, rows, batcherrors=False)
 
 
-def test_2724(cursor):
+def test_cursor_2724(cursor):
     "2724 - test executing in succession with batch error"
     cursor.execute("truncate table TestArrayDML")
     rows = [
@@ -512,7 +512,7 @@ def test_2724(cursor):
     assert cursor.rowcount == 4
 
 
-def test_2725(cursor):
+def test_cursor_2725(cursor):
     "2725 - test using implicit cursors to execute new statements"
     cursor.execute("""
         declare
@@ -534,7 +534,7 @@ def test_2725(cursor):
     assert row == 7
 
 
-def test_2726(cursor):
+def test_cursor_2726(cursor):
     "2726 - test batcherrors mode without any errors produced"
     cursor.execute("truncate table TestArrayDML")
     rows = [(1, "First", 100), (2, "Second", 200), (3, "Third", 300)]
@@ -549,7 +549,7 @@ def test_2726(cursor):
     assert cursor.getbatcherrors() == []
 
 
-def test_2727(cursor):
+def test_cursor_2727(cursor):
     "2727 - test batcherrors mode with multiple executes"
     cursor.execute("truncate table TestArrayDML")
     rows_1 = [
@@ -577,32 +577,32 @@ def test_2727(cursor):
     assert actual_errors == [(1, "ORA-00001")]
 
 
-def test_2728(conn):
+def test_cursor_2728(conn):
     "2728 - test %ROWTYPE record type"
     type_obj = conn.gettype("TESTTEMPTABLE%ROWTYPE")
     assert type_obj.attributes[3].name == "NUMBERCOL"
 
 
-def test_2729(conn):
+def test_cursor_2729(conn):
     "2729 - test collection of %ROWTYPE record type"
     type_name = "PKG_TESTBINDOBJECT.UDT_COLLECTIONROWTYPE"
     type_obj = conn.gettype(type_name)
     assert type_obj.element_type.attributes[3].name == "NUMBERCOL"
 
 
-def test_2730(cursor, test_env):
+def test_cursor_2730(cursor, test_env):
     "2730 - enabling batcherrors parameter with PL/SQL"
     with test_env.assert_raises_full_code("DPY-2040"):
         cursor.executemany("begin null; end;", 30, batcherrors=True)
 
 
-def test_2731(cursor, test_env):
+def test_cursor_2731(cursor, test_env):
     "2731 - enabling arraydmlrowcountsbatcherrors parameter with PL/SQL"
     with test_env.assert_raises_full_code("DPY-2040"):
         cursor.executemany("begin null; end;", 31, arraydmlrowcounts=True)
 
 
-def test_2732(test_env):
+def test_cursor_2732(test_env):
     "2732 - fetch implicit cursors after closing connection"
     conn = test_env.get_connection()
     cursor = conn.cursor()
@@ -632,7 +632,7 @@ def test_2732(test_env):
         cursor2.fetchall()
 
 
-def test_2733(conn, test_env):
+def test_cursor_2733(conn, test_env):
     "2733 - fetch implicit cursors after closing parent cursor"
     cursor = conn.cursor()
     cursor.execute("""
@@ -672,7 +672,7 @@ def test_2733(conn, test_env):
             cursor1.fetchall()
 
 
-def test_2734(conn):
+def test_cursor_2734(conn):
     "2734 - test PL/SQL record metadata"
     rec_type = conn.gettype("PKG_TESTRECORDS.UDT_RECORD")
     expected_metadata = [

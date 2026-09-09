@@ -252,7 +252,7 @@ async def _validate_query(rows, lob_type):
             assert await lob.read(offset, 10) == string
 
 
-async def test_2500(async_conn, async_cursor):
+async def test_data_types_2500(async_conn, async_cursor):
     "2500 - test binding a LOB value directly"
     await async_cursor.execute("delete from TestCLOBs")
     await async_cursor.execute("""
@@ -273,7 +273,7 @@ async def test_2500(async_conn, async_cursor):
     await async_conn.commit()
 
 
-async def test_2501(async_cursor):
+async def test_data_types_2501(async_cursor):
     "2501 - test cursor description is accurate for BLOBs"
     await async_cursor.execute("select IntCol, BlobCol from TestBLOBs")
     expected_value = [
@@ -283,17 +283,17 @@ async def test_2501(async_cursor):
     assert async_cursor.description == expected_value
 
 
-async def test_2502(async_conn):
+async def test_data_types_2502(async_conn):
     "2503 - test binding and fetching BLOB data (indirectly)"
     await _perform_test(async_conn, "BLOB", oracledb.DB_TYPE_LONG_RAW)
 
 
-async def test_2503(async_conn, test_env):
+async def test_data_types_2503(async_conn, test_env):
     "2503 - test operations on BLOBs"
     await _test_lob_operations(async_conn, test_env, "BLOB")
 
 
-async def test_2504(async_cursor):
+async def test_data_types_2504(async_cursor):
     "2504 - test cursor description is accurate for CLOBs"
     await async_cursor.execute("select IntCol, ClobCol from TestCLOBs")
     expected_value = [
@@ -303,37 +303,37 @@ async def test_2504(async_cursor):
     assert async_cursor.description == expected_value
 
 
-async def test_2505(async_conn):
+async def test_data_types_2505(async_conn):
     "2505 - test binding and fetching CLOB data (indirectly)"
     await _perform_test(async_conn, "CLOB", oracledb.DB_TYPE_LONG)
 
 
-async def test_2506(async_conn, test_env):
+async def test_data_types_2506(async_conn, test_env):
     "2506 - test operations on CLOBs"
     await _test_lob_operations(async_conn, test_env, "CLOB")
 
 
-async def test_2507(async_conn):
+async def test_data_types_2507(async_conn):
     "2507 - test creating a temporary BLOB"
     await _test_temporary_lob(async_conn, "BLOB")
 
 
-async def test_2508(async_conn):
+async def test_data_types_2508(async_conn):
     "2508 - test creating a temporary CLOB"
     await _test_temporary_lob(async_conn, "CLOB")
 
 
-async def test_2509(async_conn):
+async def test_data_types_2509(async_conn):
     "2509 - test creating a temporary NCLOB"
     await _test_temporary_lob(async_conn, "NCLOB")
 
 
-async def test_2510(async_conn):
+async def test_data_types_2510(async_conn):
     "2510 - test retrieving data from a CLOB after multiple fetches"
     await _perform_test(async_conn, "CLOB", oracledb.DB_TYPE_LONG, arraysize=1)
 
 
-async def test_2511(async_cursor):
+async def test_data_types_2511(async_cursor):
     "2511 - test cursor description is accurate for NCLOBs"
     await async_cursor.execute("select IntCol, NClobCol from TestNCLOBs")
     expected_value = [
@@ -343,7 +343,7 @@ async def test_2511(async_cursor):
     assert async_cursor.description == expected_value
 
 
-async def test_2512(async_conn, async_cursor):
+async def test_data_types_2512(async_conn, async_cursor):
     "2512 - test binding and fetching NCLOB data (with non-ASCII chars)"
     value = "\u03b4\u4e2a"
     await async_cursor.execute("delete from TestNCLOBs")
@@ -368,17 +368,17 @@ async def test_2512(async_conn, async_cursor):
     assert await nclob.read() == value + value
 
 
-async def test_2513(async_conn):
+async def test_data_types_2513(async_conn):
     "2513 - test binding and fetching NCLOB data (indirectly)"
     await _perform_test(async_conn, "NCLOB", oracledb.DB_TYPE_LONG)
 
 
-async def test_2514(async_conn, test_env):
+async def test_data_types_2514(async_conn, test_env):
     "2514 - test operations on NCLOBs"
     await _test_lob_operations(async_conn, test_env, "NCLOB")
 
 
-async def test_2515(
+async def test_data_types_2515(
     skip_if_implicit_pooling, skip_unless_refcounting, async_conn, async_cursor
 ):
     "2515 - test temporary LOBs"
@@ -400,7 +400,7 @@ async def test_2515(
     assert temp_lobs == 0
 
 
-async def test_2516(async_conn, async_cursor, test_env):
+async def test_data_types_2516(async_conn, async_cursor, test_env):
     "2516 - test read/write temporary LOBs using supplemental characters"
     if test_env.charset != "AL32UTF8":
         pytest.skip("Database character set must be AL32UTF8")
@@ -425,37 +425,37 @@ async def test_2516(async_conn, async_cursor, test_env):
     assert await lob.read() == supplemental_chars
 
 
-async def test_2517(disable_fetch_lobs, async_conn):
+async def test_data_types_2517(disable_fetch_lobs, async_conn):
     "2517 - test fetching BLOB as bytes"
     await _test_fetch_lobs_direct(async_conn, "BLOB")
 
 
-async def test_2518(disable_fetch_lobs, async_conn):
+async def test_data_types_2518(disable_fetch_lobs, async_conn):
     "2518 - test fetching CLOB as str"
     await _test_fetch_lobs_direct(async_conn, "CLOB")
 
 
-async def test_2519(disable_fetch_lobs, async_conn):
+async def test_data_types_2519(disable_fetch_lobs, async_conn):
     "2519 - test fetching NCLOB as str"
     await _test_fetch_lobs_direct(async_conn, "NCLOB")
 
 
-async def test_2520(disable_fetch_lobs, async_conn):
+async def test_data_types_2520(disable_fetch_lobs, async_conn):
     "2520 - test bind ordering with BLOB"
     await _test_bind_ordering(async_conn, "BLOB")
 
 
-async def test_2521(disable_fetch_lobs, async_conn):
+async def test_data_types_2521(disable_fetch_lobs, async_conn):
     "2521 - test bind ordering with CLOB"
     await _test_bind_ordering(async_conn, "CLOB")
 
 
-async def test_2522(disable_fetch_lobs, async_conn):
+async def test_data_types_2522(disable_fetch_lobs, async_conn):
     "2522 - test bind ordering with NCLOB"
     await _test_bind_ordering(async_conn, "NCLOB")
 
 
-async def test_2523(async_conn):
+async def test_data_types_2523(async_conn):
     "2523 - test creating a lob with an invalid type"
     with pytest.raises(TypeError):
         await async_conn.createlob(oracledb.DB_TYPE_NUMBER)
@@ -463,7 +463,7 @@ async def test_2523(async_conn):
         await async_conn.createlob(oracledb.DB_TYPE_BFILE)
 
 
-async def test_2524(async_conn):
+async def test_data_types_2524(async_conn):
     "2524 - test creation of temporary LOBs with varying data"
     cases = [
         (oracledb.DB_TYPE_BLOB, b"test_2524A", b"!", b"test_2524A!"),
@@ -479,7 +479,7 @@ async def test_2524(async_conn):
         assert await lob.read() == expected_result
 
 
-async def test_2525(test_env):
+async def test_data_types_2525(test_env):
     "2525 - test reading and writing a LOB with a closed connection"
     types = [
         oracledb.DB_TYPE_BLOB,
@@ -496,7 +496,7 @@ async def test_2525(test_env):
             await lob.write("x")
 
 
-async def test_2526(async_cursor, test_env):
+async def test_data_types_2526(async_cursor, test_env):
     "2526 - test reading a non-existent directory"
     directory_name = "test_2526_MISSING_DIR"
     file_name = "test_2526_missing_file.txt"
@@ -511,7 +511,7 @@ async def test_2526(async_cursor, test_env):
         await bfile.read()
 
 
-async def test_2527(async_conn, test_env):
+async def test_data_types_2527(async_conn, test_env):
     "2527 - test using BFILE methods on non-BFILE LOBs"
     types = [
         oracledb.DB_TYPE_BLOB,

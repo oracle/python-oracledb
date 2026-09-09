@@ -29,7 +29,7 @@ Module for testing the SQL parser.
 import pytest
 
 
-def test_2400(cursor):
+def test_cursor_2400(cursor):
     "2400 - single line comment"
     cursor.prepare(
         "--begin :value2 := :a + :b + :c +:a +3; end;\n"
@@ -38,7 +38,7 @@ def test_2400(cursor):
     assert cursor.bindnames() == ["VALUE2", "A", "C"]
 
 
-def test_2401(cursor):
+def test_cursor_2401(cursor):
     "2401 - multiple line comment"
     cursor.prepare(
         "/*--select * from :a where :a = 1\n"
@@ -48,7 +48,7 @@ def test_2401(cursor):
     assert cursor.bindnames() == ["TABLE_NAME", "VALUE"]
 
 
-def test_2402(cursor):
+def test_cursor_2402(cursor):
     "2402 - constant strings"
     statement = """
                 begin
@@ -58,7 +58,7 @@ def test_2402(cursor):
     assert cursor.bindnames() == ["VALUE", "FORMAT"]
 
 
-def test_2403(cursor):
+def test_cursor_2403(cursor):
     "2403 - multiple division operators"
     cursor.prepare("""
         select :a / :b, :c / :d
@@ -67,28 +67,28 @@ def test_2403(cursor):
     assert cursor.bindnames() == ["A", "B", "C", "D"]
 
 
-def test_2404(cursor):
+def test_cursor_2404(cursor):
     "2404 - starting with parentheses"
     sql = "(select :a from dual) union (select :b from dual)"
     cursor.prepare(sql)
     assert cursor.bindnames() == ["A", "B"]
 
 
-def test_2405(cursor):
+def test_cursor_2405(cursor):
     "2405 - invalid quoted bind"
     sql = 'select ":test", :a from dual'
     cursor.prepare(sql)
     assert cursor.bindnames() == ["A"]
 
 
-def test_2406(cursor):
+def test_cursor_2406(cursor):
     "2406 - non-ascii character in the bind name"
     sql = "select :méil$ from dual"
     cursor.prepare(sql)
     assert cursor.bindnames() == ["MÉIL$"]
 
 
-def test_2407(cursor):
+def test_cursor_2407(cursor):
     "2407 - various quoted bind names"
     tests = [
         ('select :"percent%" from dual', ["percent%"]),
@@ -112,21 +112,21 @@ def test_2407(cursor):
         assert cursor.bindnames() == expected
 
 
-def test_2408(cursor):
+def test_cursor_2408(cursor):
     "2408 - sql containing quoted identifiers and strings"
     sql = 'select "/*_value1" + : "VaLue_2" + :"*/3VALUE" from dual'
     cursor.prepare(sql)
     assert cursor.bindnames() == ["VaLue_2", "*/3VALUE"]
 
 
-def test_2409(cursor):
+def test_cursor_2409(cursor):
     "2409 - statement containing simple strings"
     sql = """select '"string_1"', :bind_1, ':string_2' from dual"""
     cursor.prepare(sql)
     assert cursor.bindnames() == ["BIND_1"]
 
 
-def test_2410(cursor):
+def test_cursor_2410(cursor):
     "2410 - bind variables between comment blocks"
     cursor.prepare("""
         select
@@ -141,7 +141,7 @@ def test_2410(cursor):
     assert cursor.bindnames() == ["A", "B", "C"]
 
 
-def test_2411(cursor):
+def test_cursor_2411(cursor):
     "2411 - bind variables between q-strings"
     cursor.prepare("""
         select
@@ -161,7 +161,7 @@ def test_2411(cursor):
     assert cursor.bindnames() == ["A", "B", "C", "D", "E", "F"]
 
 
-def test_2412(cursor, test_env):
+def test_cursor_2412(cursor, test_env):
     "2412 - bind variables between JSON constants"
     if not test_env.has_client_version(19):
         pytest.skip("unsupported client")
@@ -178,7 +178,7 @@ def test_2412(cursor, test_env):
     assert cursor.bindnames() == ["BV1", "BV2", "BV3", "BV4"]
 
 
-def test_2413(cursor):
+def test_cursor_2413(cursor):
     "2413 - multiple line comment with multiple asterisks"
     cursor.prepare(
         "/****--select * from :a where :a = 1\n"
@@ -188,13 +188,13 @@ def test_2413(cursor):
     assert cursor.bindnames() == ["TABLE_NAME", "VALUE"]
 
 
-def test_2414(cursor, test_env):
+def test_cursor_2414(cursor, test_env):
     "2414 - qstring without a closing quote"
     with test_env.assert_raises_full_code("DPY-2041"):
         cursor.prepare("select q'[something from dual")
 
 
-def test_2415(cursor):
+def test_cursor_2415(cursor):
     "2415 - different space combinations with :="
     cursor.prepare("""
         begin :value2 :=
@@ -206,7 +206,7 @@ def test_2415(cursor):
     assert cursor.bindnames() == ["VALUE2", "A", "B", "C"]
 
 
-def test_2416(cursor):
+def test_cursor_2416(cursor):
     "2416 - bind variables between multiple comment blocks with quotes"
     cursor.prepare("""
         select
@@ -221,13 +221,13 @@ def test_2416(cursor):
     assert cursor.bindnames() == ["A", "B", "C"]
 
 
-def test_2417(cursor, test_env):
+def test_cursor_2417(cursor, test_env):
     "2417 - query with a missing end quote"
     with test_env.assert_raises_full_code("DPY-2041"):
         cursor.prepare("select 'abc, :a from dual")
 
 
-def test_2418(cursor, test_env):
+def test_cursor_2418(cursor, test_env):
     "2418 - q-string with wrong closing symbols"
     with test_env.assert_raises_full_code("DPY-2041"):
         cursor.prepare("select q'[abc'], 5 from dual")

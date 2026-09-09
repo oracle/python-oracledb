@@ -49,14 +49,14 @@ def _verify_connect_arg(test_env, arg_name, arg_value, sql):
         assert fetched_value == arg_value
 
 
-def test_1000(test_env, conn):
+def test_connection_1000(test_env, conn):
     "1000 - simple connection to database"
     assert conn.username == test_env.main_user
     assert conn.dsn == test_env.connect_string
     assert conn.thin == (not test_env.use_thick_mode)
 
 
-def test_1001(skip_if_drcp, test_env):
+def test_connection_1001(skip_if_drcp, test_env):
     "1001 - test use of application context"
     namespace = "CLIENTCONTEXT"
     app_context_entries = [
@@ -74,7 +74,7 @@ def test_1001(skip_if_drcp, test_env):
             assert actual_value == value
 
 
-def test_1002(test_env):
+def test_connection_1002(test_env):
     "1002 - test invalid use of application context"
     with pytest.raises(TypeError):
         test_env.get_connection(appcontext=[("userenv", "action")])
@@ -86,7 +86,7 @@ def test_1002(test_env):
         test_env.get_connection(appcontext=[("userenv", "action", "x" * 4001)])
 
 
-def test_1003(conn, test_env):
+def test_connection_1003(conn, test_env):
     "1003 - test connection end-to-end tracing attributes"
 
     # determine the list of attributes to check
@@ -123,7 +123,7 @@ def test_1003(conn, test_env):
         assert result == value
 
 
-def test_1004(test_env):
+def test_connection_1004(test_env):
     "1004 - test use of autocommit"
     with (
         test_env.get_connection() as conn,
@@ -143,7 +143,7 @@ def test_1004(test_env):
         assert other_cursor.fetchall() == [(1,), (2,)]
 
 
-def test_1005(test_env):
+def test_connection_1005(test_env):
     "1005 - connection to database with bad connect string"
     with test_env.assert_raises_full_code(
         "DPY-4000", "DPY-4026", "DPY-4027", "ORA-12154"
@@ -154,13 +154,13 @@ def test_1005(test_env):
         oracledb.connect(dsn)
 
 
-def test_1006(test_env):
+def test_connection_1006(test_env):
     "1006 - connection to database with bad password"
     with test_env.assert_raises_full_code("ORA-01017"):
         test_env.get_connection(password=test_env.main_password + "X")
 
 
-def test_1007(skip_if_drcp, conn, test_env):
+def test_connection_1007(skip_if_drcp, conn, test_env):
     "1007 - test changing password"
     if test_env.is_on_oracle_cloud:
         pytest.skip("passwords on Oracle Cloud are strictly controlled")
@@ -173,7 +173,7 @@ def test_1007(skip_if_drcp, conn, test_env):
         conn.changepassword(new_password, test_env.main_password)
 
 
-def test_1008(skip_if_drcp, conn, test_env):
+def test_connection_1008(skip_if_drcp, conn, test_env):
     "1008 - test changing password to an invalid value"
     if test_env.is_on_oracle_cloud:
         pytest.skip("passwords on Oracle Cloud are strictly controlled")
@@ -186,7 +186,7 @@ def test_1008(skip_if_drcp, conn, test_env):
         conn.changepassword("incorrect old password", new_password)
 
 
-def test_1009(skip_if_drcp, conn, test_env):
+def test_connection_1009(skip_if_drcp, conn, test_env):
     "1009 - test connecting with password containing / and @ symbols"
     if test_env.is_on_oracle_cloud:
         pytest.skip("passwords on Oracle Cloud are strictly controlled")
@@ -203,14 +203,14 @@ def test_1009(skip_if_drcp, conn, test_env):
         conn.changepassword(new_password, test_env.main_password)
 
 
-def test_1010(conn, test_env):
+def test_connection_1010(conn, test_env):
     "1010 - confirm an exception is raised after closing a connection"
     conn.close()
     with test_env.assert_raises_full_code("DPY-1001"):
         conn.rollback()
 
 
-def test_1011(skip_unless_thick_mode, conn, test_env):
+def test_connection_1011(skip_unless_thick_mode, conn, test_env):
     "1011 - test creating a connection using a handle"
     cursor = conn.cursor()
     cursor.execute("truncate table TestTempTable")
@@ -234,12 +234,12 @@ def test_1011(skip_unless_thick_mode, conn, test_env):
     conn.close()
 
 
-def test_1012(conn):
+def test_connection_1012(conn):
     "1012 - connection version is a string"
     assert isinstance(conn.version, str)
 
 
-def test_1013(test_env):
+def test_connection_1013(test_env):
     "1013 - connection rolls back before close"
     with (
         test_env.get_connection() as conn,
@@ -256,7 +256,7 @@ def test_1013(test_env):
         assert count == 0
 
 
-def test_1014(test_env):
+def test_connection_1014(test_env):
     "1014 - connection rolls back before destruction"
     with (
         test_env.get_connection() as conn,
@@ -273,7 +273,7 @@ def test_1014(test_env):
         assert count == 0
 
 
-def test_1015(test_env):
+def test_connection_1015(test_env):
     "1015 - multiple connections to database with multiple threads"
 
     def connect_and_drop():
@@ -293,7 +293,7 @@ def test_1015(test_env):
         thread.join()
 
 
-def test_1016(conn, test_env):
+def test_connection_1016(conn, test_env):
     "1016 - test string format of connection"
     expected_value = (
         "<oracledb.Connection to "
@@ -302,7 +302,7 @@ def test_1016(conn, test_env):
     assert str(conn) == expected_value
 
 
-def test_1017(test_env):
+def test_connection_1017(test_env):
     "1017 - test context manager - close"
     with test_env.get_connection() as conn:
         cursor = conn.cursor()
@@ -319,7 +319,7 @@ def test_1017(test_env):
         assert count == 1
 
 
-def test_1018(conn, test_env):
+def test_connection_1018(conn, test_env):
     "1018 - test connection attribute values"
     assert conn.ltxid == b""
     assert not conn.autocommit
@@ -342,7 +342,7 @@ def test_1018(conn, test_env):
     assert conn.warning is None
 
 
-def test_1019(conn, test_env):
+def test_connection_1019(conn, test_env):
     "1019 - test closed connection attribute values"
     conn.close()
     attr_names = [
@@ -359,13 +359,13 @@ def test_1019(conn, test_env):
             getattr(conn, name)
 
 
-def test_1020(conn, round_trip_checker):
+def test_connection_1020(conn, round_trip_checker):
     "1020 - test connection ping makes a round trip"
     conn.ping()
     assert round_trip_checker.get_value() == 1
 
 
-def test_1021(skip_unless_thick_mode, conn):
+def test_connection_1021(skip_unless_thick_mode, conn):
     "1021 - test begin, prepare, cancel transaction"
     cursor = conn.cursor()
     cursor.execute("truncate table TestTempTable")
@@ -384,7 +384,7 @@ def test_1021(skip_unless_thick_mode, conn):
     assert count == 0
 
 
-def test_1022(skip_unless_thick_mode, conn):
+def test_connection_1022(skip_unless_thick_mode, conn):
     "1022 - test multiple transactions on the same connection"
     with conn.cursor() as cursor:
         cursor.execute("truncate table TestTempTable")
@@ -421,7 +421,7 @@ def test_1022(skip_unless_thick_mode, conn):
         assert cursor.fetchall() == expected_rows
 
 
-def test_1023(skip_unless_thick_mode, conn):
+def test_connection_1023(skip_unless_thick_mode, conn):
     "1023 - test multiple global transactions on the same connection"
     with conn.cursor() as cursor:
         cursor.execute("truncate table TestTempTable")
@@ -474,7 +474,7 @@ def test_1023(skip_unless_thick_mode, conn):
         assert cursor.fetchall() == expected_rows
 
 
-def test_1024(skip_unless_thick_mode, conn, test_env):
+def test_connection_1024(skip_unless_thick_mode, conn, test_env):
     "1024 - test creating global txn after a local txn"
     with conn.cursor() as cursor:
         cursor.execute("truncate table TestTempTable")
@@ -491,7 +491,7 @@ def test_1024(skip_unless_thick_mode, conn, test_env):
         conn.begin(*xid)
 
 
-def test_1025(conn):
+def test_connection_1025(conn):
     "1025 - single connection to database with multiple threads"
 
     def verify_fetched_data():
@@ -509,7 +509,7 @@ def test_1025(conn):
         t.join()
 
 
-def test_1026(conn, test_env):
+def test_connection_1026(conn, test_env):
     "1026 - test connection cancel"
 
     def perform_cancel():
@@ -530,7 +530,7 @@ def test_1026(conn, test_env):
         assert user == test_env.main_user.upper()
 
 
-def test_1027(skip_if_drcp, conn, test_env):
+def test_connection_1027(skip_if_drcp, conn, test_env):
     "1027 - test changing password during connect"
     if test_env.is_on_oracle_cloud:
         pytest.skip("passwords on Oracle Cloud are strictly controlled")
@@ -544,7 +544,7 @@ def test_1027(skip_if_drcp, conn, test_env):
         conn.changepassword(new_password, test_env.main_password)
 
 
-def test_1028(test_env):
+def test_connection_1028(test_env):
     "1028 - test use of autocommit during reexecute"
     sql = "insert into TestTempTable (IntCol, StringCol1) values (:1, :2)"
     data_to_insert = [(1, "Test String #1"), (2, "Test String #2")]
@@ -566,7 +566,7 @@ def test_1028(test_env):
             assert other_cursor.fetchall() == data_to_insert
 
 
-def test_1029(conn, test_env):
+def test_connection_1029(conn, test_env):
     "1029 - test current_schema is set properly"
     assert conn.current_schema is None
     user = test_env.main_user.upper()
@@ -583,7 +583,7 @@ def test_1029(conn, test_env):
     assert result == user
 
 
-def test_1030(conn):
+def test_connection_1030(conn):
     "1030 - test dbms_output package"
     cursor = conn.cursor()
     test_string = "Testing DBMS_OUTPUT package"
@@ -595,7 +595,7 @@ def test_1030(conn):
     assert string_var.getvalue() == test_string
 
 
-def test_1031(conn, test_env):
+def test_connection_1031(conn, test_env):
     "1031 - test connection call_timeout"
     conn.call_timeout = 500  # milliseconds
     assert conn.call_timeout == 500
@@ -603,7 +603,7 @@ def test_1031(conn, test_env):
         conn.cursor().callproc(test_env.sleep_proc_name, [2])
 
 
-def test_1032(test_env):
+def test_connection_1032(test_env):
     "1032 - test Connection repr()"
 
     class MyConnection(oracledb.Connection):
@@ -620,7 +620,7 @@ def test_1032(test_env):
     assert repr(conn) == expected_value
 
 
-def test_1033(conn):
+def test_connection_1033(conn):
     "1033 - test getting write-only attributes"
     with pytest.raises(AttributeError):
         conn.action
@@ -636,7 +636,7 @@ def test_1033(conn):
         conn.client_identifier
 
 
-def test_1034(test_env):
+def test_connection_1034(test_env):
     "1034 - test error for invalid type for params and pool"
     pool = test_env.get_pool()
     pool.close()
@@ -648,7 +648,7 @@ def test_1034(test_env):
         oracledb.connect(params={"number": 7})
 
 
-def test_1035(conn):
+def test_connection_1035(conn):
     "1035 - test connection instance name"
     cursor = conn.cursor()
     cursor.execute("""
@@ -659,13 +659,15 @@ def test_1035(conn):
     assert conn.instance_name.upper() == instance_name
 
 
-def test_1036(conn):
+def test_connection_1036(conn):
     "1036 - test deprecated attributes"
     conn.callTimeout = 500
     assert conn.callTimeout == 500
 
 
-def test_1037(skip_if_drcp, skip_unless_long_passwords_supported, test_env):
+def test_connection_1037(
+    skip_if_drcp, skip_unless_long_passwords_supported, test_env
+):
     "1037 - test maximum allowed length for password"
     if test_env.is_on_oracle_cloud:
         pytest.skip("passwords on Oracle Cloud are strictly controlled")
@@ -685,7 +687,7 @@ def test_1037(skip_if_drcp, skip_unless_long_passwords_supported, test_env):
             conn.changepassword(original_password, new_password_1025)
 
 
-def test_1038(conn):
+def test_connection_1038(conn):
     "1038 - test getting db_name"
     cursor = conn.cursor()
     cursor.execute("select name from V$DATABASE")
@@ -693,7 +695,7 @@ def test_1038(conn):
     assert conn.db_name.upper() == db_name.upper()
 
 
-def test_1039(conn):
+def test_connection_1039(conn):
     "1039 - test getting max_open_cursors"
     cursor = conn.cursor()
     cursor.execute("select value from V$PARAMETER where name='open_cursors'")
@@ -701,7 +703,7 @@ def test_1039(conn):
     assert conn.max_open_cursors == int(max_open_cursors)
 
 
-def test_1040(conn):
+def test_connection_1040(conn):
     "1040 - test getting service_name"
     cursor = conn.cursor()
     cursor.execute("select sys_context('userenv', 'service_name') from dual")
@@ -709,7 +711,7 @@ def test_1040(conn):
     assert conn.service_name.upper() == service_name.upper()
 
 
-def test_1041(conn):
+def test_connection_1041(conn):
     "1041 - test transaction_in_progress"
     assert not conn.transaction_in_progress
 
@@ -724,7 +726,7 @@ def test_1041(conn):
     assert not conn.transaction_in_progress
 
 
-def test_1042(conn):
+def test_connection_1042(conn):
     "1042 - test getting db_domain"
     cursor = conn.cursor()
     cursor.execute("select value from V$PARAMETER where name='db_domain'")
@@ -732,27 +734,27 @@ def test_1042(conn):
     assert conn.db_domain == db_domain
 
 
-def test_1043(test_env):
+def test_connection_1043(test_env):
     "1043 - test connecting with a proxy user"
     with test_env.get_connection(proxy_user=test_env.proxy_user) as conn:
         assert conn.username == test_env.main_user
         assert conn.proxy_user == test_env.proxy_user
 
 
-def test_1044(skip_unless_thin_mode, conn, test_env):
+def test_connection_1044(skip_unless_thin_mode, conn, test_env):
     "1044 - test connection.sdu"
     sdu = random.randint(512, conn.sdu)
     with test_env.get_connection(sdu=sdu) as conn:
         assert conn.sdu == sdu
 
 
-def test_1045(test_env):
+def test_connection_1045(test_env):
     "1045 - test connection with invalid conn_class"
     with test_env.assert_raises_full_code("DPY-2023"):
         test_env.get_connection(conn_class=oracledb.ConnectionPool)
 
 
-def test_1046(skip_unless_thin_mode, test_env):
+def test_connection_1046(skip_unless_thin_mode, test_env):
     "1046 - test passing program when creating a connection"
     sql = (
         "select program from v$session "
@@ -761,7 +763,7 @@ def test_1046(skip_unless_thin_mode, test_env):
     _verify_connect_arg(test_env, "program", "newprogram", sql)
 
 
-def test_1047(skip_unless_thin_mode, test_env):
+def test_connection_1047(skip_unless_thin_mode, test_env):
     "1047 - test passing machine when creating a connection"
     sql = (
         "select machine from v$session "
@@ -770,7 +772,7 @@ def test_1047(skip_unless_thin_mode, test_env):
     _verify_connect_arg(test_env, "machine", "newmachine", sql)
 
 
-def test_1048(skip_unless_thin_mode, test_env):
+def test_connection_1048(skip_unless_thin_mode, test_env):
     "1048 - test passing terminal when creating a connection"
     sql = (
         "select terminal from v$session "
@@ -779,7 +781,7 @@ def test_1048(skip_unless_thin_mode, test_env):
     _verify_connect_arg(test_env, "terminal", "newterminal", sql)
 
 
-def test_1049(skip_unless_thin_mode, test_env):
+def test_connection_1049(skip_unless_thin_mode, test_env):
     "1049 - test passing osuser when creating a connection"
     sql = (
         "select osuser from v$session "
@@ -788,7 +790,7 @@ def test_1049(skip_unless_thin_mode, test_env):
     _verify_connect_arg(test_env, "osuser", "newosuser", sql)
 
 
-def test_1050(test_env):
+def test_connection_1050(test_env):
     "1050 - test passing driver_name when creating a connection"
     sql = (
         "select distinct client_driver from v$session_connect_info "
@@ -797,7 +799,7 @@ def test_1050(test_env):
     _verify_connect_arg(test_env, "driver_name", "newdriver", sql)
 
 
-def test_1051(skip_unless_thin_mode, conn):
+def test_connection_1051(skip_unless_thin_mode, conn):
     "1051 - test getting session id"
     cursor = conn.cursor()
     cursor.execute("select dbms_debug_jdwp.current_session_id from dual")
@@ -805,7 +807,7 @@ def test_1051(skip_unless_thin_mode, conn):
     assert conn.session_id == fetched_value
 
 
-def test_1052(skip_unless_thin_mode, conn):
+def test_connection_1052(skip_unless_thin_mode, conn):
     "1052 - test getting session serial number"
     cursor = conn.cursor()
     cursor.execute("select dbms_debug_jdwp.current_session_serial from dual")
@@ -813,7 +815,7 @@ def test_1052(skip_unless_thin_mode, conn):
     assert conn.serial_num == fetched_value
 
 
-def test_1053(skip_unless_thin_mode, test_env):
+def test_connection_1053(skip_unless_thin_mode, test_env):
     "1053 - test passed params in hook with standalone connection"
     sdu = 4096
     params = test_env.get_connect_params()
@@ -835,7 +837,7 @@ def test_1053(skip_unless_thin_mode, test_env):
         oracledb.register_protocol(protocol, None)
 
 
-def test_1054(conn, test_env):
+def test_connection_1054(conn, test_env):
     "1054 - test altering connection edition"
     assert conn.edition is None
     cursor = conn.cursor()
@@ -849,7 +851,7 @@ def test_1054(conn, test_env):
         assert conn.edition == edition.upper()
 
 
-def test_1055(test_env):
+def test_connection_1055(test_env):
     "1055 - test connect() with edition"
     edition = test_env.edition_name
     with test_env.get_connection(edition=edition) as conn:
@@ -861,7 +863,7 @@ def test_1055(test_env):
         assert conn.edition == edition
 
 
-def test_1056(conn, test_env):
+def test_connection_1056(conn, test_env):
     "1056 - test connect() with parameters hook"
     orig_stmtcachesize = conn.stmtcachesize
     stmtcachesize = orig_stmtcachesize + 10
@@ -880,7 +882,7 @@ def test_1056(conn, test_env):
         assert conn.stmtcachesize == orig_stmtcachesize
 
 
-def test_1057(test_env, conn):
+def test_connection_1057(test_env, conn):
     "1057 - test connect() with multiple parameters hooks"
 
     def hook1(params):
@@ -906,7 +908,7 @@ def test_1057(test_env, conn):
             oracledb.unregister_params_hook(hook3)
 
 
-def test_1058(conn, test_env):
+def test_connection_1058(conn, test_env):
     "1058 - test error in the middle of a database response"
     cursor = conn.cursor()
     cursor.execute("truncate table TestTempTable")
@@ -930,7 +932,7 @@ def test_1058(conn, test_env):
         cursor.fetchall()
 
 
-def test_1059(test_env):
+def test_connection_1059(test_env):
     "1059 - test on_connect_callback is triggered for standalone connections"
     counter = 0
 
@@ -942,7 +944,7 @@ def test_1059(test_env):
         assert counter == 1
 
 
-def test_1060(skip_unless_thin_mode, conn, test_env):
+def test_connection_1060(skip_unless_thin_mode, conn, test_env):
     "1060 - end user security context requires tcps protocol"
     params = test_env.get_connect_params()
     if params.protocol == "tcp":
@@ -956,7 +958,7 @@ def test_1060(skip_unless_thin_mode, conn, test_env):
 
 
 @pytest.mark.parametrize("attr_name", ["host", "port", "protocol"])
-def test_1061(conn, test_env, attr_name):
+def test_connection_1061(conn, test_env, attr_name):
     "1061 - test getting connection networking attributes"
     if conn.thin:
         params = test_env.get_connect_params()
@@ -971,7 +973,7 @@ def test_1061(conn, test_env, attr_name):
             getattr(conn, attr_name)
 
 
-def test_1062(skip_unless_thin_mode, cursor, test_env):
+def test_connection_1062(skip_unless_thin_mode, cursor, test_env):
     "1062 - test getting db_unique_name"
     test_env.skip_unless_server_version(18, 5)
     cursor.execute("select sys_context('userenv', 'db_unique_name') from dual")
@@ -979,7 +981,7 @@ def test_1062(skip_unless_thin_mode, cursor, test_env):
     assert cursor.connection.db_unique_name == expected_name
 
 
-def test_1063(conn, test_env):
+def test_connection_1063(conn, test_env):
     "1063 - test application context management with invalid inputs"
     with pytest.raises(ValueError):
         conn.set_app_context("", attr="value")
@@ -997,7 +999,7 @@ def test_1063(conn, test_env):
         conn.ping()
 
 
-def test_1064(conn, cursor):
+def test_connection_1064(conn, cursor):
     "1064 - test set_app_context() behaviour"
     namespace = "CLIENTCONTEXT"
     conn.set_app_context(namespace, ATTR1="VALUE1")
@@ -1017,7 +1019,7 @@ def test_1064(conn, cursor):
     assert cursor.fetchone() == (None, None)
 
 
-def test_1065(skip_unless_transaction_priority_supported, test_env):
+def test_connection_1065(skip_unless_transaction_priority_supported, test_env):
     "1065 - test getting and setting transaction priority"
     with test_env.get_connection() as conn:
         default_priority = conn.transaction_priority

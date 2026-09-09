@@ -30,7 +30,7 @@ import oracledb
 import pytest
 
 
-def test_1400(conn, cursor):
+def test_connection_1400(conn, cursor):
     "1400 - test begin, prepare, roll back global transaction"
     cursor.execute("truncate table TestTempTable")
     xid = conn.xid(3900, b"txn3900", b"branchId")
@@ -48,7 +48,7 @@ def test_1400(conn, cursor):
     assert count == 0
 
 
-def test_1401(conn, cursor):
+def test_connection_1401(conn, cursor):
     "1401 - test begin, prepare, commit global transaction"
     cursor.execute("truncate table TestTempTable")
     xid = conn.xid(3901, "txn3901", "branchId")
@@ -63,7 +63,7 @@ def test_1401(conn, cursor):
     assert cursor.fetchall() == [(1, "tesName")]
 
 
-def test_1402(conn, cursor):
+def test_connection_1402(conn, cursor):
     "1402 - test multiple global transactions on the same connection"
     cursor.execute("truncate table TestTempTable")
     xid1 = conn.xid(3902, "txn3902", "branch1")
@@ -93,7 +93,7 @@ def test_1402(conn, cursor):
     assert cursor.fetchall() == expected_rows
 
 
-def test_1403(conn, cursor, test_env):
+def test_connection_1403(conn, cursor, test_env):
     "1403 - test rollback with parameter xid"
     cursor.execute("truncate table TestTempTable")
     xid1 = conn.xid(3901, b"txn3901", b"branch1")
@@ -121,7 +121,7 @@ def test_1403(conn, cursor, test_env):
     assert cursor.fetchall() == [(1, "tesName")]
 
 
-def test_1404(conn, cursor):
+def test_connection_1404(conn, cursor):
     "1404 - test resuming a transaction"
     cursor.execute("truncate table TestTempTable")
     xid1 = conn.xid(3939, "txn3939", "branch39")
@@ -145,7 +145,7 @@ def test_1404(conn, cursor):
         conn.tpc_rollback(xid)
 
 
-def test_1405(conn, cursor, test_env):
+def test_connection_1405(conn, cursor, test_env):
     "1405 - test promoting a local transaction to a tpc transaction"
     cursor.execute("truncate table TestTempTable")
     xid = conn.xid(3941, "txn3941", "branch41")
@@ -163,7 +163,7 @@ def test_1405(conn, cursor, test_env):
     conn.tpc_rollback(xid)
 
 
-def test_1406(conn, cursor, test_env):
+def test_connection_1406(conn, cursor, test_env):
     "1406 - test ending a transaction with parameter xid"
     cursor.execute("truncate table TestTempTable")
     xid1 = conn.xid(4406, "txn4406a", "branch3")
@@ -187,7 +187,7 @@ def test_1406(conn, cursor, test_env):
     conn.tpc_rollback(xid2)
 
 
-def test_1407(conn, cursor):
+def test_connection_1407(conn, cursor):
     "1407 - test tpc_recover()"
     cursor.execute("truncate table TestTempTable")
     n_xids = 10
@@ -220,7 +220,7 @@ def test_1407(conn, cursor):
     assert len(recovers) == 0
 
 
-def test_1408(conn, cursor):
+def test_connection_1408(conn, cursor):
     "1408 - test tpc_recover() with read-only transaction"
     cursor.execute("truncate table TestTempTable")
     for i in range(4):
@@ -232,7 +232,7 @@ def test_1408(conn, cursor):
     assert len(recovers) == 0
 
 
-def test_1409(conn, cursor):
+def test_connection_1409(conn, cursor):
     "1409 - test tpc_commit() with one_phase parameter"
     cursor.execute("truncate table TestTempTable")
     xid = conn.xid(4409, "txn4409", "branch1")
@@ -250,7 +250,7 @@ def test_1409(conn, cursor):
     assert cursor.fetchall() == [values]
 
 
-def test_1410(conn, cursor, test_env):
+def test_connection_1410(conn, cursor, test_env):
     "1410 - test negative cases for tpc_commit()"
     cursor.execute("truncate table TestTempTable")
     xid = conn.xid(4410, "txn4410", "branch1")
@@ -267,7 +267,7 @@ def test_1410(conn, cursor, test_env):
         conn.tpc_commit(xid)
 
 
-def test_1411(conn, cursor, test_env):
+def test_connection_1411(conn, cursor, test_env):
     "1411 - test starting an already created transaction"
     cursor.execute("truncate table TestTempTable")
     xid = conn.xid(4411, "txn4411", "branch1")
@@ -283,7 +283,7 @@ def test_1411(conn, cursor, test_env):
     conn.tpc_rollback(xid)
 
 
-def test_1412(conn, cursor, test_env):
+def test_connection_1412(conn, cursor, test_env):
     "1412 - test resuming a prepared transaction"
     cursor.execute("truncate table TestTempTable")
     xid = conn.xid(4412, "txn4412", "branch1")
@@ -293,7 +293,7 @@ def test_1412(conn, cursor, test_env):
         conn.tpc_begin(xid, oracledb.TPC_BEGIN_RESUME)
 
 
-def test_1413(conn, cursor, test_env):
+def test_connection_1413(conn, cursor, test_env):
     "1413 - test tpc_begin and tpc_end with invalid parameters"
     cursor.execute("truncate table TestTempTable")
     xid = conn.xid(4413, "txn4413", "branch1")
@@ -309,7 +309,7 @@ def test_1413(conn, cursor, test_env):
             tpc_function(xid, 70)
 
 
-def test_1414(conn, cursor, test_env):
+def test_connection_1414(conn, cursor, test_env):
     "1414 - test commiting transaction without tpc_commit"
     xid = conn.xid(4414, "txn4409", "branch1")
     conn.tpc_begin(xid)
@@ -318,7 +318,7 @@ def test_1414(conn, cursor, test_env):
     conn.tpc_end(xid)
 
 
-def test_1415(conn, cursor, test_env):
+def test_connection_1415(conn, cursor, test_env):
     "1415 - test tpc_commit when a commit is not needed"
     xid = conn.xid(4416, "txn4416", "branch1")
     conn.tpc_begin(xid)
@@ -329,7 +329,7 @@ def test_1415(conn, cursor, test_env):
         conn.tpc_commit(xid)
 
 
-def test_1416(conn, cursor):
+def test_connection_1416(conn, cursor):
     "1416 - test transaction_in_progress"
     cursor.execute("truncate table TestTempTable")
     xid = conn.xid(4415, "txn4415", "branch1")

@@ -37,19 +37,19 @@ def module_checks(anyio_backend, skip_unless_thin_mode):
     pass
 
 
-async def test_1100(async_cursor):
+async def test_cursor_1100(async_cursor):
     "1100 - test executing a statement without any arguments"
     result = await async_cursor.execute("begin null; end;")
     assert result is None
 
 
-async def test_1101(async_cursor, test_env):
+async def test_cursor_1101(async_cursor, test_env):
     "1101 - test executing a None statement with bind variables"
     with test_env.assert_raises_full_code("DPY-2001"):
         await async_cursor.execute(None, x=5)
 
 
-async def test_1102(async_cursor):
+async def test_cursor_1102(async_cursor):
     "1102 - test executing a statement with args and empty keyword args"
     simple_var = async_cursor.var(oracledb.NUMBER)
     args = [simple_var]
@@ -59,7 +59,7 @@ async def test_1102(async_cursor):
     assert simple_var.getvalue() == 25
 
 
-async def test_1103(async_cursor):
+async def test_cursor_1103(async_cursor):
     "1103 - test executing a statement with keyword arguments"
     simple_var = async_cursor.var(oracledb.NUMBER)
     result = await async_cursor.execute(
@@ -69,7 +69,7 @@ async def test_1103(async_cursor):
     assert simple_var.getvalue() == 5
 
 
-async def test_1104(async_cursor):
+async def test_cursor_1104(async_cursor):
     "1104 - test executing a statement with a dictionary argument"
     simple_var = async_cursor.var(oracledb.NUMBER)
     dict_arg = dict(value=simple_var)
@@ -78,7 +78,7 @@ async def test_1104(async_cursor):
     assert simple_var.getvalue() == 10
 
 
-async def test_1105(async_cursor, test_env):
+async def test_cursor_1105(async_cursor, test_env):
     "1105 - test executing a statement with both a dict and keyword args"
     simple_var = async_cursor.var(oracledb.NUMBER)
     dict_arg = dict(value=simple_var)
@@ -88,14 +88,14 @@ async def test_1105(async_cursor, test_env):
         )
 
 
-async def test_1106(async_cursor):
+async def test_cursor_1106(async_cursor):
     "1106 - test executing a statement and then changing the array size"
     await async_cursor.execute("select IntCol from TestNumbers")
     async_cursor.arraysize = 5
     assert len(await async_cursor.fetchall()) == 10
 
 
-async def test_1107(async_cursor, test_env):
+async def test_cursor_1107(async_cursor, test_env):
     "1107 - test that subsequent executes succeed after bad execute"
     sql = "begin raise_application_error(-20000, 'this); end;"
     with test_env.assert_raises_full_code("DPY-2041"):
@@ -103,7 +103,7 @@ async def test_1107(async_cursor, test_env):
     await async_cursor.execute("begin null; end;")
 
 
-async def test_1108(async_cursor, test_env):
+async def test_cursor_1108(async_cursor, test_env):
     "1108 - test that subsequent fetches fail after bad execute"
     with test_env.assert_raises_full_code("ORA-00904"):
         await async_cursor.execute("select y from dual")
@@ -111,14 +111,14 @@ async def test_1108(async_cursor, test_env):
         await async_cursor.fetchall()
 
 
-async def test_1109(async_cursor, test_env):
+async def test_cursor_1109(async_cursor, test_env):
     "1109 - test executing a statement with an incorrect named bind"
     sql = "select * from TestStrings where IntCol = :value"
     with test_env.assert_raises_full_code("DPY-4008", "ORA-01036"):
         await async_cursor.execute(sql, value2=3)
 
 
-async def test_1110(async_cursor):
+async def test_cursor_1110(async_cursor):
     "1110 - test executing a statement with named binds"
     await async_cursor.execute(
         """
@@ -132,7 +132,7 @@ async def test_1110(async_cursor):
     assert len(await async_cursor.fetchall()) == 1
 
 
-async def test_1111(async_cursor, test_env):
+async def test_cursor_1111(async_cursor, test_env):
     "1111 - test executing a statement with an incorrect positional bind"
     sql = """
             select *
@@ -142,7 +142,7 @@ async def test_1111(async_cursor, test_env):
         await async_cursor.execute(sql, [3])
 
 
-async def test_1112(async_cursor):
+async def test_cursor_1112(async_cursor):
     "1112 - test executing a statement with positional binds"
     await async_cursor.execute(
         """
@@ -155,7 +155,7 @@ async def test_1112(async_cursor):
     assert len(await async_cursor.fetchall()) == 1
 
 
-async def test_1113(async_cursor):
+async def test_cursor_1113(async_cursor):
     "1113 - test executing a statement after rebinding a named bind"
     statement = "begin :value := :value2 + 5; end;"
     simple_var = async_cursor.var(oracledb.NUMBER)
@@ -177,7 +177,7 @@ async def test_1113(async_cursor):
     assert simple_var.getvalue() == 15
 
 
-async def test_1114(async_cursor):
+async def test_cursor_1114(async_cursor):
     "1114 - test executing a PL/SQL statement with duplicate binds"
     simple_var = async_cursor.var(oracledb.NUMBER)
     simple_var.setvalue(0, 5)
@@ -193,7 +193,7 @@ async def test_1114(async_cursor):
     assert simple_var.getvalue() == 10
 
 
-async def test_1115(async_cursor):
+async def test_cursor_1115(async_cursor):
     "1115 - test executing a PL/SQL statement with duplicate binds"
     simple_var = async_cursor.var(oracledb.NUMBER)
     simple_var.setvalue(0, 5)
@@ -203,7 +203,7 @@ async def test_1115(async_cursor):
     assert simple_var.getvalue() == 10
 
 
-async def test_1116(async_cursor, test_env):
+async def test_cursor_1116(async_cursor, test_env):
     "1116 - test executing a statement with an incorrect number of binds"
     statement = "begin :value := :value2 + 5; end;"
     var = async_cursor.var(oracledb.NUMBER)
@@ -218,7 +218,7 @@ async def test_1116(async_cursor, test_env):
         )
 
 
-async def test_1117(async_conn, async_cursor):
+async def test_cursor_1117(async_conn, async_cursor):
     "1117 - change in size on subsequent binds does not use optimised path"
     await async_cursor.execute("truncate table TestTempTable")
     data = [(1, "Test String #1"), (2, "ABC" * 100)]
@@ -235,7 +235,7 @@ async def test_1117(async_conn, async_cursor):
     assert await async_cursor.fetchall() == data
 
 
-async def test_1118(async_conn, async_cursor):
+async def test_cursor_1118(async_conn, async_cursor):
     "1118 - test that dml can use optimised path"
     data_to_insert = [(i + 1, f"Test String #{i + 1}") for i in range(3)]
     await async_cursor.execute("truncate table TestTempTable")
@@ -255,14 +255,14 @@ async def test_1118(async_conn, async_cursor):
     assert await async_cursor.fetchall() == data_to_insert
 
 
-async def test_1119(async_cursor, test_env):
+async def test_cursor_1119(async_cursor, test_env):
     "1119 - test calling execute() with invalid parameters"
     sql = "insert into TestTempTable (IntCol, StringCol1) values (:1, :2)"
     with test_env.assert_raises_full_code("DPY-2003"):
         await async_cursor.execute(sql, "These are not valid parameters")
 
 
-async def test_1120(async_cursor, test_env):
+async def test_cursor_1120(async_cursor, test_env):
     "1120 - test calling execute() with mixed binds"
     await async_cursor.execute("truncate table TestTempTable")
     async_cursor.setinputsizes(None, None, str)
@@ -278,7 +278,7 @@ async def test_1120(async_cursor, test_env):
         )
 
 
-async def test_1121(async_cursor):
+async def test_cursor_1121(async_cursor):
     "1121 - test binding by name with double quotes"
     data = {'"_value1"': 1, '"VaLue_2"': 2, '"3VALUE"': 3}
     await async_cursor.execute(
@@ -289,7 +289,7 @@ async def test_1121(async_cursor):
     assert result == 6
 
 
-async def test_1122(async_cursor):
+async def test_cursor_1122(async_cursor):
     "1122 - test executing a statement with different input buffer sizes"
     sql = """
             insert into TestTempTable (IntCol, StringCol1, StringCol2)
@@ -316,7 +316,7 @@ async def test_1122(async_cursor):
     assert ret_bind.values == [["3"]]
 
 
-async def test_1123(async_conn, async_cursor):
+async def test_cursor_1123(async_conn, async_cursor):
     "1123 - test using rowfactory"
     await async_cursor.execute("truncate table TestTempTable")
     await async_cursor.execute("""
@@ -337,7 +337,7 @@ async def test_1123(async_conn, async_cursor):
     ]
 
 
-async def test_1124(async_conn, async_cursor):
+async def test_cursor_1124(async_conn, async_cursor):
     "1124 - test executing same query after setting rowfactory"
     await async_cursor.execute("truncate table TestTempTable")
     data = [(1, "Test 1"), (2, "Test 2")]
@@ -358,7 +358,7 @@ async def test_1124(async_conn, async_cursor):
     assert results1 == results2
 
 
-async def test_1125(async_conn, async_cursor):
+async def test_cursor_1125(async_conn, async_cursor):
     "1125 - test executing different query after setting rowfactory"
     await async_cursor.execute("truncate table TestTempTable")
     data = [(1, "Test 1"), (2, "Test 2")]
@@ -382,7 +382,7 @@ async def test_1125(async_conn, async_cursor):
     assert await async_cursor.fetchall() == expected_data
 
 
-async def test_1126(async_conn):
+async def test_cursor_1126(async_conn):
     "1126 - test setting rowfactory on a REF cursor"
     with async_conn.cursor() as cursor:
         sql_function = "pkg_TestRefCursors.TestReturnCursor"
@@ -398,7 +398,7 @@ async def test_1126(async_conn):
         assert await ref_cursor.fetchall() == expected_value
 
 
-async def test_1127(async_cursor):
+async def test_cursor_1127(async_cursor):
     "1127 - test using a subclassed string as bind parameter keys"
 
     class my_str(str):
@@ -422,7 +422,7 @@ async def test_1127(async_cursor):
     assert await async_cursor.fetchall() == [(5427, "1127 - String Value")]
 
 
-async def test_1128(async_cursor):
+async def test_cursor_1128(async_cursor):
     "1128 - test using a sequence of parameters other than a list or tuple"
 
     class MySeq(collections.abc.Sequence):
@@ -453,7 +453,7 @@ async def test_1128(async_cursor):
     assert await async_cursor.fetchall() == expected_data
 
 
-async def test_1129(async_cursor):
+async def test_cursor_1129(async_cursor):
     "1129 - test an output type handler with prefetch > arraysize"
 
     def type_handler(cursor, metadata):
@@ -466,7 +466,7 @@ async def test_1129(async_cursor):
     assert await async_cursor.fetchall() == [(1,), (2,), (3,), (4,), (5,)]
 
 
-async def test_1130(async_cursor, test_env):
+async def test_cursor_1130(async_cursor, test_env):
     "1130 - test setinputsizes() but without binding"
     async_cursor.setinputsizes(None, int)
     sql = "select :1, : 2 from dual"
@@ -475,7 +475,7 @@ async def test_1130(async_cursor, test_env):
         await async_cursor.execute(sql, [])
 
 
-async def test_1131(async_conn, async_cursor, test_env):
+async def test_cursor_1131(async_conn, async_cursor, test_env):
     "1131 - test getting FetchInfo attributes"
     type_obj = await async_conn.gettype("UDT_OBJECT")
     varchar_ratio, _ = test_env.charset_ratios
@@ -556,7 +556,7 @@ async def test_1131(async_conn, async_cursor, test_env):
         assert fetch_info.type_code == type_code
 
 
-async def test_1132(async_cursor):
+async def test_cursor_1132(async_cursor):
     "1132 - test FetchInfo repr() and str()"
     await async_cursor.execute("select IntCol from TestObjects")
     (fetch_info,) = async_cursor.description
@@ -565,14 +565,14 @@ async def test_1132(async_cursor):
     assert repr(fetch_info) == expected
 
 
-async def test_1133(async_cursor):
+async def test_cursor_1133(async_cursor):
     "1133 - test slicing FetchInfo"
     await async_cursor.execute("select IntCol from TestObjects")
     (fetch_info,) = async_cursor.description
     assert fetch_info[1:3] == (oracledb.DB_TYPE_NUMBER, 10)
 
 
-async def test_1134(async_conn, test_env):
+async def test_cursor_1134(async_conn, test_env):
     "1134 - test async context manager"
     expected_value = test_env.main_user.upper()
     with async_conn.cursor() as cursor:
@@ -583,7 +583,7 @@ async def test_1134(async_conn, test_env):
         assert await cursor.fetchone() == (expected_value,)
 
 
-async def test_1135(async_cursor):
+async def test_cursor_1135(async_cursor):
     "1135 - test metadata requiring multiple packets"
     values = [f"Test value 5435 - {i}" for i in range(1, 301)]
     columns = ", ".join(f"'{v}'" for v in values)
@@ -593,13 +593,13 @@ async def test_1135(async_cursor):
     assert row == tuple(values)
 
 
-async def test_1136(async_cursor, test_env):
+async def test_cursor_1136(async_cursor, test_env):
     "1136 - test raising no_data_found in PL/SQL"
     with test_env.assert_raises_full_code("ORA-01403"):
         await async_cursor.execute("begin raise no_data_found; end;")
 
 
-async def test_1137(async_cursor, test_env):
+async def test_cursor_1137(async_cursor, test_env):
     "1137 - test executing an empty statement"
     with test_env.assert_raises_full_code("DPY-2066"):
         await async_cursor.execute("")

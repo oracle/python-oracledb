@@ -52,18 +52,18 @@ def _test_select_rowids(cursor, table_name):
         assert cursor.fetchall() == [(int_val,)]
 
 
-def test_3400(cursor):
+def test_data_types_3400(cursor):
     "3400 - test selecting all rowids from a regular table"
     _test_select_rowids(cursor, "TestNumbers")
 
 
-def test_3401(cursor):
+def test_data_types_3401(cursor):
     "3401 - test selecting all rowids from an index organised table"
     _populate_test_universal_rowids(cursor)
     _test_select_rowids(cursor, "TestUniversalRowids")
 
 
-def test_3402(cursor, test_env):
+def test_data_types_3402(cursor, test_env):
     "3402 - test inserting an invalid rowid"
     sql = "insert into TestRowids (IntCol, RowidCol) values (1, :rid)"
     with test_env.assert_raises_full_code("ORA-00932"):
@@ -72,7 +72,7 @@ def test_3402(cursor, test_env):
         cursor.execute(sql, rid="523lkhlf")
 
 
-def test_3403(conn, cursor):
+def test_data_types_3403(conn, cursor):
     "3403 - test selecting regular rowids stored in a urowid column"
     cursor.execute("truncate table TestRowids")
     cursor.execute("""
@@ -90,7 +90,7 @@ def test_3403(conn, cursor):
         assert cursor.fetchall() == [(int_val,)]
 
 
-def test_3404(conn, cursor):
+def test_data_types_3404(conn, cursor):
     "3404 - test selecting regular rowids stored in a rowid column"
     cursor.execute("truncate table TestRowids")
     cursor.execute("""
@@ -112,7 +112,7 @@ def test_3404(conn, cursor):
         assert cursor.fetchall() == [(int_val,)]
 
 
-def test_3405(conn, cursor):
+def test_data_types_3405(conn, cursor):
     "3405 - binding and inserting a rowid"
     cursor.execute("truncate table TestRowids")
     insert_data = [
@@ -162,7 +162,7 @@ def test_3405(conn, cursor):
     assert cursor.fetchone() == (3, "String #3")
 
 
-def test_3406(skip_unless_thin_mode, conn, cursor):
+def test_data_types_3406(skip_unless_thin_mode, conn, cursor):
     "3406 - binding and inserting a rowid as urowid"
     cursor.execute("truncate table TestRowids")
     insert_data = [
@@ -213,7 +213,7 @@ def test_3406(skip_unless_thin_mode, conn, cursor):
     assert cursor.fetchone() == (3, "String #3", datetime.datetime(2017, 4, 6))
 
 
-def test_3407(conn, cursor):
+def test_data_types_3407(conn, cursor):
     "3407 - fetching a null rowid"
     cursor.execute("truncate table TestRowids")
     cursor.execute("insert into TestRowids (IntCol) values (1)")

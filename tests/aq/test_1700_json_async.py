@@ -123,14 +123,14 @@ def _verify_attr(obj, attrName, value):
     assert getattr(obj, attrName) == value
 
 
-async def test_1700(queue):
+async def test_aq_1700(queue):
     "1700 - test dequeuing an empty JSON queue"
     queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
     props = await queue.deqone()
     assert props is None
 
 
-async def test_1701(queue, async_conn):
+async def test_aq_1701(queue, async_conn):
     "1701 - test enqueuing and dequeuing multiple JSON messages"
     props = async_conn.msgproperties()
     for data in JSON_DATA:
@@ -150,7 +150,7 @@ async def test_1701(queue, async_conn):
 
 
 @pytest.mark.skip("awaiting fix for bug 37746852")
-async def test_1702(queue, async_conn):
+async def test_aq_1702(queue, async_conn):
     "1702 - test dequeuing with DEQ_REMOVE_NODATA option"
     data = JSON_DATA[1]
     props = async_conn.msgproperties(payload=data)
@@ -163,7 +163,7 @@ async def test_1702(queue, async_conn):
     assert props.payload is None
 
 
-async def test_1703(queue):
+async def test_aq_1703(queue):
     "1703 - test getting/setting dequeue options attributes"
     options = queue.deqoptions
     _verify_attr(options, "condition", "TEST_CONDITION")
@@ -177,7 +177,7 @@ async def test_1703(queue):
     _verify_attr(options, "msgid", b"mID")
 
 
-async def test_1704(queue, async_conn, test_env):
+async def test_aq_1704(queue, async_conn, test_env):
     "1704 - test waiting for dequeue"
     results = []
     task = asyncio.create_task(_deq_in_task(test_env, results))
@@ -189,13 +189,13 @@ async def test_1704(queue, async_conn, test_env):
     assert results == [data]
 
 
-async def test_1705(queue):
+async def test_aq_1705(queue):
     "1705 - test getting/setting enqueue options attributes"
     options = queue.enqoptions
     _verify_attr(options, "visibility", oracledb.ENQ_IMMEDIATE)
 
 
-async def test_1706(async_conn):
+async def test_aq_1706(async_conn):
     "1706 - test getting/setting message properties attributes"
     props = async_conn.msgproperties()
     _verify_attr(props, "correlation", "TEST_CORRELATION")
@@ -208,7 +208,7 @@ async def test_1706(async_conn):
     assert props.deliverymode == 0
 
 
-async def test_1707(queue, async_conn, test_env):
+async def test_aq_1707(queue, async_conn, test_env):
     "1707 - test enqueue visibility options - ENQ_ON_COMMIT"
     data = JSON_DATA[0]
     queue.enqoptions.visibility = oracledb.ENQ_ON_COMMIT
@@ -226,7 +226,7 @@ async def test_1707(queue, async_conn, test_env):
         assert props is not None
 
 
-async def test_1708(queue, async_conn, test_env):
+async def test_aq_1708(queue, async_conn, test_env):
     "1708 - test enqueue visibility option - ENQ_IMMEDIATE"
     data = JSON_DATA[0]
     queue.enqoptions.visibility = oracledb.ENQ_IMMEDIATE
@@ -245,7 +245,7 @@ async def test_1708(queue, async_conn, test_env):
         assert results == JSON_DATA[0]
 
 
-async def test_1709(queue, async_conn, test_env):
+async def test_aq_1709(queue, async_conn, test_env):
     "1709 - test enqueue/dequeue delivery modes identical - persistent"
     data = JSON_DATA[0]
     queue.enqoptions.deliverymode = oracledb.MSG_PERSISTENT
@@ -266,14 +266,14 @@ async def test_1709(queue, async_conn, test_env):
         assert results == JSON_DATA[0]
 
 
-async def test_1710(queue, async_conn, test_env):
+async def test_aq_1710(queue, async_conn, test_env):
     "1710 - test error for message with no payload"
     props = async_conn.msgproperties()
     with test_env.assert_raises_full_code("DPY-2000"):
         await queue.enqone(props)
 
 
-async def test_1711(queue, async_conn, async_cursor):
+async def test_aq_1711(queue, async_conn, async_cursor):
     "1711 - verify that the msgid property is returned correctly"
     data = JSON_DATA[0]
     props = async_conn.msgproperties(payload=data)
@@ -286,7 +286,7 @@ async def test_1711(queue, async_conn, async_cursor):
     assert props.msgid == actual_msgid
 
 
-async def test_1712(queue, async_conn, async_cursor):
+async def test_aq_1712(queue, async_conn, async_cursor):
     "1712 - test message props enqtime"
     data = JSON_DATA[0]
     await async_cursor.execute("select current_timestamp from dual")
@@ -301,7 +301,7 @@ async def test_1712(queue, async_conn, async_cursor):
     assert start_date <= props.enqtime <= end_date
 
 
-async def test_1713(queue, async_conn):
+async def test_aq_1713(queue, async_conn):
     "1713 - test message props declared attributes"
     data = JSON_DATA[0]
     values = dict(
@@ -322,20 +322,20 @@ async def test_1713(queue, async_conn):
         assert getattr(prop, attr_name) == values[attr_name]
 
 
-async def test_1714(queue, async_conn):
+async def test_aq_1714(queue, async_conn):
     "1714 - test getting queue attributes"
     assert queue.name == "TEST_JSON_QUEUE"
     assert queue.connection is async_conn
 
 
-async def test_1715(queue):
+async def test_aq_1715(queue):
     "1715 - test getting write-only attributes"
     for options in (queue.enqoptions, queue.deqoptions):
         with pytest.raises(AttributeError):
             options.deliverymode
 
 
-async def test_1716(queue, async_conn):
+async def test_aq_1716(queue, async_conn):
     "1716 - test deqoption condition with priority"
     queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
     priorities = [5, 5, 5, 5, 10, 9, 9, 10, 9]
@@ -355,7 +355,7 @@ async def test_1716(queue, async_conn):
     assert len(results) == 3
 
 
-async def test_1717(queue, async_conn):
+async def test_aq_1717(queue, async_conn):
     "1717 - test deqoption correlation"
     queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
     correlations = [
@@ -381,7 +381,7 @@ async def test_1717(queue, async_conn):
     assert len(results) == 2
 
 
-async def test_1718(queue, async_conn):
+async def test_aq_1718(queue, async_conn):
     "1718 - test deqoption msgid"
     data = JSON_DATA[0]
     props = async_conn.msgproperties(payload=data)
@@ -398,18 +398,18 @@ async def test_1718(queue, async_conn):
     assert prop.msgid == msgid
 
 
-async def test_1719(queue):
+async def test_aq_1719(queue):
     "1719 - test payload_type returns the correct value"
     assert queue.payload_type == "JSON"
 
 
-async def test_1720(queue):
+async def test_aq_1720(queue):
     "1720 - test deprecated attributes (enqOptions, deqOptions)"
     assert queue.enqOptions is queue.enqoptions
     assert queue.deqOptions is queue.deqoptions
 
 
-async def test_1721(queue, async_conn, test_env):
+async def test_aq_1721(queue, async_conn, test_env):
     "1721 - test wrong payload type"
     props = async_conn.msgproperties(payload="A string")
     with test_env.assert_raises_full_code("DPY-2062"):

@@ -38,7 +38,7 @@ def module_checks(anyio_backend, skip_unless_thin_mode):
     pass
 
 
-async def test_1200(async_conn):
+async def test_connection_1200(async_conn):
     "1200 - test execute() and fetchall()."
     pipeline = oracledb.create_pipeline()
     pipeline.add_execute("truncate table TestTempTable")
@@ -52,7 +52,7 @@ async def test_1200(async_conn):
     assert results[-1].rows == [(1,), (2,)]
 
 
-async def test_1201(async_conn):
+async def test_connection_1201(async_conn):
     "1201 - test executemany()"
     pipeline = oracledb.create_pipeline()
     pipeline.add_execute("truncate table TestTempTable")
@@ -69,7 +69,7 @@ async def test_1201(async_conn):
     assert results[-1].rows == [(2,), (3,), (4,), (5,)]
 
 
-async def test_1202(async_conn):
+async def test_connection_1202(async_conn):
     "1202 - test fetchall() with arraysize"
     data = [(1,), (2,), (3,), (4,)]
     pipeline = oracledb.create_pipeline()
@@ -96,7 +96,7 @@ async def test_1202(async_conn):
     assert results[-2].rows == data
 
 
-async def test_1203(async_conn):
+async def test_connection_1203(async_conn):
     "1203 - test fetchall() with rowfactory"
     pipeline = oracledb.create_pipeline()
     pipeline.add_execute("truncate table TestTempTable")
@@ -119,7 +119,7 @@ async def test_1203(async_conn):
     assert results[-1].rows == expected_value
 
 
-async def test_1204(async_conn):
+async def test_connection_1204(async_conn):
     "1204 - test fetchone()"
     pipeline = oracledb.create_pipeline()
     pipeline.add_execute("truncate table TestTempTable")
@@ -136,7 +136,7 @@ async def test_1204(async_conn):
     assert results[-1].rows == [(5,)]
 
 
-async def test_1205(async_conn):
+async def test_connection_1205(async_conn):
     "1205 - test fetchone() with rowfactory"
     pipeline = oracledb.create_pipeline()
     pipeline.add_execute("truncate table TestTempTable")
@@ -162,7 +162,7 @@ async def test_1205(async_conn):
     assert results[-1].rows == [{"INT": 3, "STRING": "Mac"}]
 
 
-async def test_1206(async_conn):
+async def test_connection_1206(async_conn):
     "1206 - test fetchmany()"
     data = [(i,) for i in range(10)]
     pipeline = oracledb.create_pipeline()
@@ -180,7 +180,7 @@ async def test_1206(async_conn):
     assert results[-1].rows == [(366,)]
 
 
-async def test_1207(async_conn):
+async def test_connection_1207(async_conn):
     "1207 - test fetchmany() with num_rows"
     pipeline = oracledb.create_pipeline()
     pipeline.add_execute("truncate table TestTempTable")
@@ -199,7 +199,7 @@ async def test_1207(async_conn):
     assert results[-1].rows == data[:num_rows]
 
 
-async def test_1208(async_conn):
+async def test_connection_1208(async_conn):
     "1208 - test fetchmany() with rowfactory and num_rows"
     pipeline = oracledb.create_pipeline()
     pipeline.add_execute("truncate table TestTempTable")
@@ -241,7 +241,7 @@ async def test_1208(async_conn):
     assert results[-1].rows == [{"INT": 4, "STRING": "Monday"}]
 
 
-async def test_1209(async_conn):
+async def test_connection_1209(async_conn):
     "1209 - test callfunc(), return_value and return_type"
     pipeline = oracledb.create_pipeline()
     pipeline.add_callfunc("func_Test", oracledb.DB_TYPE_NUMBER, ("Yes", 7))
@@ -265,7 +265,7 @@ async def test_1209(async_conn):
     assert results[2].return_value == 30
 
 
-async def test_1210(async_conn, async_cursor):
+async def test_connection_1210(async_conn, async_cursor):
     "1210 - test callproc() with parameters"
     pipeline = oracledb.create_pipeline()
     var = async_cursor.var(oracledb.DB_TYPE_NUMBER)
@@ -282,7 +282,7 @@ async def test_1210(async_conn, async_cursor):
     assert var.getvalue() == 2
 
 
-async def test_1211(async_conn, async_cursor):
+async def test_connection_1211(async_conn, async_cursor):
     "1211 - test callproc() with keyword_parameters"
     in_out_value = async_cursor.var(oracledb.DB_TYPE_NUMBER)
     in_out_value.setvalue(0, 7)
@@ -300,7 +300,7 @@ async def test_1211(async_conn, async_cursor):
     assert out_value.getvalue() == 5
 
 
-async def test_1212(async_conn, async_cursor):
+async def test_connection_1212(async_conn, async_cursor):
     "1212 - test callproc() with parameters and keyword_parameters"
     in_out_value = async_cursor.var(oracledb.DB_TYPE_NUMBER)
     in_out_value.setvalue(0, 8)
@@ -316,7 +316,7 @@ async def test_1212(async_conn, async_cursor):
     assert out_value.getvalue() == 10
 
 
-async def test_1213(async_conn):
+async def test_connection_1213(async_conn):
     "1213 - test fetchmany() num_rows with 0 and negative values"
     data = [(i,) for i in range(10)]
     pipeline = oracledb.create_pipeline()
@@ -335,7 +335,7 @@ async def test_1213(async_conn):
     assert results[-1].rows == []
 
 
-async def test_1214(async_conn):
+async def test_connection_1214(async_conn):
     "1214 - test add_commit with transaction_in_progress"
     assert not async_conn.transaction_in_progress
     pipeline = oracledb.create_pipeline()
@@ -351,7 +351,7 @@ async def test_1214(async_conn):
     assert not async_conn.transaction_in_progress
 
 
-async def test_1215(async_conn):
+async def test_connection_1215(async_conn):
     "1215 - test getting an error in the middle of pipeline"
     pipeline = oracledb.create_pipeline()
     pipeline.add_execute("truncate table TestTempTable")
@@ -373,7 +373,7 @@ async def test_1215(async_conn):
     assert results[-1].rows == expected_value
 
 
-async def test_1217(async_conn):
+async def test_connection_1217(async_conn):
     "1217 - test insert and update the inserted row"
     pipeline = oracledb.create_pipeline()
     pipeline.add_execute("truncate table TestTempTable")
@@ -387,7 +387,7 @@ async def test_1217(async_conn):
     assert results[-1].rows == [(25,)]
 
 
-async def test_1218(async_conn):
+async def test_connection_1218(async_conn):
     "1218 - test insert and update inserted rows"
     pipeline = oracledb.create_pipeline()
     pipeline.add_execute("truncate table TestTempTable")
@@ -404,7 +404,7 @@ async def test_1218(async_conn):
     assert results[-1].rows == [(i, "UPD") for i in range(100)]
 
 
-async def test_1219(async_conn):
+async def test_connection_1219(async_conn):
     "1219 - test insert many rows twice"
     values1 = [(i,) for i in range(100)]
     values2 = [(i,) for i in range(200, 205)]
@@ -421,7 +421,7 @@ async def test_1219(async_conn):
     assert results[-1].rows == values1 + values2
 
 
-async def test_1220(async_conn):
+async def test_connection_1220(async_conn):
     "1220 - test insert and delete value"
     pipeline = oracledb.create_pipeline()
     pipeline.add_execute("truncate table TestTempTable")
@@ -438,7 +438,7 @@ async def test_1220(async_conn):
     assert results[-1].rows == []
 
 
-async def test_1221(async_conn):
+async def test_connection_1221(async_conn):
     "1221 - test PipelineOp op_type"
     pipeline = oracledb.create_pipeline()
     pipeline.add_execute("truncate table TestTempTable")
@@ -468,7 +468,7 @@ async def test_1221(async_conn):
         assert result.operation.op_type == expected_value
 
 
-async def test_1222(async_conn):
+async def test_connection_1222(async_conn):
     "1222 - test Pipeline, PipelineOp and PipelineOpResult repr()"
     pipeline = oracledb.create_pipeline()
     assert repr(pipeline) == "<oracledb.Pipeline with 0 operations>"
@@ -482,7 +482,7 @@ async def test_1222(async_conn):
     )
 
 
-async def test_1223(async_conn):
+async def test_connection_1223(async_conn):
     "1223 - test getting an error at the beginning of a pipeline"
     pipeline = oracledb.create_pipeline()
     pipeline.add_execute("truncate table NonExistentTable")
@@ -497,7 +497,7 @@ async def test_1223(async_conn):
     assert results[-1].rows == expected_value
 
 
-async def test_1224(async_conn):
+async def test_connection_1224(async_conn):
     "1224 - test getting an error at the end of pipeline"
     pipeline = oracledb.create_pipeline()
     pipeline.add_execute("truncate table TestTempTable")
@@ -512,7 +512,7 @@ async def test_1224(async_conn):
     assert results[-1].error.full_code == "ORA-00001"
 
 
-async def test_1225(async_conn):
+async def test_connection_1225(async_conn):
     "1225 - test pipeline with clobs"
     clob = await async_conn.createlob(oracledb.DB_TYPE_CLOB, "Temp CLOB")
     pipeline = oracledb.create_pipeline()
@@ -532,7 +532,7 @@ async def test_1225(async_conn):
     assert [await lob.read() for lob, in rows] == ["CLOB", "Temp CLOB"]
 
 
-async def test_1226(async_conn):
+async def test_connection_1226(async_conn):
     "1226 - test nested cursors"
     sql = """
         select 'Level 1 String',
@@ -561,7 +561,7 @@ async def test_1226(async_conn):
     assert rows == [("Level 2 String", [("Level3 String",)])]
 
 
-async def test_1227(async_conn):
+async def test_connection_1227(async_conn):
     "1227 - test executemany with number of iterations"
     num_iterations = 4
     pipeline = oracledb.create_pipeline()
@@ -578,7 +578,7 @@ async def test_1227(async_conn):
     assert results[-1].rows == expected_value
 
 
-async def test_1228(async_conn, async_cursor):
+async def test_connection_1228(async_conn, async_cursor):
     "1228 - test anonymous PL/SQL"
     var = async_cursor.var(int)
     pipeline = oracledb.create_pipeline()
@@ -590,7 +590,7 @@ async def test_1228(async_conn, async_cursor):
     assert var.getvalue() == 15
 
 
-async def test_1229(async_conn, async_cursor):
+async def test_connection_1229(async_conn, async_cursor):
     "1229 - test executemany() with PL/SQL"
     values = [31, 6, 21, 17, 43]
     out_bind = async_cursor.var(oracledb.DB_TYPE_NUMBER, arraysize=len(values))
@@ -612,7 +612,7 @@ async def test_1229(async_conn, async_cursor):
     assert out_bind.values == values
 
 
-async def test_1230(disable_fetch_lobs, async_conn):
+async def test_connection_1230(disable_fetch_lobs, async_conn):
     "1230 - test fetch_lobs with add_fetchone()"
     clob_value = "CLOB Data 7630"
     pipeline = oracledb.create_pipeline()
@@ -630,7 +630,7 @@ async def test_1230(disable_fetch_lobs, async_conn):
     assert [res[-1].rows] == [[(clob_value,)]]
 
 
-async def test_1231(async_conn):
+async def test_connection_1231(async_conn):
     "1231 - test pipeline with lobs > 32K"
     blob_1_data = b"T" * 33000
     blob_2_data = b"B" * 33000
@@ -653,7 +653,7 @@ async def test_1231(async_conn):
     assert fetched_value == expected_value
 
 
-async def test_1232(async_conn):
+async def test_connection_1232(async_conn):
     "1232 - test ref cursor"
     ref_cursor1 = async_conn.cursor()
     ref_cursor2 = async_conn.cursor()
@@ -671,7 +671,7 @@ async def test_1232(async_conn):
     assert await ref_cursor1.fetchall() == await ref_cursor2.fetchall()
 
 
-async def test_1233(async_conn):
+async def test_connection_1233(async_conn):
     "1233 - test add_callproc() with ref cursor"
     values = [(2, None, None, None), (3, None, None, None)]
     ref_cursor = async_conn.cursor()
@@ -685,14 +685,14 @@ async def test_1233(async_conn):
     assert await ref_cursor.fetchall() == values
 
 
-async def test_1234(async_conn):
+async def test_connection_1234(async_conn):
     "1234 - test empty pipeline"
     pipeline = oracledb.create_pipeline()
     results = await async_conn.run_pipeline(pipeline)
     assert results == []
 
 
-async def test_1235(async_conn):
+async def test_connection_1235(async_conn):
     "1235 - test alter session"
     sql = """
         select value FROM nls_session_parameters
@@ -717,7 +717,7 @@ async def test_1235(async_conn):
     assert results[-1].rows == [(default_date_format,)]
 
 
-async def test_1236(async_conn):
+async def test_connection_1236(async_conn):
     "1236 - test connection inputtypehandler"
 
     def input_type_handler(cursor, value, num_elements):
@@ -740,7 +740,7 @@ async def test_1236(async_conn):
     assert results[-1].rows == [(12,)]
 
 
-async def test_1237(async_conn, test_env):
+async def test_connection_1237(async_conn, test_env):
     "1237 - test fetch_decimals with add_fetchone()"
     value = 7637
     with test_env.defaults_context_manager("fetch_decimals", True):
@@ -758,7 +758,7 @@ async def test_1237(async_conn, test_env):
     assert isinstance(res[-1].rows[0][0], int)
 
 
-async def test_1238(async_conn, test_env):
+async def test_connection_1238(async_conn, test_env):
     "1238 - test oracledb.defaults.arraysize"
     arraysize = 1
     with test_env.defaults_context_manager("arraysize", arraysize):
@@ -785,7 +785,7 @@ async def test_1238(async_conn, test_env):
         assert results[-2].rows == data
 
 
-async def test_1239(test_env):
+async def test_connection_1239(test_env):
     "1239 - test autocommit"
     conn1 = await test_env.get_connection_async()
     conn1.autocommit = True
@@ -805,7 +805,7 @@ async def test_1239(test_env):
     assert results[-1].rows == [(1,), (2,)]
 
 
-async def test_1240(async_conn, async_cursor):
+async def test_connection_1240(async_conn, async_cursor):
     "1240 - test DML returning"
     out_value = async_cursor.var(str, arraysize=2)
     pipeline = oracledb.create_pipeline()
@@ -840,7 +840,7 @@ async def test_1240(async_conn, async_cursor):
     ]
 
 
-async def test_1241(async_conn):
+async def test_connection_1241(async_conn):
     "1241 - test the columns attribute on results"
     pipeline = oracledb.create_pipeline()
     pipeline.add_execute("truncate table TestTempTable")
@@ -858,7 +858,7 @@ async def test_1241(async_conn):
     assert names == ["INTCOL", "STRINGCOL1"]
 
 
-async def test_1242(async_conn):
+async def test_connection_1242(async_conn):
     "1242 - test the columns attribute on single operation"
     pipeline = oracledb.create_pipeline()
     pipeline.add_fetchone("select user from dual")
@@ -867,7 +867,7 @@ async def test_1242(async_conn):
     assert names == ["USER"]
 
 
-async def test_1243(async_conn, async_cursor, test_env):
+async def test_connection_1243(async_conn, async_cursor, test_env):
     "1243 - test DML returning with error - pipeline error"
     out_value = async_cursor.var(oracledb.DB_TYPE_RAW)
     pipeline = oracledb.create_pipeline()
@@ -889,7 +889,7 @@ async def test_1243(async_conn, async_cursor, test_env):
     assert fetched_value == test_env.main_user.upper()
 
 
-async def test_1244(async_conn, async_cursor, test_env):
+async def test_connection_1244(async_conn, async_cursor, test_env):
     "1244 - test DML returning with error - pipeline continue"
     out_value = async_cursor.var(oracledb.DB_TYPE_RAW)
     pipeline = oracledb.create_pipeline()
@@ -913,7 +913,7 @@ async def test_1244(async_conn, async_cursor, test_env):
     assert fetched_value == test_env.main_user.upper()
 
 
-async def test_1245(async_conn, test_env):
+async def test_connection_1245(async_conn, test_env):
     "1245 - test fetch_decimals with add_fetchmany()"
     value = 7645
     with test_env.defaults_context_manager("fetch_decimals", True):
@@ -931,7 +931,7 @@ async def test_1245(async_conn, test_env):
     assert isinstance(res[-1].rows[0][0], int)
 
 
-async def test_1246(async_conn, test_env):
+async def test_connection_1246(async_conn, test_env):
     "1246 - test fetch_decimals with add_fetchall()"
     value = 7646
     with test_env.defaults_context_manager("fetch_decimals", True):
@@ -949,7 +949,7 @@ async def test_1246(async_conn, test_env):
     assert isinstance(res[-1].rows[0][0], int)
 
 
-async def test_1247(async_conn, test_env):
+async def test_connection_1247(async_conn, test_env):
     "1247 - test fetch_lobs with add_fetchmany()"
     clob_1_value = "CLOB Data 7647 - One"
     clob_2_value = "CLOB Data 7647 - Two"
@@ -976,7 +976,7 @@ async def test_1247(async_conn, test_env):
     assert [res[-2].rows] == [[(clob_1_value,), (clob_2_value,)]]
 
 
-async def test_1248(async_conn, test_env):
+async def test_connection_1248(async_conn, test_env):
     "1248 - test fetch_lobs with add_fetchall()"
     clob_1_value = "CLOB Data 7648 - One"
     clob_2_value = "CLOB Data 7648 - Two"
@@ -1003,7 +1003,7 @@ async def test_1248(async_conn, test_env):
     assert [res[-2].rows] == [[(clob_1_value,), (clob_2_value,)]]
 
 
-async def test_1249(async_conn, test_env):
+async def test_connection_1249(async_conn, test_env):
     "1249 - test PL/SQL returning LOB data from a function"
     clob_format = "Sample data for test 7649 - {}"
     num_values = [5, 38, 1549]
