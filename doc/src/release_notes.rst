@@ -70,7 +70,7 @@ Common Changes
 
 #)  Moved to a year-based version number system. The python-oracledb major
     version number will be the two-digit year in which that major version was
-    first relesed.
+    first released.
 #)  Dropped support for Python 3.9 and added initial support for Python 3.15.
 #)  Added support for :ref:`Python 3.14 templates <pythontemplatestrings>`
     (`issue 594 <https://github.com/oracle/python-oracledb/issues/594>`__).
