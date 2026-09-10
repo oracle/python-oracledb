@@ -32,7 +32,8 @@ Thin Mode Changes
     <endusersecurityproviderplugin>` plugin for the current thread.
 #)  Added support for the HA readiness requirements of Oracle Database 23.26.3.
 #)  Added round trip name into the packet output when setting the environment
-    variable `PYO_DEBUG_PACKETS`.
+    variable `PYO_DEBUG_PACKETS` for
+    :ref:`low level tracing <lowleveltracing>`.
 #)  Added validation for UTF-8 byte-length limits on AQ attributes
     :attr:`DeqOptions.consumername`, :attr:`MessageProperties.recipients`,
     :attr:`DeqOptions.correlation`, :attr:`MessageProperties.correlation`,

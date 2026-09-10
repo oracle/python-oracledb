@@ -1036,6 +1036,9 @@ The python-oracledb version can also be shown with
 
     print(oracledb.__version__)
 
+
+.. _lowleveltracing:
+
 Low Level Python-oracledb Driver Tracing
 ========================================
 
