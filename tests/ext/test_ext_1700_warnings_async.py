@@ -107,7 +107,7 @@ async def test_ext_1701(test_env):
         assert conn.warning.full_code in ["ORA-28002", "ORA-28098"]
     async with pool.acquire() as conn:
         assert conn.warning is None
-    await pool.close(0)
+    await pool.close()
 
 
 async def test_ext_1702(test_env):
@@ -124,4 +124,4 @@ async def test_ext_1702(test_env):
         assert conn.warning.full_code in ["ORA-28002", "ORA-28098"]
     async with pool.acquire() as conn:
         assert conn.warning is None
-    await pool.close(0)
+    await pool.close()

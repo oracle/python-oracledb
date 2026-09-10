@@ -48,8 +48,9 @@ def test_ext_1000(test_env):
     for conn in conns:
         conn.close()
     time.sleep(10)
-    conn = pool.acquire()
-    assert pool.opened == 3
+    with pool.acquire():
+        assert pool.opened == 3
+    pool.close()
 
 
 def test_ext_1001(test_env):
@@ -62,8 +63,12 @@ def test_ext_1001(test_env):
             with conn.cursor() as cursor:
                 cursor.execute("select 1 from dual")
     time.sleep(4)
-    conn = pool.acquire()
-    assert pool.opened == 3
+    with pool.acquire():
+        assert pool.opened == 3
+    for conn in conns:
+        if conn.is_healthy():
+            conn.close()
+    pool.close()
 
 
 def test_ext_1002(skip_unless_thin_mode, test_env):
@@ -75,6 +80,7 @@ def test_ext_1002(skip_unless_thin_mode, test_env):
         conn.close()
     time.sleep(6)
     assert pool.opened == 3
+    pool.close()
 
 
 def test_ext_1003(skip_unless_thin_mode, test_env):
@@ -87,6 +93,7 @@ def test_ext_1003(skip_unless_thin_mode, test_env):
     time.sleep(3)
     assert pool.opened == 5
     del conns
+    pool.close()
 
 
 def test_ext_1004(skip_unless_thin_mode, test_env):
@@ -103,6 +110,7 @@ def test_ext_1004(skip_unless_thin_mode, test_env):
         conn.close()
     time.sleep(2)
     assert pool.opened == 4
+    pool.close()
 
 
 def test_ext_1005(skip_unless_thin_mode, test_env):
@@ -121,6 +129,7 @@ def test_ext_1005(skip_unless_thin_mode, test_env):
         pass
     time.sleep(2)
     assert pool.opened == 4
+    pool.close()
 
 
 def test_ext_1006(skip_unless_run_long_tests, test_env):
@@ -134,10 +143,13 @@ def test_ext_1006(skip_unless_run_long_tests, test_env):
                 sid, serial = test_env.get_sid_serial(conn)
                 kill_sql = f"alter system kill session '{sid},{serial}'"
                 admin_cursor.execute(kill_sql)
-    conns.clear()
-    conn = pool.acquire()
+    for conn in conns:
+        conn.close()
+    with pool.acquire():
+        pass
     time.sleep(2)
     assert pool.opened == pool.min
+    pool.close()
 
 
 def test_ext_1007(skip_unless_run_long_tests, test_env):

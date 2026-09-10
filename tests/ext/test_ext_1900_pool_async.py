@@ -49,8 +49,9 @@ async def test_ext_1900(test_env):
     for conn in conns:
         await conn.close()
     await asyncio.sleep(7)
-    conn = await pool.acquire()
-    assert pool.opened == 3
+    async with pool.acquire():
+        assert pool.opened == 3
+    await pool.close()
 
 
 async def test_ext_1901(test_env):
@@ -63,8 +64,12 @@ async def test_ext_1901(test_env):
             with conn.cursor() as cursor:
                 await cursor.execute("select 1 from dual")
     await asyncio.sleep(4)
-    conn = await pool.acquire()
-    assert pool.opened == 3
+    async with pool.acquire():
+        assert pool.opened == 3
+    for conn in conns:
+        if conn.is_healthy():
+            await conn.close()
+    await pool.close()
 
 
 async def test_ext_1902(test_env):
@@ -76,6 +81,7 @@ async def test_ext_1902(test_env):
         await conn.close()
     await asyncio.sleep(6)
     assert pool.opened == 3
+    await pool.close()
 
 
 async def test_ext_1903(test_env):
@@ -87,7 +93,9 @@ async def test_ext_1903(test_env):
     assert pool.opened == 8
     await asyncio.sleep(3)
     assert pool.opened == 5
-    del conns
+    for conn in conns:
+        await conn.close()
+    await pool.close()
 
 
 async def test_ext_1904(test_env):
@@ -104,6 +112,7 @@ async def test_ext_1904(test_env):
         await conn.close()
     await asyncio.sleep(2)
     assert pool.opened == 4
+    await pool.close()
 
 
 async def test_ext_1905(test_env):
@@ -122,6 +131,7 @@ async def test_ext_1905(test_env):
         pass
     await asyncio.sleep(2)
     assert pool.opened == 4
+    await pool.close()
 
 
 async def test_ext_1906(test_env):
@@ -138,9 +148,11 @@ async def test_ext_1906(test_env):
     for conn in conns:
         await conn.close()
     conns.clear()
-    conn = await pool.acquire()
+    async with pool.acquire():
+        pass
     await asyncio.sleep(2)
     assert pool.opened == pool.min
+    await pool.close()
 
 
 async def test_ext_1907(skip_unless_run_long_tests, test_env):
