@@ -168,6 +168,7 @@ cdef class ThinConnImpl(BaseConnImpl):
             ConnectParamsImpl params = self.connect_params
             AddressList address_list
             Description description
+            SleepSubOp sleep_sub_op
             Exception exc = None
             str connect_string
             Address address
