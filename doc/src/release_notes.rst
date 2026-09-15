@@ -19,6 +19,9 @@ oracledb `26.1.0 <https://github.com/oracle/python-oracledb/compare/v26.0.0...v2
 Thin Mode Changes
 +++++++++++++++++
 
+#)  Fixed regression with connecting to listeners that require TLS
+    renegotiation using :ref:`asyncio <concurrentprogramming>`.
+
 Thick Mode Changes
 ++++++++++++++++++
 
