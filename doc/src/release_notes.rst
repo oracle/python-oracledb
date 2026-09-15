@@ -29,6 +29,9 @@ Common Changes
 ++++++++++++++
 
 #)  Bumped Cython to 3.3.
+#)  Fixed bug with handling the empty (default) value of the
+    :data:`ConnectParams.transaction_priority` attribute
+    (`issue 600 <https://github.com/oracle/python-oracledb/issues/600>`__).
 
 
 oracledb `26.0.0 <https://github.com/oracle/python-oracledb/compare/v4.0.2...v26.0.0>`__ (September 2026)

@@ -65,6 +65,7 @@ cdef class ConnectParamsImpl:
         self.osuser = C_DEFAULTS.osuser
         self.driver_name = C_DEFAULTS.driver_name
         self.thick_mode_dsn_passthrough = C_DEFAULTS.thick_mode_dsn_passthrough
+        self.transaction_priority = ""
 
     def __eq__(self, ConnectParamsImpl other_impl):
         return other_impl.config_dir == self.config_dir \
