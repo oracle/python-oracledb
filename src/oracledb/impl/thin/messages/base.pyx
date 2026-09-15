@@ -1574,6 +1574,9 @@ cdef class MessageWithData(Message):
                 buf.write_ub2(0)                # version
                 buf.write_ub4(0)                # packed data length
                 buf.write_ub4(TNS_OBJ_TOP_LEVEL)    # flags
+            elif ora_type_num == ORA_TYPE_NUM_CURSOR:
+                buf.write_uint8(1)
+                buf.write_uint8(0)
             else:
                 buf.write_uint8(0)
         elif ora_type_num in (ORA_TYPE_NUM_VARCHAR,

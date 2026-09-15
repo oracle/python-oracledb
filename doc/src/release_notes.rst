@@ -29,6 +29,9 @@ Common Changes
 ++++++++++++++
 
 #)  Bumped Cython to 3.3.
+#)  Fixed bug causing hang with NUMBER input and SYS_REFCURSOR output bind
+    variables
+    (`issue 600 <https://github.com/oracle/python-oracledb/issues/600>`__).
 #)  Fixed bug with handling the empty (default) value of the
     :data:`ConnectParams.transaction_priority` attribute
     (`issue 604 <https://github.com/oracle/python-oracledb/issues/604>`__).
