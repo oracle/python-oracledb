@@ -26,10 +26,15 @@ import os
 import platform
 import sys
 import sysconfig
+
+from Cython.Build import cythonize
 from setuptools import setup, Extension
 
 # base source directory
 source_dir = os.path.join("src", "oracledb")
+
+# generated C source directory
+build_dir = os.path.join("build", "cython")
 
 # determine the Arrow dependent source files (included)
 impl_dir = os.path.join(source_dir, "impl", "arrow")
@@ -105,37 +110,40 @@ elif sys.platform == "hp-ux11":
     extra_compile_args.extend(["+Onolimit"])
 
 setup(
-    ext_modules=[
-        Extension(
-            "oracledb.base_impl",
-            sources=["src/oracledb/base_impl.pyx"],
-            include_dirs=[nanoarrow_include_dir],
-            depends=base_depends,
-            extra_compile_args=extra_compile_args,
-        ),
-        Extension(
-            "oracledb.thin_impl",
-            sources=["src/oracledb/thin_impl.pyx"],
-            include_dirs=[nanoarrow_include_dir],
-            depends=thin_depends,
-            extra_compile_args=extra_compile_args,
-        ),
-        Extension(
-            "oracledb.thick_impl",
-            sources=["src/oracledb/thick_impl.pyx"],
-            include_dirs=[
-                "src/oracledb/impl/thick/odpi/include",
-                nanoarrow_include_dir,
-            ],
-            depends=thick_depends,
-            extra_compile_args=extra_compile_args,
-        ),
-        Extension(
-            "oracledb.arrow_impl",
-            sources=["src/oracledb/arrow_impl.pyx"],
-            include_dirs=[nanoarrow_include_dir],
-            depends=arrow_depends,
-            extra_compile_args=extra_compile_args,
-        ),
-    ]
+    ext_modules=cythonize(
+        [
+            Extension(
+                "oracledb.base_impl",
+                sources=["src/oracledb/base_impl.pyx"],
+                include_dirs=[nanoarrow_include_dir],
+                depends=base_depends,
+                extra_compile_args=extra_compile_args,
+            ),
+            Extension(
+                "oracledb.thin_impl",
+                sources=["src/oracledb/thin_impl.pyx"],
+                include_dirs=[nanoarrow_include_dir],
+                depends=thin_depends,
+                extra_compile_args=extra_compile_args,
+            ),
+            Extension(
+                "oracledb.thick_impl",
+                sources=["src/oracledb/thick_impl.pyx"],
+                include_dirs=[
+                    "src/oracledb/impl/thick/odpi/include",
+                    nanoarrow_include_dir,
+                ],
+                depends=thick_depends,
+                extra_compile_args=extra_compile_args,
+            ),
+            Extension(
+                "oracledb.arrow_impl",
+                sources=["src/oracledb/arrow_impl.pyx"],
+                include_dirs=[nanoarrow_include_dir],
+                depends=arrow_depends,
+                extra_compile_args=extra_compile_args,
+            ),
+        ],
+        build_dir=build_dir,
+    )
 )

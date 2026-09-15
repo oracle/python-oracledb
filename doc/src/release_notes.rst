@@ -25,6 +25,8 @@ Thick Mode Changes
 Common Changes
 ++++++++++++++
 
+#)  Bumped Cython to 3.3.
+
 
 oracledb `26.0.0 <https://github.com/oracle/python-oracledb/compare/v4.0.2...v26.0.0>`__ (September 2026)
 ---------------------------------------------------------------------------------------------------------
