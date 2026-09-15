@@ -34,50 +34,6 @@ import oracledb
 import pytest
 
 
-def _test_writable_parameter(name, value):
-    """
-    Tests that a writable parameter can be written to and the modified
-    value read back successfully.
-    """
-    params = oracledb.ConnectParams()
-    orig_value = getattr(params, name)
-    copied_params = params.copy()
-    args = {}
-    args[name] = value
-    params.set(**args)
-    assert getattr(params, name) == value
-    assert getattr(copied_params, name) == orig_value
-    args[name] = None
-    params.set(**args)
-    assert getattr(params, name) == value
-
-
-def _verify_network_name_attr(test_env, name):
-    """
-    Verify that a network name attribute is handled properly in both valid
-    and invalid cases.
-    """
-    cp = oracledb.ConnectParams()
-    assert getattr(cp, name) == getattr(oracledb.defaults, name)
-    for value, ok in [
-        ("valid_value", True),
-        ("'contains_quotes'", False),
-        ('"contains_double_quotes"', False),
-        ("contains_opening_paren (", False),
-        ("contains_closing_paren )", False),
-        ("contains_equals =", False),
-        ("contains_trailing_slash\\", False),
-    ]:
-        args = {}
-        args[name] = value
-        if ok:
-            cp = oracledb.ConnectParams(**args)
-            assert getattr(cp, name) == value
-        else:
-            with test_env.assert_raises_full_code("DPY-3029"):
-                oracledb.ConnectParams(**args)
-
-
 def test_misc_1300():
     "1300 - test simple EasyConnect string parsing with port specified"
     params = oracledb.ConnectParams()
@@ -466,23 +422,39 @@ def test_misc_1325(test_env):
         params.parse_connect_string(connect_string)
 
 
-def test_misc_1326():
+@pytest.mark.parametrize(
+    "attr_name,value",
+    [
+        ("appcontext", [("a", "b", "c")]),
+        ("config_dir", "config_dir_1326"),
+        ("disable_oob", True),
+        ("edition", "edition_1326"),
+        ("events", True),
+        ("matchanytag", True),
+        ("mode", oracledb.AUTH_MODE_SYSDBA),
+        ("shardingkey", [1, 2, 3]),
+        ("stmtcachesize", 25),
+        ("supershardingkey", [1, 2, 3]),
+        ("tag", "tag_1326"),
+        ("debug_jdwp", "host=host;port=1326"),
+        ("externalauth", True),
+        ("user", "USER_1"),
+        ("proxy_user", "PROXY_USER_1"),
+    ],
+)
+def test_misc_1326(attr_name, value):
     "1326 - test writable parameters"
-    _test_writable_parameter("appcontext", [("a", "b", "c")])
-    _test_writable_parameter("config_dir", "config_dir_1326")
-    _test_writable_parameter("disable_oob", True)
-    _test_writable_parameter("edition", "edition_1326")
-    _test_writable_parameter("events", True)
-    _test_writable_parameter("matchanytag", True)
-    _test_writable_parameter("mode", oracledb.AUTH_MODE_SYSDBA)
-    _test_writable_parameter("shardingkey", [1, 2, 3])
-    _test_writable_parameter("stmtcachesize", 25)
-    _test_writable_parameter("supershardingkey", [1, 2, 3])
-    _test_writable_parameter("tag", "tag_1326")
-    _test_writable_parameter("debug_jdwp", "host=host;port=1326")
-    _test_writable_parameter("externalauth", True)
-    _test_writable_parameter("user", "USER_1")
-    _test_writable_parameter("proxy_user", "PROXY_USER_1")
+    params = oracledb.ConnectParams()
+    orig_value = getattr(params, attr_name)
+    copied_params = params.copy()
+    args = {}
+    args[attr_name] = value
+    params.set(**args)
+    assert getattr(params, attr_name) == value
+    assert getattr(copied_params, attr_name) == orig_value
+    args[attr_name] = None
+    params.set(**args)
+    assert getattr(params, attr_name) == value
 
 
 def test_misc_1327():
@@ -1043,37 +1015,43 @@ def test_misc_1354():
     assert dsn_out == dsn_in
 
 
-def test_misc_1355(test_env):
-    "1355 - test program attribute"
-    _verify_network_name_attr(test_env, "program")
+@pytest.mark.parametrize("attr_name", ["program", "machine", "osuser"])
+@pytest.mark.parametrize(
+    "value,value_is_ok",
+    [
+        ("valid_value", True),
+        ("'contains_quotes'", False),
+        ('"contains_double_quotes"', False),
+        ("contains_opening_paren (", False),
+        ("contains_closing_paren )", False),
+        ("contains_equals =", False),
+        ("contains_trailing_slash\\", False),
+    ],
+)
+def test_misc_1355(test_env, attr_name, value, value_is_ok):
+    "1355 - test network name attribute"
+    cp = oracledb.ConnectParams()
+    assert getattr(cp, attr_name) == getattr(oracledb.defaults, attr_name)
+    args = {}
+    args[attr_name] = value
+    if value_is_ok:
+        cp = oracledb.ConnectParams(**args)
+        assert getattr(cp, attr_name) == value
+    else:
+        with test_env.assert_raises_full_code("DPY-3029"):
+            oracledb.ConnectParams(**args)
 
 
-def test_misc_1356(test_env):
-    "1356 - test machine attribute"
-    _verify_network_name_attr(test_env, "machine")
-
-
-def test_misc_1357(test_env):
-    "1357 - test osuser attribute"
-    _verify_network_name_attr(test_env, "osuser")
-
-
-def test_misc_1358():
-    "1358 - test terminal attribute"
+@pytest.mark.parametrize("attr_name", ["terminal", "driver_name"])
+def test_misc_1358(attr_name):
+    "1358 - test attributes with default values"
     params = oracledb.ConnectParams()
-    assert params.terminal == oracledb.defaults.terminal
-    value = "myterminal"
-    params = oracledb.ConnectParams(terminal=value)
-    assert params.terminal == value
-
-
-def test_misc_1359():
-    "1359 - test driver_name attribute"
-    params = oracledb.ConnectParams()
-    assert params.driver_name == oracledb.defaults.driver_name
-    value = "newdriver"
-    params = oracledb.ConnectParams(driver_name=value)
-    assert params.driver_name == value
+    assert getattr(params, attr_name) == getattr(oracledb.defaults, attr_name)
+    value = "myvalue"
+    args = {}
+    args[attr_name] = value
+    params = oracledb.ConnectParams(**args)
+    assert getattr(params, attr_name) == value
 
 
 def test_misc_1360(test_env):
