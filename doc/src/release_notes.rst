@@ -21,6 +21,8 @@ Thin Mode Changes
 
 #)  Fixed regression with connecting to listeners that require TLS
     renegotiation using :ref:`asyncio <concurrentprogramming>`.
+#)  Internal change: improved performance when sending Oracle Deep Data
+    Security end-user security contexts.
 
 Thick Mode Changes
 ++++++++++++++++++

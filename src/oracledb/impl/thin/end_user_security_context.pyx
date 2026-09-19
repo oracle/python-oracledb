@@ -28,9 +28,26 @@
 # Cython file defining the EndUserSecurityContextImpl.
 #------------------------------------------------------------------------------
 
+cdef SecretValueImpl _encode_payload(dict payload):
+    """
+    Encodes a payload as OSON and returns the encoded bytes securely.
+    Raises an error if the encoded payload exceeds 65535 bytes.
+    """
+    cdef OsonEncoder encoder = OsonEncoder.__new__(OsonEncoder)
+    encoder.encode(payload)
+    if encoder._pos > 65535:
+        errors._raise_err(
+            errors.ERR_INVALID_END_USER_SECURITY_CONTEXT_LENGTH
+        )
+    return SecretValueImpl(encoder._data[:encoder._pos])
+
+
 cdef class EndUserSecurityContextImpl:
     cdef:
-        SecretValueImpl oson_bytes
+        SecretValueImpl full_payload_oson_bytes
+        SecretValueImpl partial_payload_oson_bytes
+        SecretValueImpl hash_value
+        bint is_localuser
 
     @classmethod
     def create(
@@ -47,31 +64,43 @@ cdef class EndUserSecurityContextImpl:
         """
         cdef:
             EndUserSecurityContextImpl impl = cls.__new__(cls)
-            OsonEncoder encoder = OsonEncoder.__new__(OsonEncoder)
-            bytes oson_bytes
+            str hash_value
 
-        value = {}
-        value["ver"] = "1.0"
+        full_payload = {}
+        partial_payload = {}
+        hash_value_parts = []
+        full_payload["ver"] = "1.0"
         if end_user_token is not None:
-            value["end_user_token"] = end_user_token
+            full_payload["end_user_token"] = end_user_token
+            hash_value_parts.append(end_user_token)
         if end_user_name is not None:
-            value["end_user_name"] = end_user_name
+            full_payload["end_user_name"] = end_user_name
         if key is not None:
-            value["end_user_contextid"] = key
+            full_payload["end_user_contextid"] = key
         if database_access_token is not None:
-            value["database_access_token"] = database_access_token
+            full_payload["database_access_token"] = database_access_token
+            hash_value_parts.append(database_access_token)
         if data_roles is not None:
-            value["data_roles"] = list(data_roles)
+            full_payload["data_roles"] = list(data_roles)
+            hash_value_parts.append(
+                "".join(f"{len(role)}:{role}" for role in sorted(data_roles))
+            )
         if attributes is not None:
-            value["attributes"] = [
+            full_payload["attributes"] = [
+                dict(name=k, values=v) for k, v in attributes.items()
+            ]
+            partial_payload["attributes"] = [
                 dict(name=k, values=v) for k, v in attributes.items()
             ]
 
-        encoder.encode(value)
-        if encoder._pos > 65535:
-            errors._raise_err(
-                errors.ERR_INVALID_END_USER_SECURITY_CONTEXT_LENGTH
+        impl.full_payload_oson_bytes = _encode_payload(full_payload)
+        if end_user_name is None:
+            if attributes is not None:
+                impl.partial_payload_oson_bytes = _encode_payload(partial_payload)
+            hash_value = "".join(hash_value_parts)
+            impl.hash_value = SecretValueImpl(
+                base64.b64encode(
+                    hashlib.sha256(hash_value.encode()).digest()
+                )
             )
-        oson_bytes = encoder._data[:encoder._pos]
-        impl.oson_bytes = SecretValueImpl(oson_bytes)
         return impl

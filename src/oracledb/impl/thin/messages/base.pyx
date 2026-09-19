@@ -472,10 +472,8 @@ cdef class Message:
                                          iswarning=True)
 
     cdef int _write_str_keyword_value_pair(self, WriteBuffer buf, str key,
-                                           bytes value_bytes, uint32_t flags=0,
-                                           str text=None) except -1:
-        cdef:
-            uint32_t value_len = <uint32_t> len(value_bytes)
+                                           bytes value_bytes=None, str text=None,
+                                           uint32_t flags=0) except -1:
         buf.write_ub4(flags)
         buf.write_bytes_with_two_lengths(key)
         buf.write_bytes_with_two_lengths(text)
@@ -578,15 +576,48 @@ cdef class Message:
         Writes the piggyback that informs the server of the
         EndUserSecurityContext required for Deep Data Security.
         """
+        cdef:
+            EndUserSecurityContextImpl security_context
+            bint send_hash
+            uint32_t num_pairs
+            bytes context_bytes = None
+            str hash_text = None
+
+        security_context = self.conn_impl._security_context
+        if (
+            self.conn_impl._protocol._caps.supports_end_user_security_context_hash
+            and security_context.hash_value is not None
+        ):
+            hash_text = security_context.hash_value.get_value()
+        if hash_text is None or self.conn_impl._send_full_security_context:
+            context_bytes = (
+                security_context.full_payload_oson_bytes.get_value_as_bytes()
+            )
+        elif security_context.partial_payload_oson_bytes is not None:
+            context_bytes = (
+                security_context.partial_payload_oson_bytes.get_value_as_bytes()
+            )
+        num_pairs = 2 if hash_text is not None and context_bytes is not None else 1
+
         self._write_piggyback_code(buf, TNS_FUNC_END_USER_SECURITY_CTX)
         buf.write_ub4(TNS_SECURITY_CONTEXT_ATTACH_FLAG)
         buf.write_uint8(1)                  # pointer(kpdkve)
-        buf.write_ub4(1)                    # num of key value
-        self._write_str_keyword_value_pair(
-            buf,
-            "ORCL_XS_AUTHZ_CONTEXT",
-            self.conn_impl.security_context.oson_bytes.get_value_as_bytes()
-        )
+        buf.write_ub4(num_pairs)
+
+        if context_bytes is not None:
+            self._write_str_keyword_value_pair(
+                buf=buf,
+                key="ORCL_XS_AUTHZ_CONTEXT",
+                value_bytes=context_bytes,
+            )
+        if hash_text is not None:
+            self.conn_impl._send_full_security_context = False
+            self._write_str_keyword_value_pair(
+                buf=buf,
+                key="ORCL_XS_AUTH_HASH",
+                value_bytes=None,
+                text=hash_text,
+            )
 
     cdef int _write_app_context_piggyback(self, WriteBuffer buf) except -1:
         """
@@ -808,7 +839,7 @@ cdef class Message:
         """
         Writes all of the piggybacks to the server.
         """
-        if self.conn_impl.security_context is not None:
+        if self.conn_impl._security_context is not None:
             self._write_end_user_sec_piggyback(buf)
         if self.conn_impl.pipeline_mode != 0:
             self._write_begin_pipeline_piggyback(buf)

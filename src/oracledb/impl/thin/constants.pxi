@@ -402,6 +402,7 @@ cdef enum:
 # end user security context flag
 cdef enum:
     TNS_SECURITY_CONTEXT_ATTACH_FLAG = 0x01
+    TNS_EUSC_HASH_SUPPORTED = 0x01
 
 # other connection constants
 cdef enum:
@@ -562,6 +563,7 @@ cdef enum:
     TNS_CCAP_OCI3_OCSSYNC = 0x20
     TNS_CCAP_TTC6_HA_READINESS = 0x04
     TNS_CCAP_END_USER_SEC_CTX_PIGGYBACK = 0x02
+    TNS_CCAP_END_USER_SEC_CTX_PIGGYBACK_HASH = 0x20
     TNS_CCAP_TXN_PRIORITY = 0x01
 
 # runtime capability indices

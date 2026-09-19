@@ -360,7 +360,8 @@ cdef class BaseThinPoolImpl(BasePoolImpl):
                     self._drop_conn_impl(conn_impl)
                     is_open = False
         if is_open:
-            conn_impl.security_context = None
+            conn_impl._security_context = None
+            conn_impl._send_full_security_context = True
             conn_impl.operation_callback = None
             conn_impl.round_trip_callback = None
             self._check_satisfy_request(conn_impl, is_new=False)

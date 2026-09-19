@@ -110,7 +110,8 @@ cdef class ThinConnImpl(BaseConnImpl):
         uint8_t pipeline_mode
         uint8_t _session_state_desired
         _SessionlessData _sessionless_data
-        EndUserSecurityContextImpl security_context
+        EndUserSecurityContextImpl _security_context
+        bint _send_full_security_context
         bint _send_ha_readiness
 
     def __init__(self, bint is_async = False):
@@ -548,7 +549,8 @@ cdef class ThinConnImpl(BaseConnImpl):
             int cache_num
 
         # clear end user security context and any pending warning
-        self.security_context = None
+        self._security_context = None
+        self._send_full_security_context = True
         self.warning = None
 
         # clear cursors in database object type cache, if applicable
@@ -616,6 +618,7 @@ cdef class ThinConnImpl(BaseConnImpl):
         cdef:
             dict session_data = auth_message.session_data
             ReadBuffer buf = self._protocol._read_buf
+            str server_eusc_flag
         self._session_id = <uint32_t> int(session_data["AUTH_SESSION_ID"])
         self._serial_num = <uint16_t> int(session_data["AUTH_SERIAL_NUM"])
         self._db_domain = session_data.get("AUTH_SC_DB_DOMAIN")
@@ -627,6 +630,10 @@ cdef class ThinConnImpl(BaseConnImpl):
         self._instance_name = session_data.get("AUTH_INSTANCENAME")
         self._max_identifier_length = \
                 int(session_data.get("AUTH_MAX_IDEN_LENGTH", 30))
+        if server_eusc_flag := session_data.get("AUTH_CLIENT_EUSC_FLAG"):
+            self._protocol._caps.supports_end_user_security_context_hash = (
+                int(server_eusc_flag) & TNS_EUSC_HASH_SUPPORTED
+            ) != 0
         self.server_version = auth_message._get_version_tuple(buf)
         self.supports_bool = \
                 buf._caps.ttc_field_version >= TNS_CCAP_FIELD_VERSION_23_1
@@ -776,7 +783,8 @@ cdef class ThinConnImpl(BaseConnImpl):
         """
         Clears the end user security context.
         """
-        self.security_context = None
+        self._security_context = None
+        self._send_full_security_context = True
 
     def close(self):
         """
@@ -1128,7 +1136,8 @@ cdef class ThinConnImpl(BaseConnImpl):
             errors._raise_err(
                 errors.ERR_UNSUPPORTED_DEEP_DATA_SECURITY_FEATURE
             )
-        self.security_context = context
+        self._security_context = context
+        self._send_full_security_context = True
 
     def set_external_name(self, value):
         self._external_name = value

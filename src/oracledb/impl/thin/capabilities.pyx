@@ -102,6 +102,7 @@ cdef class Capabilities:
         bint supports_oob_check
         bint supports_end_of_response
         bint supports_end_user_security_context
+        bint supports_end_user_security_context_hash
         bint supports_pipelining
         bint supports_request_boundaries
         bint supports_ha_readiness
@@ -242,6 +243,7 @@ cdef class Capabilities:
         self.compile_caps[TNS_CCAP_TTC6] = TNS_CCAP_TTC6_HA_READINESS
         self.compile_caps[TNS_CCAP_FEATURE_BACKPORT2] = \
                 TNS_CCAP_END_USER_SEC_CTX_PIGGYBACK | \
+                TNS_CCAP_END_USER_SEC_CTX_PIGGYBACK_HASH | \
                 TNS_CCAP_TXN_PRIORITY
 
     @cython.boundscheck(False)
