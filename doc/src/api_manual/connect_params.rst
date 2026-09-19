@@ -235,6 +235,8 @@ All properties are read only.
 
 .. autoproperty:: ConnectParams.operation_callback
 
+    This attribute is supported in both python-oracledb Thin and Thick modes.
+
     See :ref:`dboperationcallbacks`.
 
     .. versionadded:: 26.0.0
@@ -287,7 +289,7 @@ All properties are read only.
     default value. This is the value shown in the PROGRAM column of the
     V$SESSION view.
 
-    This attribute is supported in python-oracledb Thin mode.
+    This attribute is only supported in python-oracledb Thin mode.
 
     .. versionadded:: 2.5.0
 
@@ -322,6 +324,8 @@ All properties are read only.
         second.
 
 .. autoproperty:: ConnectParams.round_trip_callback
+
+    This attribute is only supported in python-oracledb Thin mode.
 
     See :ref:`dboperationcallbacks`.
 
@@ -401,6 +405,14 @@ All properties are read only.
     This attribute is only supported in python-oracledb Thin mode.
 
     .. versionadded:: 2.5.0
+
+.. autoproperty:: ConnectParams.transaction_priority
+
+    This attribute is supported in both python-oracledb Thin and Thick modes.
+
+    .. dbapiattributeextension::
+
+    .. versionadded:: 26.0.0
 
 .. autoproperty:: ConnectParams.use_sni
 
