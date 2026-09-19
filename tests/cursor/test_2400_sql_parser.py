@@ -231,3 +231,17 @@ def test_cursor_2418(cursor, test_env):
     "2418 - q-string with wrong closing symbols"
     with test_env.assert_raises_full_code("DPY-2041"):
         cursor.prepare("select q'[abc'], 5 from dual")
+
+
+def test_cursor_2419(cursor, test_env):
+    "2419 - verify DDL does not allow bind variables"
+    cursor.prepare("""
+        create or replace trigger test_cursor_2419_tg
+        after update of updated_column on test_cursor_2419
+        for each row
+        begin
+            update test_cursor_2419 set
+                some_other_column = :new.updated_column
+            where some_other_column = :old.updated_column;
+        end;""")
+    assert cursor.bindnames() == []
