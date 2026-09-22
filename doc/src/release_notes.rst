@@ -13,14 +13,12 @@ Release changes are listed as affecting Thin Mode (the default runtime behavior
 of python-oracledb), as affecting the optional :ref:`Thick Mode
 <enablingthick>`, or as being 'Common' for changes that impact both modes.
 
-oracledb `26.1.0 <https://github.com/oracle/python-oracledb/compare/v26.0.0...v26.1.0>`__ (TBD)
+oracledb `26.1.0 <https://github.com/oracle/python-oracledb/compare/v26.0.1...v26.1.0>`__ (TBD)
 -----------------------------------------------------------------------------------------------
 
 Thin Mode Changes
 +++++++++++++++++
 
-#)  Fixed regression with connecting to listeners that require TLS
-    renegotiation using :ref:`asyncio <concurrentprogramming>`.
 #)  Internal change: improved performance when sending Oracle Deep Data
     Security end-user security contexts.
 
@@ -31,6 +29,20 @@ Common Changes
 ++++++++++++++
 
 #)  Bumped Cython to 3.3.
+
+
+oracledb `26.0.1 <https://github.com/oracle/python-oracledb/compare/v26.0.0...v26.0.1>`__ (September 2026)
+----------------------------------------------------------------------------------------------------------
+
+Thin Mode Changes
++++++++++++++++++
+
+#)  Fixed regression with connecting to listeners that require TLS
+    renegotiation using :ref:`asyncio <concurrentprogramming>`.
+
+Common Changes
+++++++++++++++
+
 #)  Fixed bug causing hang with NUMBER input and SYS_REFCURSOR output bind
     variables
     (`issue 600 <https://github.com/oracle/python-oracledb/issues/600>`__).
