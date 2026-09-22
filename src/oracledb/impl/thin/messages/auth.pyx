@@ -179,7 +179,7 @@ cdef class AuthMessage(Message):
                 sign = "+"
             tz_repr = f"'{sign}{tz_hour:02}:{tz_minute:02}'"
         stmt = f"ALTER SESSION SET TIME_ZONE={tz_repr}"
-        if self.transaction_priority is not None:
+        if self.transaction_priority:
             if not self.conn_impl._protocol._caps.supports_txn_priority:
                 errors._raise_err(errors.ERR_UNSUPPORTED_TXN_PRIORITY)
             stmt += f" TXN_PRIORITY='{self.transaction_priority}'"

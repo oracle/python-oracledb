@@ -440,6 +440,7 @@ def test_misc_1325(test_env):
         ("externalauth", True),
         ("user", "USER_1"),
         ("proxy_user", "PROXY_USER_1"),
+        ("transaction_priority", ""),
     ],
 )
 def test_misc_1326(attr_name, value):

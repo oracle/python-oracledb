@@ -223,8 +223,9 @@ cdef int _set_str_enum_param(dict args, str name, object enum_obj,
         if isinstance(in_val, enum_obj):
             enum_val = in_val
         else:
-            enum_val = getattr(enum_obj, in_val.upper(), None)
-            if enum_val is None:
+            try:
+                enum_val = enum_obj(in_val.lower())
+            except ValueError:
                 errors._raise_err(errors.ERR_INVALID_ENUM_VALUE,
                                   name=enum_obj.__name__, value=in_val)
         setattr(target, name, enum_val.value)

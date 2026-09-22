@@ -1208,13 +1208,13 @@ class BaseConnection(metaclass=BaseMetaClass):
         return self._impl.get_transaction_in_progress()
 
     @property
-    def transaction_priority(self) -> oracledb.TransactionPriority:
+    def transaction_priority(self) -> oracledb.TransactionPriority | None:
         """
         This read-write attribute sets the transaction priority associated with
         the connection. It should be one of the transaction priority constants.
 
         After setting this property, the new value is sent to the database on
-        next round trip.
+        the next round trip.
 
         After a connection is created, the initial value of this property is
         the value returned by the database.
@@ -1226,10 +1226,10 @@ class BaseConnection(metaclass=BaseMetaClass):
 
     @transaction_priority.setter
     def transaction_priority(
-        self, value: str | oracledb.TransactionPriority
+        self, value: str | oracledb.TransactionPriority | None
     ) -> None:
         self._verify_connected()
-        if isinstance(value, str):
+        if isinstance(value, str) or value is None:
             if not value:
                 value = oracledb.TransactionPriority.DEFAULT
             else:

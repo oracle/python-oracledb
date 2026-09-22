@@ -28,6 +28,10 @@ Thick Mode Changes
 Common Changes
 ++++++++++++++
 
+#)  Fixed bug with handling the empty (default) value of the
+    :data:`ConnectParams.transaction_priority` attribute
+    (`issue 604 <https://github.com/oracle/python-oracledb/issues/604>`__).
+
 
 oracledb `26.0.0 <https://github.com/oracle/python-oracledb/compare/v4.0.2...v26.0.0>`__ (September 2026)
 ---------------------------------------------------------------------------------------------------------
