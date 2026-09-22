@@ -499,3 +499,23 @@ def test_data_types_1020(conn):
             assert desc == "Top Level String 2"
             nested_rows = nested2.fetchall()
             assert nested_rows == [("Nested String for Top Level String 2",)]
+
+
+def test_data_types_1021(conn, cursor):
+    "1021 - test binding an OUT ref cursor as a null value"
+    value_1 = 1021.0
+    value_2 = 1021.5
+    sql = """
+        declare
+            t_Cursor sys_refcursor;
+        begin
+            open t_Cursor for
+                select :value_1, :value_2
+                from dual;
+            :cursor := t_Cursor;
+        end;
+    """
+    var = cursor.var(oracledb.DB_TYPE_CURSOR)
+    cursor.execute(sql, value_1=value_1, value_2=value_2, cursor=var)
+    ref_cursor = var.getvalue()
+    assert ref_cursor.fetchall() == [(value_1, value_2)]
