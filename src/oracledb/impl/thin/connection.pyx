@@ -307,6 +307,8 @@ cdef class ThinConnImpl(BaseConnImpl):
                     negotiate_tls_sub_op.description = description
                     negotiate_tls_sub_op.address = address
                     negotiate_tls_sub_op.conn_impl = self
+                    negotiate_tls_sub_op.orig_transport = \
+                            tcp_connect_sub_op.orig_transport
                     yield negotiate_tls_sub_op
 
     def _connect_phase_two(self, Description description, Address address):
@@ -1288,6 +1290,7 @@ cdef class TcpConnectSubOp(SubOperation):
     cdef:
         ThinConnImpl conn_impl
         Description description
+        object orig_transport
         Address address
         str connect_string
         str host
@@ -1312,7 +1315,7 @@ cdef class TcpConnectSubOp(SubOperation):
         Runs the callback asynchronously.
         """
         cdef BaseAsyncProtocol protocol = self.conn_impl._protocol
-        await protocol._connect_tcp(
+        self.orig_transport = await protocol._connect_tcp(
             self.conn_impl.connect_params,
             self.description,
             self.address,
@@ -1327,6 +1330,7 @@ cdef class NegotiateTlsSubOp(SubOperation):
         ThinConnImpl conn_impl
         Description description
         Address address
+        object orig_transport
 
     def process(self):
         """
@@ -1340,6 +1344,7 @@ cdef class NegotiateTlsSubOp(SubOperation):
         """
         Runs the callback asynchronously.
         """
+        self.conn_impl._protocol._transport._transport = self.orig_transport
         await self.conn_impl._protocol._transport.negotiate_tls_async(
             self.conn_impl._protocol, self.address, self.description
         )
