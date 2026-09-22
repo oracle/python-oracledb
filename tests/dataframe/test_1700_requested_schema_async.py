@@ -28,8 +28,8 @@ Module for testing user requested schema in fetch_df APIs using asyncio.
 
 import decimal
 import datetime
+import itertools
 
-import oracledb
 import pyarrow
 import pytest
 
@@ -40,67 +40,118 @@ def module_checks(anyio_backend, skip_unless_thin_mode):
 
 
 @pytest.mark.parametrize(
-    "dtype",
+    "expr,dtype,value",
     [
-        pyarrow.int8(),
-        pyarrow.int16(),
-        pyarrow.int32(),
-        pyarrow.int64(),
-        pyarrow.uint8(),
-        pyarrow.uint16(),
-        pyarrow.uint32(),
-        pyarrow.uint64(),
-    ],
-)
-async def test_dataframe_1700(dtype, async_conn):
-    "1700 - fetch_df_all() with fixed width integer types"
-    statement = "select 1 from dual"
-    requested_schema = pyarrow.schema([("INT_COL", dtype)])
-    ora_df = await async_conn.fetch_df_all(
-        statement, requested_schema=requested_schema
+        (":1", pyarrow.decimal128(precision=3, scale=2), 2.75),
+        (":1", pyarrow.decimal256(precision=4, scale=2), 12.25),
+    ]
+    + list(
+        itertools.product(
+            [":1"],
+            [
+                pyarrow.int8(),
+                pyarrow.int16(),
+                pyarrow.int32(),
+                pyarrow.int64(),
+                pyarrow.uint8(),
+                pyarrow.uint16(),
+                pyarrow.uint32(),
+                pyarrow.uint64(),
+            ],
+            [99],
+        )
     )
-    tab = pyarrow.table(ora_df)
-    assert tab.field("INT_COL").type == dtype
-    assert tab["INT_COL"][0].as_py() == 1
-
-
-@pytest.mark.parametrize(
-    "dtype",
-    [
-        pyarrow.int8(),
-        pyarrow.int16(),
-        pyarrow.int32(),
-        pyarrow.int64(),
-        pyarrow.uint8(),
-        pyarrow.uint16(),
-        pyarrow.uint32(),
-        pyarrow.uint64(),
-    ],
+    + list(
+        itertools.product(
+            [
+                "cast(:1 as number)",
+                "cast(:1 as binary_float)",
+                "cast(:1 as binary_double)",
+            ],
+            [pyarrow.float32(), pyarrow.float64()],
+            [26.25],
+        )
+    )
+    + list(
+        itertools.product(
+            [":1", "to_blob(:1)"],
+            [
+                pyarrow.binary(length=6),
+                pyarrow.binary(),
+                pyarrow.large_binary(),
+            ],
+            [b"ABCDEF"],
+        )
+    )
+    + list(
+        itertools.product(
+            [
+                "cast(:1 as date)",
+                "cast(:1 as timestamp)",
+                "cast(:1 as timestamp with local time zone)",
+                "cast(:1 as timestamp with time zone)",
+            ],
+            [pyarrow.date32(), pyarrow.date64()],
+            [datetime.date(2026, 9, 22)],
+        )
+    )
+    + list(
+        itertools.product(
+            [
+                "cast(:1 as date)",
+                "cast(:1 as timestamp)",
+                "cast(:1 as timestamp with local time zone)",
+                "cast(:1 as timestamp with time zone)",
+            ],
+            [
+                pyarrow.timestamp("s"),
+                pyarrow.timestamp("us"),
+                pyarrow.timestamp("ms"),
+                pyarrow.timestamp("ns"),
+            ],
+            [datetime.datetime(2026, 9, 22)],
+        )
+    )
+    + list(
+        itertools.product(
+            [
+                "cast(:1 as char(9))",
+                "cast(:1 as nchar(9))",
+                "cast(:1 as varchar2(9))",
+                "cast(:1 as nvarchar2(9))",
+                "to_clob(:1)",
+                "to_nclob(:1)",
+            ],
+            [pyarrow.string(), pyarrow.large_string()],
+            ["ABCDEFGHI"],
+        )
+    ),
 )
-async def test_dataframe_1701(dtype, async_conn):
-    "1701 - fetch_df_all() with duplicate fixed width integer types"
-    requested_schema = pyarrow.schema([("INT_COL", dtype)])
+async def test_dataframe_1700(test_env, async_conn, expr, dtype, value):
+    "1700 - duplicate value handling for all types"
+    num_rows = 6
+    statement = f"""
+        select {expr} as value
+        from dual
+        connect by level <= {num_rows}"""
+    requested_schema = pyarrow.schema([("VALUE", dtype)])
     ora_df = await async_conn.fetch_df_all(
-        """
-        select 99 from dual
-        union all
-        select 99 from dual
-        union all
-        select 99 from dual
-        union all
-        select 99 from dual
-        union all
-        select 99 from dual
-        union all
-        select 99 from dual
-        """,
+        statement,
+        [value],
         requested_schema=requested_schema,
     )
     tab = pyarrow.table(ora_df)
-    assert len(tab) == 6
-    assert tab.field("INT_COL").type == dtype
-    for value in tab["INT_COL"]:
-        assert value.as_py() == 99
+    df = tab.to_pandas()
+    assert tab.field("VALUE").type == dtype
+    assert test_env.get_data_from_df(df) == [(value,)] * num_rows
+    batch_size = 3
+    async for ora_df in async_conn.fetch_df_batches(
+        statement, [value], size=batch_size, requested_schema=requested_schema
+    ):
+        tab = pyarrow.table(ora_df)
+        df = tab.to_pandas()
+        assert tab.field("VALUE").type == dtype
+        assert test_env.get_data_from_df(df) == [(value,)] * batch_size
 
 
 async def test_dataframe_1702(async_conn):
@@ -120,70 +171,6 @@ async def test_dataframe_1702(async_conn):
     assert tab.field("INT_COL").type == pyarrow.float64()
 
 
-@pytest.mark.parametrize(
-    "dtype",
-    [
-        pyarrow.int8(),
-        pyarrow.int16(),
-        pyarrow.int32(),
-        pyarrow.int64(),
-        pyarrow.uint8(),
-        pyarrow.uint16(),
-        pyarrow.uint32(),
-        pyarrow.uint64(),
-    ],
-)
-async def test_dataframe_1703(dtype, async_conn):
-    "1703 - fetch_df_batches() with fixed width integer types"
-    statement = "select 1 from dual"
-    requested_schema = pyarrow.schema([("INT_COL", dtype)])
-    async for ora_df in async_conn.fetch_df_batches(
-        statement, requested_schema=requested_schema
-    ):
-        tab = pyarrow.table(ora_df)
-        assert tab.field("INT_COL").type == dtype
-        assert tab["INT_COL"][0].as_py() == 1
-
-
-@pytest.mark.parametrize(
-    "dtype",
-    [
-        pyarrow.int8(),
-        pyarrow.int16(),
-        pyarrow.int32(),
-        pyarrow.int64(),
-        pyarrow.uint8(),
-        pyarrow.uint16(),
-        pyarrow.uint32(),
-        pyarrow.uint64(),
-    ],
-)
-async def test_dataframe_1704(dtype, async_conn):
-    "1704 - fetch_df_batches() with duplicate fixed width integer types"
-    requested_schema = pyarrow.schema([("INT_COL", dtype)])
-    async for ora_df in async_conn.fetch_df_batches(
-        """
-        select 99 from dual
-        union all
-        select 99 from dual
-        union all
-        select 99 from dual
-        union all
-        select 99 from dual
-        union all
-        select 99 from dual
-        union all
-        select 99 from dual
-        """,
-        requested_schema=requested_schema,
-    ):
-        tab = pyarrow.table(ora_df)
-        assert len(tab) == 6
-        assert tab.field("INT_COL").type == dtype
-        for value in tab["INT_COL"]:
-            assert value.as_py() == 99
-
-
 async def test_dataframe_1705(async_conn):
     "1705 - fetch_df_batches() requested_schema honored for repeated execution"
     statement = "select 1 as int_col from dual"
@@ -199,557 +186,6 @@ async def test_dataframe_1705(async_conn):
     async for ora_df in async_conn.fetch_df_batches(statement):
         tab = pyarrow.table(ora_df)
         assert tab.field("INT_COL").type == pyarrow.float64()
-
-
-@pytest.mark.parametrize(
-    "dtype",
-    [
-        pyarrow.decimal128(precision=3, scale=2),
-        pyarrow.float32(),
-        pyarrow.float64(),
-    ],
-)
-async def test_dataframe_1706(dtype, async_conn):
-    "1706 - fetch_df_all() for NUMBER"
-    value = 2.75
-    requested_schema = pyarrow.schema([("DECIMAL_COL", dtype)])
-    statement = f"select {value} from dual"
-    ora_df = await async_conn.fetch_df_all(
-        statement, requested_schema=requested_schema
-    )
-    tab = pyarrow.table(ora_df)
-    assert tab.field("DECIMAL_COL").type == dtype
-    assert tab["DECIMAL_COL"][0].as_py() == value
-
-
-@pytest.mark.parametrize(
-    "dtype",
-    [pyarrow.float32(), pyarrow.float64()],
-)
-async def test_dataframe_1707(dtype, async_conn):
-    "1707 - fetch_df_all() for BINARY_DOUBLE"
-    value = 123.25
-    requested_schema = pyarrow.schema([("BINARY_DOUBLE_COL", dtype)])
-    statement = f"select to_binary_double({value}) from dual"
-    ora_df = await async_conn.fetch_df_all(
-        statement, requested_schema=requested_schema
-    )
-    tab = pyarrow.table(ora_df)
-    assert tab.field("BINARY_DOUBLE_COL").type == dtype
-    assert tab["BINARY_DOUBLE_COL"][0].as_py() == value
-
-
-@pytest.mark.parametrize(
-    "dtype",
-    [pyarrow.float32(), pyarrow.float64()],
-)
-async def test_dataframe_1708(dtype, async_conn):
-    "1708 - fetch_df_all() for BINARY_FLOAT"
-    value = 123.625
-    requested_schema = pyarrow.schema([("BINARY_FLOAT_COL", dtype)])
-    statement = f"select to_binary_float({value}) from dual"
-    ora_df = await async_conn.fetch_df_all(
-        statement, requested_schema=requested_schema
-    )
-    tab = pyarrow.table(ora_df)
-    assert tab.field("BINARY_FLOAT_COL").type == dtype
-    assert tab["BINARY_FLOAT_COL"][0].as_py() == value
-
-
-@pytest.mark.parametrize(
-    "dtype",
-    [pyarrow.binary(length=6), pyarrow.binary(), pyarrow.large_binary()],
-)
-async def test_dataframe_1709(dtype, async_conn):
-    "1709 - fetch_df_all() for RAW"
-    value = "ABCDEF"
-    requested_schema = pyarrow.schema([("RAW_COL", dtype)])
-    statement = f"select utl_raw.cast_to_raw('{value}') as raw_col from dual"
-    ora_df = await async_conn.fetch_df_all(
-        statement, requested_schema=requested_schema
-    )
-    tab = pyarrow.table(ora_df)
-    assert tab.field("RAW_COL").type == dtype
-    assert tab["RAW_COL"][0].as_py() == value.encode()
-
-
-@pytest.mark.parametrize(
-    "dtype,value_is_date",
-    [
-        (pyarrow.date32(), True),
-        (pyarrow.date64(), True),
-        (pyarrow.timestamp("s"), False),
-        (pyarrow.timestamp("us"), False),
-        (pyarrow.timestamp("ms"), False),
-        (pyarrow.timestamp("ns"), False),
-    ],
-)
-async def test_dataframe_1710(dtype, value_is_date, async_conn):
-    "1710 - fetch_df_all() for DATE"
-    requested_schema = pyarrow.schema([("DATE_COL", dtype)])
-    value = datetime.datetime(2025, 2, 18)
-    statement = "select cast(:1 as date) from dual"
-    ora_df = await async_conn.fetch_df_all(
-        statement, [value], requested_schema=requested_schema
-    )
-    tab = pyarrow.table(ora_df)
-    assert tab.field("DATE_COL").type == dtype
-    if value_is_date:
-        value = value.date()
-    assert tab["DATE_COL"][0].as_py() == value
-
-
-@pytest.mark.parametrize(
-    "dtype",
-    [
-        pyarrow.date32(),
-        pyarrow.date64(),
-        pyarrow.timestamp("s"),
-        pyarrow.timestamp("us"),
-        pyarrow.timestamp("ms"),
-        pyarrow.timestamp("ns"),
-    ],
-)
-async def test_dataframe_1711(dtype, async_conn):
-    "1711 - fetch_df_all() for TIMESTAMP"
-    requested_schema = pyarrow.schema([("TIMESTAMP_COL", dtype)])
-    value = datetime.datetime(1974, 4, 4, 0, 57, 54, 15079)
-    var = async_conn.cursor().var(oracledb.DB_TYPE_TIMESTAMP)
-    var.setvalue(0, value)
-    statement = "select :1 from dual"
-    ora_df = await async_conn.fetch_df_all(
-        statement, [var], requested_schema=requested_schema
-    )
-    tab = pyarrow.table(ora_df)
-    assert tab.field("TIMESTAMP_COL").type == dtype
-    if not isinstance(dtype, pyarrow.TimestampType):
-        value = value.date()
-    elif dtype.unit == "s":
-        value = value.replace(microsecond=0)
-    elif dtype.unit == "ms":
-        value = value.replace(microsecond=(value.microsecond // 1000) * 1000)
-    assert tab["TIMESTAMP_COL"][0].as_py() == value
-
-
-@pytest.mark.parametrize(
-    "dtype,value_is_date",
-    [
-        (pyarrow.date32(), True),
-        (pyarrow.date64(), True),
-        (pyarrow.timestamp("s"), False),
-        (pyarrow.timestamp("us"), False),
-        (pyarrow.timestamp("ms"), False),
-        (pyarrow.timestamp("ns"), False),
-    ],
-)
-async def test_dataframe_1712(dtype, value_is_date, async_conn):
-    "1712 - fetch_df_all() for TIMESTAMP WITH LOCAL TIME ZONE"
-    requested_schema = pyarrow.schema([("TIMESTAMP_LTZ_COL", dtype)])
-    value = datetime.datetime(2025, 3, 4)
-    statement = "select cast(:1 as timestamp with local time zone) from dual"
-    ora_df = await async_conn.fetch_df_all(
-        statement, [value], requested_schema=requested_schema
-    )
-    tab = pyarrow.table(ora_df)
-    assert tab.field("TIMESTAMP_LTZ_COL").type == dtype
-    if value_is_date:
-        value = value.date()
-    assert tab["TIMESTAMP_LTZ_COL"][0].as_py() == value
-
-
-@pytest.mark.parametrize(
-    "dtype,value_is_date",
-    [
-        (pyarrow.date32(), True),
-        (pyarrow.date64(), True),
-        (pyarrow.timestamp("s"), False),
-        (pyarrow.timestamp("us"), False),
-        (pyarrow.timestamp("ms"), False),
-        (pyarrow.timestamp("ns"), False),
-    ],
-)
-async def test_dataframe_1713(dtype, value_is_date, async_conn):
-    "1713 - fetch_df_all() for TIMESTAMP WITH TIME ZONE"
-    requested_schema = pyarrow.schema([("TIMESTAMP_TZ_COL", dtype)])
-    value = datetime.datetime(2025, 3, 4)
-    statement = "select cast(:1 as timestamp with time zone) from dual"
-    ora_df = await async_conn.fetch_df_all(
-        statement, [value], requested_schema=requested_schema
-    )
-    tab = pyarrow.table(ora_df)
-    assert tab.field("TIMESTAMP_TZ_COL").type == dtype
-    if value_is_date:
-        value = value.date()
-    assert tab["TIMESTAMP_TZ_COL"][0].as_py() == value
-
-
-@pytest.mark.parametrize(
-    "dtype",
-    [pyarrow.binary(length=6), pyarrow.binary(), pyarrow.large_binary()],
-)
-async def test_dataframe_1714(dtype, async_conn):
-    "1714 - fetch_df_all() for BLOB"
-    value = "GHIJKL"
-    requested_schema = pyarrow.schema([("BLOB_COL", dtype)])
-    statement = f"select to_blob(utl_raw.cast_to_raw('{value}')) from dual"
-    ora_df = await async_conn.fetch_df_all(
-        statement, requested_schema=requested_schema
-    )
-    tab = pyarrow.table(ora_df)
-    assert tab.field("BLOB_COL").type == dtype
-    assert tab["BLOB_COL"][0].as_py() == value.encode()
-
-
-@pytest.mark.parametrize(
-    "db_type_name",
-    ["CHAR", "NCHAR", "VARCHAR2", "NVARCHAR2"],
-)
-@pytest.mark.parametrize("dtype", [pyarrow.string(), pyarrow.large_string()])
-async def test_dataframe_1715(db_type_name, dtype, async_conn):
-    "1715 - fetch_df_all() for string types"
-    value = "test_1715"
-    requested_schema = pyarrow.schema([("STRING_COL", dtype)])
-    statement = f"select cast('{value}' as {db_type_name}(9)) from dual"
-    ora_df = await async_conn.fetch_df_all(
-        statement, requested_schema=requested_schema
-    )
-    tab = pyarrow.table(ora_df)
-    assert tab.field("STRING_COL").type == dtype
-    assert tab["STRING_COL"][0].as_py() == value
-
-
-@pytest.mark.parametrize("db_type_name", ["CLOB", "NCLOB"])
-@pytest.mark.parametrize("dtype", [pyarrow.string(), pyarrow.large_string()])
-async def test_dataframe_1716(db_type_name, dtype, async_conn):
-    "1716 - fetch_df_all() for CLOB types"
-    value = "test_dataframe_1716"
-    requested_schema = pyarrow.schema([("CLOB_COL", dtype)])
-    statement = f"select to_{db_type_name.lower()}('{value}') from dual"
-    ora_df = await async_conn.fetch_df_all(
-        statement, requested_schema=requested_schema
-    )
-    tab = pyarrow.table(ora_df)
-    assert tab.field("CLOB_COL").type == dtype
-    assert tab["CLOB_COL"][0].as_py() == value
-
-
-@pytest.mark.parametrize(
-    "dtype",
-    [
-        pyarrow.decimal128(precision=4, scale=2),
-        pyarrow.float32(),
-        pyarrow.float64(),
-    ],
-)
-async def test_dataframe_1717(dtype, async_conn):
-    "1717 - fetch_df_all() for NUMBER duplicate values"
-    value = 93.25
-    requested_schema = pyarrow.schema([("DECIMAL_COL", dtype)])
-    ora_df = await async_conn.fetch_df_all(
-        f"""
-        select {value} from dual
-        union all
-        select {value} from dual
-        union all
-        select {value} from dual
-        union all
-        select {value} from dual
-        union all
-        select {value} from dual
-        union all
-        select {value} from dual
-        """,
-        requested_schema=requested_schema,
-    )
-    tab = pyarrow.table(ora_df)
-    assert tab.field("DECIMAL_COL").type == dtype
-    for fetched_value in tab["DECIMAL_COL"]:
-        assert fetched_value.as_py() == value
-
-
-@pytest.mark.parametrize(
-    "dtype",
-    [pyarrow.float32(), pyarrow.float64()],
-)
-async def test_dataframe_1718(dtype, async_conn):
-    "1718 - fetch_df_all() for BINARY_DOUBLE duplicate values"
-    value = 523.75
-    requested_schema = pyarrow.schema([("BINARY_DOUBLE_COL", dtype)])
-    ora_df = await async_conn.fetch_df_all(
-        f"""
-        select to_binary_double({value}) from dual
-        union all
-        select to_binary_double({value}) from dual
-        union all
-        select to_binary_double({value}) from dual
-        union all
-        select to_binary_double({value}) from dual
-        union all
-        select to_binary_double({value}) from dual
-        union all
-        select to_binary_double({value}) from dual
-        """,
-        requested_schema=requested_schema,
-    )
-    tab = pyarrow.table(ora_df)
-    assert tab.field("BINARY_DOUBLE_COL").type == dtype
-    for fetched_value in tab["BINARY_DOUBLE_COL"]:
-        assert fetched_value.as_py() == value
-
-
-@pytest.mark.parametrize(
-    "dtype",
-    [pyarrow.float32(), pyarrow.float64()],
-)
-async def test_dataframe_1719(dtype, async_conn):
-    "1719 - fetch_df_all() for BINARY_FLOAT duplicate values"
-    value = 9308.125
-    requested_schema = pyarrow.schema([("BINARY_FLOAT_COL", dtype)])
-    ora_df = await async_conn.fetch_df_all(
-        f"""
-        select to_binary_float({value}) from dual
-        union all
-        select to_binary_float({value}) from dual
-        union all
-        select to_binary_float({value}) from dual
-        union all
-        select to_binary_float({value}) from dual
-        union all
-        select to_binary_float({value}) from dual
-        union all
-        select to_binary_float({value}) from dual
-        """,
-        requested_schema=requested_schema,
-    )
-    tab = pyarrow.table(ora_df)
-    assert tab.field("BINARY_FLOAT_COL").type == dtype
-    for fetched_value in tab["BINARY_FLOAT_COL"]:
-        assert fetched_value.as_py() == value
-
-
-@pytest.mark.parametrize(
-    "dtype",
-    [pyarrow.binary(length=6), pyarrow.binary(), pyarrow.large_binary()],
-)
-async def test_dataframe_1720(dtype, async_conn):
-    "1720 - fetch_df_all() for RAW duplicate values"
-    value = "A23456"
-    requested_schema = pyarrow.schema([("RAW_COL", dtype)])
-    ora_df = await async_conn.fetch_df_all(
-        f"""
-        select utl_raw.cast_to_raw('{value}') from dual
-        union all
-        select utl_raw.cast_to_raw('{value}') from dual
-        union all
-        select utl_raw.cast_to_raw('{value}') from dual
-        union all
-        select utl_raw.cast_to_raw('{value}') from dual
-        union all
-        select utl_raw.cast_to_raw('{value}') from dual
-        union all
-        select utl_raw.cast_to_raw('{value}') from dual
-        """,
-        requested_schema=requested_schema,
-    )
-    tab = pyarrow.table(ora_df)
-    assert tab.field("RAW_COL").type == dtype
-    for fetched_value in tab["RAW_COL"]:
-        assert fetched_value.as_py() == value.encode()
-
-
-@pytest.mark.parametrize(
-    "dtype,value_is_date",
-    [
-        (pyarrow.date32(), True),
-        (pyarrow.date64(), True),
-        (pyarrow.timestamp("s"), False),
-        (pyarrow.timestamp("us"), False),
-        (pyarrow.timestamp("ms"), False),
-        (pyarrow.timestamp("ns"), False),
-    ],
-)
-async def test_dataframe_1721(dtype, value_is_date, async_conn):
-    "1721 - fetch_df_all() for DATE duplicate values"
-    requested_schema = pyarrow.schema([("DATE_COL", dtype)])
-    value = datetime.datetime(2025, 3, 1)
-    parameters = dict(value=value)
-    ora_df = await async_conn.fetch_df_all(
-        """
-        select cast(:value as date) from dual
-        union all
-        select cast(:value as date) from dual
-        union all
-        select cast(:value as date) from dual
-        union all
-        select cast(:value as date) from dual
-        union all
-        select cast(:value as date) from dual
-        union all
-        select cast(:value as date) from dual
-        """,
-        parameters,
-        requested_schema=requested_schema,
-    )
-    tab = pyarrow.table(ora_df)
-    assert tab.field("DATE_COL").type == dtype
-    if value_is_date:
-        value = value.date()
-    for fetched_value in tab["DATE_COL"]:
-        assert fetched_value.as_py() == value
-
-
-@pytest.mark.parametrize(
-    "dtype,value_is_date",
-    [
-        (pyarrow.date32(), True),
-        (pyarrow.date64(), True),
-        (pyarrow.timestamp("s"), False),
-        (pyarrow.timestamp("us"), False),
-        (pyarrow.timestamp("ms"), False),
-        (pyarrow.timestamp("ns"), False),
-    ],
-)
-async def test_dataframe_1722(dtype, value_is_date, async_conn):
-    "1722 - fetch_df_all() for TIMESTAMP duplicate values"
-    requested_schema = pyarrow.schema([("TIMESTAMP_COL", dtype)])
-    value = datetime.datetime(2025, 1, 14)
-    parameters = dict(value=value)
-    ora_df = await async_conn.fetch_df_all(
-        """
-        select cast(:value as timestamp) from dual
-        union all
-        select cast(:value as timestamp) from dual
-        union all
-        select cast(:value as timestamp) from dual
-        union all
-        select cast(:value as timestamp) from dual
-        union all
-        select cast(:value as timestamp) from dual
-        union all
-        select cast(:value as timestamp) from dual
-        """,
-        parameters,
-        requested_schema=requested_schema,
-    )
-    tab = pyarrow.table(ora_df)
-    assert tab.field("TIMESTAMP_COL").type == dtype
-    if value_is_date:
-        value = value.date()
-    for fetched_value in tab["TIMESTAMP_COL"]:
-        assert fetched_value.as_py() == value
-
-
-@pytest.mark.parametrize(
-    "dtype,value_is_date",
-    [
-        (pyarrow.date32(), True),
-        (pyarrow.date64(), True),
-        (pyarrow.timestamp("s"), False),
-        (pyarrow.timestamp("us"), False),
-        (pyarrow.timestamp("ms"), False),
-        (pyarrow.timestamp("ns"), False),
-    ],
-)
-async def test_dataframe_1723(dtype, value_is_date, async_conn):
-    "1723 - fetch_df_all() for TIMESTAMP WITH LOCAL TIME ZONE duplicate values"
-    requested_schema = pyarrow.schema([("TIMESTAMP_LTZ_COL", dtype)])
-    value = datetime.datetime(2025, 3, 6)
-    parameters = dict(value=value)
-    ora_df = await async_conn.fetch_df_all(
-        """
-        select cast(:value as timestamp with local time zone) from dual
-        union all
-        select cast(:value as timestamp with local time zone) from dual
-        union all
-        select cast(:value as timestamp with local time zone) from dual
-        union all
-        select cast(:value as timestamp with local time zone) from dual
-        union all
-        select cast(:value as timestamp with local time zone) from dual
-        union all
-        select cast(:value as timestamp with local time zone) from dual
-        """,
-        parameters,
-        requested_schema=requested_schema,
-    )
-    tab = pyarrow.table(ora_df)
-    assert tab.field("TIMESTAMP_LTZ_COL").type == dtype
-    if value_is_date:
-        value = value.date()
-    for fetched_value in tab["TIMESTAMP_LTZ_COL"]:
-        assert fetched_value.as_py() == value
-
-
-@pytest.mark.parametrize(
-    "dtype,value_is_date",
-    [
-        (pyarrow.date32(), True),
-        (pyarrow.date64(), True),
-        (pyarrow.timestamp("s"), False),
-        (pyarrow.timestamp("us"), False),
-        (pyarrow.timestamp("ms"), False),
-        (pyarrow.timestamp("ns"), False),
-    ],
-)
-async def test_dataframe_1724(dtype, value_is_date, async_conn):
-    "1724 - fetch_df_all() for TIMESTAMP WITH TIME ZONE duplicate values"
-    requested_schema = pyarrow.schema([("TIMESTAMP_TZ_COL", dtype)])
-    value = datetime.datetime(2025, 2, 28)
-    parameters = dict(value=value)
-    ora_df = await async_conn.fetch_df_all(
-        """
-        select cast(:value as timestamp with time zone) from dual
-        union all
-        select cast(:value as timestamp with time zone) from dual
-        union all
-        select cast(:value as timestamp with time zone) from dual
-        union all
-        select cast(:value as timestamp with time zone) from dual
-        union all
-        select cast(:value as timestamp with time zone) from dual
-        union all
-        select cast(:value as timestamp with time zone) from dual
-        """,
-        parameters,
-        requested_schema=requested_schema,
-    )
-    tab = pyarrow.table(ora_df)
-    assert tab.field("TIMESTAMP_TZ_COL").type == dtype
-    if value_is_date:
-        value = value.date()
-    for fetched_value in tab["TIMESTAMP_TZ_COL"]:
-        assert fetched_value.as_py() == value
-
-
-@pytest.mark.parametrize(
-    "db_type_name",
-    ["CHAR", "NCHAR", "VARCHAR2", "NVARCHAR2"],
-)
-@pytest.mark.parametrize("dtype", [pyarrow.string(), pyarrow.large_string()])
-async def test_dataframe_1725(db_type_name, dtype, async_conn):
-    "1725 - fetch_df_all() for string types duplicate values"
-    value = "test_1725"
-    requested_schema = pyarrow.schema([("STRING_COL", dtype)])
-    ora_df = await async_conn.fetch_df_all(
-        f"""
-        select cast('{value}' as {db_type_name}(9)) from dual
-        union all
-        select cast('{value}' as {db_type_name}(9)) from dual
-        union all
-        select cast('{value}' as {db_type_name}(9)) from dual
-        union all
-        select cast('{value}' as {db_type_name}(9)) from dual
-        union all
-        select cast('{value}' as {db_type_name}(9)) from dual
-        union all
-        select cast('{value}' as {db_type_name}(9)) from dual
-        """,
-        requested_schema=requested_schema,
-    )
-    tab = pyarrow.table(ora_df)
-    assert tab.field("STRING_COL").type == dtype
-    for fetched_value in tab["STRING_COL"]:
-        assert fetched_value.as_py() == value
 
 
 @pytest.mark.parametrize(
