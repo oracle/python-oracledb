@@ -13,17 +13,14 @@ Release changes are listed as affecting Thin Mode (the default runtime behavior
 of python-oracledb), as affecting the optional :ref:`Thick Mode
 <enablingthick>`, or as being 'Common' for changes that impact both modes.
 
-oracledb `26.0.1 <https://github.com/oracle/python-oracledb/compare/v26.0.0...v26.0.1>`__ (TBD)
------------------------------------------------------------------------------------------------
+oracledb `26.0.1 <https://github.com/oracle/python-oracledb/compare/v26.0.0...v26.0.1>`__ (September 2026)
+----------------------------------------------------------------------------------------------------------
 
 Thin Mode Changes
 +++++++++++++++++
 
 #)  Fixed regression with connecting to listeners that require TLS
     renegotiation using :ref:`asyncio <concurrentprogramming>`.
-
-Thick Mode Changes
-++++++++++++++++++
 
 Common Changes
 ++++++++++++++
