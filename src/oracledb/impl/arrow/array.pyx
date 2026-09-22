@@ -192,6 +192,8 @@ cdef class ArrowArrayImpl:
                 NANOARROW_TYPE_INT16,
                 NANOARROW_TYPE_INT32,
                 NANOARROW_TYPE_INT64,
+                NANOARROW_TYPE_DATE32,
+                NANOARROW_TYPE_DATE64,
                 NANOARROW_TYPE_TIMESTAMP
         ):
             self.append_int(
@@ -218,10 +220,11 @@ cdef class ArrowArrayImpl:
             init_arrow_decimal(self.schema_impl, &decimal)
             ArrowArrayViewGetDecimalUnsafe(&array.arrow_array_view, index,
                                            &decimal)
-            _check_nanoarrow(ArrowArrayAppendDecimal(array.arrow_array,
+            _check_nanoarrow(ArrowArrayAppendDecimal(self.arrow_array,
                                                      &decimal))
         elif array.schema_impl.arrow_type in (
                 NANOARROW_TYPE_BINARY,
+                NANOARROW_TYPE_FIXED_SIZE_BINARY,
                 NANOARROW_TYPE_LARGE_BINARY,
                 NANOARROW_TYPE_LARGE_STRING,
                 NANOARROW_TYPE_STRING
@@ -243,6 +246,13 @@ cdef class ArrowArrayImpl:
                                             &interval)
             _check_nanoarrow(ArrowArrayAppendInterval(self.arrow_array,
                                                       &interval))
+        else:
+            # this should never be raised since all supported types should be
+            # covered, but this catches any bugs where a type is not covered
+            errors._raise_err(
+                errors.ERR_ARROW_UNSUPPORTED_DATA_FORMAT,
+                schema_format=array.schema_impl.arrow_schema.format.decode()
+            )
 
     cdef int append_null(self) except -1:
         """

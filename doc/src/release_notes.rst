@@ -37,6 +37,10 @@ Common Changes
 #)  Fixed bug with handling the empty (default) value of the
     :data:`ConnectParams.transaction_priority` attribute
     (`issue 604 <https://github.com/oracle/python-oracledb/issues/604>`__).
+#)  Fixed bugs with handling duplicate data when fetching
+    :ref:`Arrow data frames <dataframeformat>`
+    (`issue 605 <https://github.com/oracle/python-oracledb/issues/605>`__ and
+    `issue 606 <https://github.com/oracle/python-oracledb/issues/606>`__).
 
 
 oracledb `26.0.0 <https://github.com/oracle/python-oracledb/compare/v4.0.2...v26.0.0>`__ (September 2026)
