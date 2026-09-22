@@ -410,8 +410,6 @@ All properties are read only.
 
     This attribute is supported in both python-oracledb Thin and Thick modes.
 
-    .. dbapiattributeextension::
-
     .. versionadded:: 26.0.0
 
 .. autoproperty:: ConnectParams.use_sni
