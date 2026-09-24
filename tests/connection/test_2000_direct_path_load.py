@@ -674,3 +674,30 @@ def test_connection_2023(test_env, conn, cursor):
     sql = f"select {select_items} from {table_name} order by NumberValue"
     cursor.execute(sql)
     assert cursor.fetchall() == data
+
+
+def test_connection_2024(test_env, conn, cursor):
+    "2024 - test loading data into a partition"
+    table_name = "TestDirectPathLoadPartition"
+    cursor.execute(
+        f"""
+        create table {table_name} (id number, value varchar2(20))
+        partition by range (id) (
+            partition P_1 values less than (10),
+            partition P_2 values less than (maxvalue)
+        )
+        """
+    )
+    data = [(1, "one"), (2, "two")]
+    try:
+        conn.direct_path_load(
+            schema_name=test_env.main_user,
+            table_name=table_name,
+            column_names=["ID", "VALUE"],
+            data=data,
+            partition_name="P_1",
+        )
+        cursor.execute(f"select id, value from {table_name} partition (P_1)")
+        assert cursor.fetchall() == data
+    finally:
+        cursor.execute(f"drop table {table_name} purge")

@@ -886,7 +886,7 @@ cdef class ThinConnImpl(BaseConnImpl):
 
     def direct_path_load(self, str schema_name, str table_name,
                          list column_names, object data,
-                         uint32_t batch_size):
+                         uint32_t batch_size, object partition_name):
         """
         Performs a direct path load.
         """
@@ -903,6 +903,7 @@ cdef class ThinConnImpl(BaseConnImpl):
         prepare_message.schema_name = schema_name
         prepare_message.table_name = table_name
         prepare_message.column_names = column_names
+        prepare_message.partition_name = partition_name
         yield prepare_message
 
         # setup op message

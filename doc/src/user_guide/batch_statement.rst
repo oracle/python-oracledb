@@ -683,6 +683,18 @@ Then you can load data into it using the code:
 
 The records are always implicitly committed.
 
+To load data into one partition or subpartition, pass its name with the
+``partition_name`` parameter. Other Direct Path Loads can then target other
+partitions of the same table concurrently::
+
+    connection.direct_path_load(
+        schema_name=SCHEMA_NAME,
+        table_name=TABLE_NAME,
+        column_names=COLUMN_NAMES,
+        data=DATA,
+        partition_name="P_2026",
+    )
+
 The ``data`` parameter can be a list of sequences, a :ref:`DataFrame
 <oracledataframeobj>` object, or a third-party DataFrame instance that supports
 the Apache Arrow PyCapsule Interface, see :ref:`dfppl`.

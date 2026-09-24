@@ -161,12 +161,18 @@ class BaseConnection(metaclass=BaseMetaClass):
         data: Any,
         *,
         batch_size: int = 2**32 - 1,
+        partition_name: str | None = None,
     ) -> None:
         """
         Common logic for direct_path_load().
         """
         yield from self._impl.direct_path_load(
-            schema_name, table_name, column_names, data, batch_size
+            schema_name,
+            table_name,
+            column_names,
+            data,
+            batch_size,
+            partition_name,
         )
 
     def _fetch_df_all(
@@ -1562,6 +1568,7 @@ class Connection(BaseConnection):
         data: Any,
         *,
         batch_size: int = 2**32 - 1,
+        partition_name: str | None = None,
     ) -> None:
         """
         Load data into Oracle Database using the Direct Path Load interface.
@@ -1574,6 +1581,10 @@ class Connection(BaseConnection):
         The ``batch_size`` parameter is used to split large data sets into
         smaller pieces for sending to the database. It is the number of records
         in each batch. This parameter can be used to tune performance.
+
+        The ``partition_name`` parameter specifies the partition or
+        subpartition into which to load data. When it is not specified, data is
+        loaded into the table.
         """
         pass
 
@@ -2723,6 +2734,7 @@ class AsyncConnection(BaseConnection):
         data: Any,
         *,
         batch_size: int = 2**32 - 1,
+        partition_name: str | None = None,
     ) -> None:
         """
         Load data into Oracle Database using the Direct Path Load interface.
@@ -2735,6 +2747,10 @@ class AsyncConnection(BaseConnection):
         The ``batch_size`` parameter is used to split large data sets into
         smaller pieces for sending to the database. It is the number of records
         in each batch. This parameter can be used to tune performance.
+
+        The ``partition_name`` parameter specifies the partition or
+        subpartition into which to load data. When it is not specified, data is
+        loaded into the table.
         """
         pass
 
