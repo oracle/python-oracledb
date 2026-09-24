@@ -35,6 +35,7 @@ cdef class DirectPathPrepareMessage(Message):
     cdef:
         str schema_name
         str table_name
+        str partition_name
         list column_names
         list column_metadata
         uint32_t in_values[TNS_DPP_IN_MAX_PARAMS]
@@ -147,6 +148,8 @@ cdef class DirectPathPrepareMessage(Message):
         # write message
         self._write_function_code(buf)
         keyword_parameters_length = len(self.column_names) + 2
+        if self.partition_name is not None:
+            keyword_parameters_length += 1
         buf.write_ub4(TNS_DPP_OP_CODE_LOAD)
         buf.write_uint8(1)                  # keyword parameters (pointer)
         buf.write_ub4(keyword_parameters_length)
@@ -162,6 +165,9 @@ cdef class DirectPathPrepareMessage(Message):
                                   self.schema_name)
         self._write_keyword_param(buf, TNS_DPP_KW_INDEX_OBJECT_NAME,
                                   self.table_name)
+        if self.partition_name is not None:
+            self._write_keyword_param(buf, TNS_DPP_KW_INDEX_SUBOBJECT_NAME,
+                                      self.partition_name)
         for name in self.column_names:
             self._write_keyword_param(buf, TNS_DPP_KW_INDEX_COLUMN_NAME, name)
         for i in range(self.in_values_length):

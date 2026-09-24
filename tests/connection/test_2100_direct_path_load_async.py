@@ -678,3 +678,32 @@ async def test_connection_2123(test_env, async_conn, async_cursor):
     sql = f"select {select_items} from {table_name} order by NumberValue"
     await async_cursor.execute(sql)
     assert await async_cursor.fetchall() == data
+
+
+async def test_connection_2124(test_env, async_conn, async_cursor):
+    "2124 - test loading data into a partition"
+    table_name = "TestDirectPathLoadPartition"
+    await async_cursor.execute(
+        f"""
+        create table {table_name} (id number, value varchar2(20))
+        partition by range (id) (
+            partition P_1 values less than (10),
+            partition P_2 values less than (maxvalue)
+        )
+        """
+    )
+    data = [(1, "one"), (2, "two")]
+    try:
+        await async_conn.direct_path_load(
+            schema_name=test_env.main_user,
+            table_name=table_name,
+            column_names=["ID", "VALUE"],
+            data=data,
+            partition_name="P_1",
+        )
+        await async_cursor.execute(
+            f"select id, value from {table_name} partition (P_1)"
+        )
+        assert await async_cursor.fetchall() == data
+    finally:
+        await async_cursor.execute(f"drop table {table_name} purge")

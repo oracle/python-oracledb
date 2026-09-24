@@ -257,7 +257,7 @@ cdef class BaseConnImpl:
 
     def direct_path_load(self, str schema_name, str table_name,
                          list column_names, object data,
-                         uint32_t batch_size):
+                         uint32_t batch_size, object partition_name):
         errors._raise_not_supported(
             "loading data via the Direct Path Load interface"
         )
