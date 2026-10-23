@@ -45,12 +45,11 @@ def _gcs_download_object_as_text(
     Download GCS object content and return as text.
     Authentication: uses GCP ADC (Application Default Credentials).
     """
-    client = storage.Client(project=project)
-    bucket = client.bucket(bucket_name)
-    blob = bucket.blob(object_name)
-
-    # Use bytes to avoid version differences in download_as_text() signatures.
-    return blob.download_as_bytes().decode()
+    with storage.Client(project=project) as client:
+        bucket = client.bucket(bucket_name)
+        blob = bucket.blob(object_name)
+        # Use bytes to avoid version differences in download_as_text() signatures.
+        return blob.download_as_bytes().decode()
 
 
 def _get_gcs_config(
@@ -218,8 +217,10 @@ def _secretmanager_access_secret_text(resource_name: str) -> str:
     Access a secret version from GCP Secret Manager and return payload as text.
     Authentication: uses GCP ADC (Application Default Credentials).
     """
-    client = secretmanager.SecretManagerServiceClient()
-    response = client.access_secret_version(request={"name": resource_name})
+    with secretmanager.SecretManagerServiceClient() as client:
+        response = client.access_secret_version(
+            request={"name": resource_name}
+        )
     payload_bytes = response.payload.data
     expected_crc32c = response.payload.data_crc32c
     if expected_crc32c is not None:

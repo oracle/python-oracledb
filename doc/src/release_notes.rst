@@ -36,6 +36,8 @@ Common Changes
 #)  Added support for automatic updating of the configuration cache when using
     the :ref:`oracledb.plugins.aws_config_provider <configawsplugin>` plugin
     and a queue URL is specified in the configuration.
+#)  Fixed a resource leak when repeatedly retrieving configurations using the
+    :ref:`GCP Centralized Configuration Provider <configgcpplugin>`.
 #)  Bumped Cython to 3.3.
 
 
