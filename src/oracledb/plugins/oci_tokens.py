@@ -111,6 +111,22 @@ def _get_key_pair():
     return {"private_key": private_key_pem, "public_key": public_key_pem}
 
 
+def _get_token(key, result):
+    """
+    Gets the token from the OCI server response and returns it. The token is
+    also cached up until one minute prior to the expiry of the token.
+    """
+    token = result.get("access_token")
+    expires_in = result.get("expires_in")
+    if token is None:
+        raise Exception(f"Token acquisition failed: {result}")
+    if isinstance(expires_in, (int, float)) and expires_in > 60:
+        delta = datetime.timedelta(seconds=expires_in - 60)
+        expires = datetime.datetime.now(datetime.timezone.utc) + delta
+        oracledb.save_secret(key, token, expires=expires)
+    return token
+
+
 def _instance_principal_authentication(token_auth_config):
     """
     Instance principal authentication: for compute instances
@@ -232,19 +248,9 @@ def get_database_access_token_client_cred_flow(end_user_sec_params):
     response = requests.post(
         end_user_sec_params.get("authority"), headers=headers, data=payload
     )
-    if response.status_code == 200:
-        result = response.json()
-        token = result.get("access_token")
-        expires_in = result.get("expires_in")
-    else:
+    if response.status_code != 200:
         raise RuntimeError(f"Token request failed: {response.status_code}")
-
-    # save token in the cache
-    expires = datetime.datetime.fromtimestamp(
-        expires_in - 60, datetime.timezone.utc
-    )
-    oracledb.save_secret(key, token, expires=expires)
-    return token
+    return _get_token(key, response.json())
 
 
 def generate_token(token_auth_config, refresh=False):

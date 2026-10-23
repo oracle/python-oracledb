@@ -47,6 +47,22 @@ def _build_msal_app(params):
     )
 
 
+def _get_token(key, result):
+    """
+    Gets the token from the Azure server response and returns it. The token is
+    also cached up until one minute prior to the expiry of the token.
+    """
+    token = result.get("access_token")
+    expires_in = result.get("expires_in")
+    if token is None:
+        raise Exception(f"Token acquisition failed: {result}")
+    if isinstance(expires_in, (int, float)) and expires_in > 60:
+        delta = datetime.timedelta(seconds=expires_in - 60)
+        expires = datetime.datetime.now(datetime.timezone.utc) + delta
+        oracledb.save_secret(key, token, expires=expires)
+    return token
+
+
 def _service_principal_credentials(token_auth_config):
     """
     Returns the access token for authentication as a service principal.
@@ -85,16 +101,7 @@ def get_database_access_token_client_cred_flow(deepsec_params):
     # fetch fresh token, if not present in cache
     app = _build_msal_app(deepsec_params)
     result = app.acquire_token_for_client(scopes=[deepsec_params["scopes"]])
-    if "access_token" not in result:
-        raise Exception(f"Token acquisition failed: {result}")
-
-    token = result.get("access_token")
-    expires_in = result.get("expires_in")
-    expires = datetime.datetime.fromtimestamp(
-        expires_in - 60, datetime.timezone.utc
-    )
-    oracledb.save_secret(key, token, expires=expires)
-    return token
+    return _get_token(key, result)
 
 
 def get_database_access_token_obo_flow(deepsec_params, user_token):
@@ -115,16 +122,7 @@ def get_database_access_token_obo_flow(deepsec_params, user_token):
         user_assertion=user_token,
         scopes=[deepsec_params["scopes"]],
     )
-    if "access_token" not in result:
-        raise Exception(f"OBO token acquisition failed: {result}")
-
-    token = result.get("access_token")
-    expires_in = result.get("expires_in")
-    expires = datetime.datetime.fromtimestamp(
-        expires_in - 60, datetime.timezeon.utc
-    )
-    oracledb.save_secret(key, token, expires=expires)
-    return token
+    return _get_token(key, result)
 
 
 def generate_token(token_auth_config, refresh=False):
