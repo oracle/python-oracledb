@@ -1584,7 +1584,7 @@ The ``dsn`` parameter for :meth:`oracledb.connect()`,
 :meth:`oracledb.create_pool_async()` calls should use a connection string URL
 in the format::
 
-    config-gcpstorage://project=<project-id>;bucket=<bucket-name>;object=<object-name>?key=<config-key>
+    config-gcpstorage://project=<project-id>;bucket=<bucket-name>;object=<object-name>?key=<config-key>&subscriptionname=<subscription-resource>
 
 The elements of the connection string are detailed in the table below.
 
@@ -1612,6 +1612,11 @@ The elements of the connection string are detailed in the table below.
       - Required
     * - key=<config-key>
       - The top-level connection key used to identify a specific configuration. If this parameter is specified, the file is assumed to contain multiple configurations that are indexed by the key value. If not specified, the file is assumed to contain a single configuration. See the example below.
+      - Optional
+    * - subscriptionname=<subscription-resource>
+      - The full resource name of the Google Cloud Pub/Sub pull subscription.
+
+        This parameter enables and receives configuration change notifications in the Google Cloud Storage configuration provider. See :ref:`gcschangenotification` for more information.
       - Optional
 
 **Google Cloud Storage Centralized Configuration Provider Examples**
@@ -1693,6 +1698,140 @@ The configuration can also be used to create a :ref:`connection pool
 
     pool = oracledb.create_pool(dsn=configgcsurl)
 
+.. _gcschangenotification:
+
+Setting Up Google Cloud Storage Configuration Change Notifications
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+With configuration change notifications, the Google Cloud Storage
+configuration provider can receive notifications when a JSON configuration
+file stored in it changes. This configuration provider compares the bucket
+and object name in the notification with the bucket and object name used by
+each connection string. It then identifies the matching cached configurations
+and asks python-oracledb to expire or remove its cached configuration.
+
+The Google Cloud Storage configuration provider requires `Google Cloud Pub/Sub
+<https://docs.cloud.google.com/pubsub/docs/overview>`__ to use change
+notifications.
+
+To use python-oracledb with Google Cloud Storage configuration change
+notification, you must:
+
+1. Create a Google Cloud Pub/Sub topic in the Google Cloud project that
+   contains the Cloud Storage bucket. The Pub/Sub topic will receive the Cloud
+   Storage event notifications. For the list of supported events, see the
+   :ref:`Google Cloud Storage events <_gcs_events>` table.
+
+   For the detailed steps on creating a Pub/Sub topic, see `Create a topic
+   <https://docs.cloud.google.com/pubsub/docs/create-topic>`__.
+
+2. Create a dedicated pull subscription for the topic. See `Create pull
+   subscriptions <https://docs.cloud.google.com/pubsub/docs/create-
+   subscription>`__ for more information.
+
+   The subscription name has the following format::
+
+    projects/<project>/subscriptions/<subscription>
+
+   Note down this full subscription name. You will use this value in
+   the ``subscriptionname`` parameter of the connection string.
+
+   Do not configure an expiration policy that removes the subscription when the
+   application is expected to use the subscription name. If the subscription is
+   deleted or changed, update the connection string.
+
+3. Configure the Google Cloud Storage bucket to publish object change
+   notifications to the Pub/Sub topic using  the JSON_API_V1 payload format for
+   events. See `Configure Pub/Sub notifications for Cloud Storage
+   <https://docs.cloud.google.com/storage/docs/reporting-changes>`__ for more
+   information.
+
+4. Grant the required permissions to the application identity to be able to
+   retrieve the configuration object and receive messages from the Pub/Sub
+   subscription. See `Cloud Storage roles and permissions <https://docs.cloud.
+   google.com/iam/docs/roles-permissions/storage>`__ and `Access Control with
+   Identity and Access Management <https://docs.cloud.google.com/pubsub/docs/
+   access-control>`__ for more information.
+
+   Also, the bucket's notification publisher must also be authorized to publish
+   events to the topic.
+
+5. Add the full subscription name that was noted in step 2 as the
+   ``subscriptionname`` parameter in a
+   :ref:`Google Cloud Storage Connection String URL <connstringgcs>`. Use this
+   connection string URL in the ``dsn`` parameter of the connection or pool
+   creation method. For example:
+
+   .. code-block:: text
+
+    config-gcpstorage://project=my-project;bucket=my-config-bucket;object=configs/app.json?subscriptionname=projects/my-project/subscriptions/gcs-config-events
+
+For an overview of configuration change notifications and the effect on the
+python-oracledb configuration cache, see
+:ref:`Configuration Change Notification <configchangenotification>`.
+
+A Pub/Sub subscription can serve multiple configuration connection strings
+within the same application process. However, independently running
+application processes should not share a single pull subscription when each
+process must receive every change notification. Pub/Sub distributes messages
+among consumers of the same subscription instead of delivering each message
+independently to every consumer.
+
+Each application instance that requires independent notifications should use
+its own subscription attached to the relevant topic. Notification delivery is
+asynchronous, so there may be a delay between a Google Cloud resource change
+and the corresponding configuration cache update.
+
+When a JSON configuration file is created or changed, upload the updated file
+to the same bucket and object name. Google Cloud Storage generates an
+``OBJECT_FINALIZE`` event and Pub/Sub sends it to the Google Cloud Storage
+configuration provider. The configuration provider receives the notification
+and asks python-oracledb to expire the matching cached configuration. The next
+time the connection string is used, python-oracledb retrieves and caches the
+updated JSON configuration. If the Google Cloud Storage configuration provider
+cannot retrieve the refreshed configuration, python-oracledb can continue using
+the expired configuration during its configured grace period. See
+:ref:`Configuration Information Stored in Configuration Providers
+<configurationinformation>` for the cache and grace-period settings.
+
+When the JSON configuration file is deleted, Google Cloud Storage generates
+an ``OBJECT_DELETE`` notification. The Google Cloud Storage configuration
+provider asks python-oracledb to remove the matching cached configuration.
+After the JSON configuration file is removed, if the Google Cloud Storage
+configuration provider cannot supply the configuration when the connection
+string is next used, the connection attempt raises an error.
+
+If ``subscriptionname`` is not specified in the connection string, the Google
+Cloud Storage configuration provider does not listen for change notifications
+and the configuration is then cached in python-oracledb by default, see
+:ref:`configuration caching <conncaching>`.
+
+**Cloud Storage Events Used to Update the Configuration Cache**
+
+The Google Cloud Storage configuration provider handles the following events:
+
+.. list-table-with-summary::
+    :header-rows: 1
+    :class: wy-table-responsive
+    :widths: 30 35 35
+    :name: _gcs_events
+    :summary: The first column displays the Cloud Storage event. The second column displays the description of the event. The third column displays the cache operation.
+
+    * - Event
+      - Description
+      - Cache Operation
+    * - ``OBJECT_FINALIZE``
+      - A new object is created or an existing object is replaced.
+      - The matching cached configuration is expired if the event includes overwrittenByGeneration (object replacement). Otherwise, the cached configuration is removed permanently.
+    * - ``OBJECT_ARCHIVE``
+      - An object generation is archived.
+      - The matching cached configuration is expired if the event includes overwrittenByGeneration (object replacement). Otherwise, the cahced configuration is removed permanently.
+    * - ``OBJECT_DELETE``
+      - An object is deleted.
+      - The matching cached configuration is removed permanently.
+
+Other Cloud Storage event types are ignored.
+
 .. _googlesecretmanagerprovider:
 
 Google Cloud Secret Manager Centralized Configuration Provider
@@ -1743,7 +1882,7 @@ The ``dsn`` parameter for :meth:`oracledb.connect()`,
 :meth:`oracledb.create_pool_async()` calls should use a connection string URL
 in the format::
 
-    config-gcpsecretmanager://projects/<project-id>/secrets/<secret-name>/versions/<version-or-latest>?key=<config-key>
+    config-gcpsecretmanager://projects/<project-id>/secrets/<secret-name>/versions/<version-or-latest>?key=<config-key>&subscriptionname=<subscription-resource>
 
 The elements of the connection string are detailed in the table below.
 
@@ -1771,6 +1910,11 @@ The elements of the connection string are detailed in the table below.
       - Required
     * - key=<config-key>
       - The top-level connection key used to identify a specific configuration. If this parameter is specified, the JSON secret value is assumed to contain multiple configurations that are indexed by the key value. See this :ref:`example <multipleconfigurations>`. If not specified, the JSON secret value is assumed to contain a single configuration. See the example below.
+      - Optional
+    * - subscriptionname=<subscription-resource>
+      - The full resource name of the Google Cloud Pub/Sub pull subscription.
+
+        This parameter enables and receives configuration change notifications in the Google Secret Manager configuration provider. See :ref:`gsmchangenotification` for more information.
       - Optional
 
 **Google Cloud Secret Manager Centralized Configuration Provider Examples**
@@ -1850,6 +1994,160 @@ For example::
        "type": "gcpsecretmanager",
        "value": "projects/my-project/secrets/db-password/versions/latest"
     }
+
+.. _gsmchangenotification:
+
+Setting Up Google Cloud Secret Manager Configuration Change Notifications
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+With configuration change notifications, the Google Cloud Secret Manager
+configuration provider can receive notifications when a secret containing
+configuration information changes. The configuration provider compares the
+secret identified in the notification with the secret used by each connection
+string. For each matching connection string, it asks python-oracledb to expire
+or remove the cached configuration. The next time the connection string is
+used, python-oracledb retrieves the selected secret value and caches it.
+
+The Google Cloud Secret Manager configuration provider requires
+`Google Cloud Pub/Sub <https://docs.cloud.google.com/pubsub/docs/overview>`__
+to use configuration change notifications.
+
+To use python-oracledb with Google Cloud Secret Manager configuration change
+notification, you must:
+
+1. Create a Google Cloud Pub/Sub topic in the Google Cloud project that
+   contains the secret. The Pub/Sub topic will receive the Secret Manager event
+   notifications. The supported events are listed in the
+   :ref:`Google Secret Manager events <_gsm_events>` table.
+
+   For the detailed steps on creating a Pub/Sub topic, see `Create a topic
+   <https://docs.cloud.google.com/pubsub/docs/create-topic>`__.
+
+2. Create a dedicated pull subscription for the topic. See `Create pull
+   subscriptions <https://docs.cloud.google.com/pubsub/docs/create-
+   subscription>`__ for more information.
+
+   The subscription name has the following format::
+
+    projects/<project>/subscriptions/<subscription>
+
+   Note down this full subscription name. You will use this value in
+   the ``subscriptionname`` parameter of the connection string.
+
+   Do not configure an expiration policy that removes the subscription when the
+   application is expected to use the subscription name. If the subscription is
+   deleted or changed, update the connection string.
+
+3. Configure the secret to publish change notifications to the Pub/Sub topic
+   for events. The secret can be configured with its notification topic through
+   the Secret Manager API or supported Google Cloud management tools. See
+   `Set up notifications on a secret <https://docs.cloud.google.com/secret-
+   manager/docs/event-notifications>`__ for more information.
+
+4. Grant the required permissions to the application identity to be able to
+   access the selected secret version and receive messages from the Pub/Sub
+   subscription. See `Cloud Storage roles and permissions <https://docs.cloud.
+   google.com/iam/docs/roles-permissions/storage>`__ and `Access control with
+   IAM <https://docs.cloud.google.com/secret-manager/docs/access-control>`__
+   for more information.
+
+   Also, the Secret Manager service identity must be authorized to publish
+   notifications to the topic.
+
+5. Add the full subscription name that was noted in step 2 as the
+   ``subscriptionname`` parameter in a
+   :ref:`Google Cloud Secret Manager Connection String URL <connstringgsm>`.
+   Use this connection string URL in the ``dsn`` parameter of the connection or
+   pool creation method. For example:
+
+   .. code-block:: text
+
+    config-gcpsecretmanager://projects/my-project/secrets/db-config/versions/latest?subscriptionname=projects/my-project/subscriptions/secret-config-events
+
+For an overview of configuration change notifications and the effect on the
+python-oracledb configuration cache, see
+:ref:`Configuration Change Notification <configchangenotification>`.
+
+When a secret changes, Secret Manager publishes a supported event to the
+configured Pub/Sub topic. The Google Cloud Secret Manager configuration
+provider receives the notification, identifies the changed secret, and matches
+it to each connection string. For each matching connection string, the
+configuration provider asks python-oracledb to expire or remove the cached
+configuration.
+
+The Google Cloud Secret Manager configuration provider does not retrieve the
+secret while processing the notification. The next time the connection string
+is used, python-oracledb retrieves the selected secret value from Google Cloud
+Secret Manager and caches it. Existing connections and pools are not
+reconfigured.
+
+If ``subscriptionname`` is not specified in the connection string, the Google
+Cloud Secret Manager configuration provider does not listen for change
+notifications and the configuration is then cached in python-oracledb by
+default, see
+:ref:`configuration caching <conncaching>`.
+
+**Secret Manager Events Used to Update the Configuration Cache**
+
+The Google Cloud Secret Manager configuration provider handles the following
+events:
+
+.. list-table-with-summary::
+    :header-rows: 1
+    :class: wy-table-responsive
+    :widths: 30 35 35
+    :name: _gsm_events
+    :summary: The first column displays the Secret Manager event. The second column displays when the description of the event. The third column displays the cache operation.
+
+    * - Event
+      - Description
+      - Cache Operation
+    * - ``SECRET_VERSION_ADD``
+      - A new version of a secret is added.
+      - Expire the matching versions/latest configuration.
+    * - ``SECRET_VERSION_DISABLE``
+      - A secret version is disabled.
+      - Remove cached configurations referring to the affected version.
+    * - ``SECRET_VERSION_DESTROY``
+      - A secret version is destroyed.
+      - Remove cached configurations referring to the affected version.
+    * - ``SECRET_DELETE``
+      - An entire secret is deleted.
+      - Remove all matching cached configurations for that secret.
+
+Other Secret Manager event types are ignored.
+
+**Secret Version Matching**
+
+The Google Cloud Secret Manager configuration provider can distinguish both the
+secret version requested in the connection string and the secret version
+returned by Secret Manager.
+
+For example, a connection string can request the *latest* version using:
+
+.. code-block:: text
+
+    config-gcpsecretmanager://projects/my-project/secrets/db-config/versions/latest?subscriptionname=projects/my-project/subscriptions/config-changes
+
+Now consider the *latest* version resolves to version *5*:
+
+- If version *6* is added, the cached *latest* configuration expires. The next
+  use retrieves version *6*.
+
+- If version *5* is disabled or destroyed, the cached *latest* configuration is
+  removed.
+
+- If version *4* is disabled or destroyed, the cached *latest* configuration
+  is unchanged because *latest* still resolves to version *5*.
+
+- If the secret is deleted, all cached configurations for that secret are
+  removed, including numbered versions and *latest*.
+
+This matching ensures that changes to one secret or version do not invalidate
+unrelated cached configurations.
+
+For more information, see `Secret Manager event notifications
+<https://cloud.google.com/secret-manager/docs/event-notifications>`__.
 
 .. _awsprovider:
 
@@ -2580,15 +2878,25 @@ configuration information from the configuration provider and caches it.
 The :ref:`AWS configuration provider plugin <configawsplugin>` can receive
 configuration change notifications for :ref:`AWS S3 <awss3provider>` and
 :ref:`AWS Secrets Manager <awssecretsmanagerprovider>`. See
-:ref:`awss3changenotification` for more information.
-
-When ``queueurl`` is configured for an AWS S3 or AWS Secrets Manager
-connection string, the ``aws_config_provider`` plugin automatically calls
+:ref:`awss3changenotification` for more information. When ``queueurl`` is
+configured for an AWS S3 or AWS Secrets Manager connection string, the
+``aws_config_provider`` plugin automatically calls
 :func:`oracledb.update_config_cache()` when it receives a supported change
 notification. Note that applications do not need to explicitly call this
 function for these AWS notifications. Notifications for unsupported event
 types or unrelated resources do not update the cache. See
 :func:`oracledb.update_config_cache()` for more information.
+
+The :ref:`GCP configuration provider plugin <configgcpplugin>` can receive
+configuration change notifications for
+:ref:`Google Cloud Storage <googlecloudstorageprovider>` and
+:ref:`Google Cloud Secret Manager <googlesecretmanagerprovider>`. See
+:ref:`gcschangenotification` and :ref:`gsmchangenotification` for more
+information. When ``subscriptionname`` is configured for a Google Cloud Storage
+or Google Cloud Secret Manager connection string, the
+``gcp_config_provider`` plugin automatically calls
+:func:`oracledb.update_config_cache()` when it receives a supported change
+notification.
 
 For a configuration update, the configuration provider plugin expires the
 matching cached configuration so that it is retrieved again the next time the
@@ -2603,9 +2911,10 @@ supply the configuration when the connection string is next used, the
 connection attempt raises an error.
 
 Configuration change notifications require configuration caching. When
-``queueurl`` is configured in the connection string and
-``config_time_to_live`` is set to *0*, the configuration is not cached and no
-notification listener is registered.
+``config_time_to_live`` is set to *0*, and ``queueurl`` is configured in the
+AWS connection string or ``subscriptionname`` is set in the Google Cloud
+Provider connection string, the configuration is not cached and no notification
+listener is registered.
 
 A Python application can use multiple queues for configuration change
 notifications. Each application process should use queues that are not shared

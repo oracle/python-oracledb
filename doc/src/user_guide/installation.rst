@@ -1242,9 +1242,10 @@ For python-oracledb to use an
 :ref:`Google Cloud Secret Manager <googlesecretmanagerprovider>`, you must
 install the `Google Cloud Storage API client library <https://pypi.org/project/
 google-cloud-storage/>`__, `Google Cloud Secret Manager <https://pypi.org/
-project/google-cloud-secret-manager/>`__, and `Google CRC32C <https://pypi.org/
-project/google-crc32c/>`__ packages by using the optional ``[gcp_config]``
-dependency:
+project/google-cloud-secret-manager/>`__, `Google CRC32C <https://pypi.org/
+project/google-crc32c/>`__, and `Google Cloud Pub/Sub API client library
+version 2.4.1 or later <https://pypi.org/project/google-cloud-pubsub/>`__
+packages by using the optional ``[gcp_config]`` dependency:
 
 .. code-block:: shell
 

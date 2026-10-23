@@ -75,8 +75,9 @@ azure_config = [
 azure_auth = ["msal"]
 aws_config = ["boto3"]
 gcp_config = [
-    "google-cloud-storage",
+    "google-cloud-pubsub>=2.4.1",
     "google-cloud-secret-manager",
+    "google-cloud-storage",
     "google-crc32c",
 ]
 

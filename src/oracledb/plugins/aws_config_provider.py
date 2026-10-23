@@ -32,7 +32,6 @@
 import base64
 import json
 import threading
-import time
 from urllib.parse import parse_qsl, unquote, unquote_plus, urlparse
 import warnings
 
@@ -443,7 +442,7 @@ def _listen_for_config_changes(
         try:
             _poll_sqs_for_config_changes(sqs_client, queue_url)
         except Exception:
-            time.sleep(wait_seconds)
+            stop_event.wait(wait_seconds)
             wait_seconds = min(wait_seconds * 2, 60)
         else:
             wait_seconds = 1
