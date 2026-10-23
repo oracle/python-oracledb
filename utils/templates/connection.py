@@ -1147,6 +1147,20 @@ class BaseConnection(metaclass=BaseMetaClass):
             raise TypeError(msg)
         self._impl.set_end_user_security_context(context._impl)
 
+    def set_opentelemetry_trace_context(
+        self, traceparent: str | None, tracestate: str = ""
+    ) -> None:
+        """
+        Sets the W3C trace context used for Oracle Database tracing.
+
+        Passing a traceparent enables tracing. Passing None disables tracing
+        and clears the trace context. Changes are sent with the next database
+        round trip. This is supported only in Thin mode with Oracle AI
+        Database 26ai (version 23.26.2) or later.
+        """
+        self._verify_connected()
+        self._impl.set_opentelemetry_trace_context(traceparent, tracestate)
+
     @property
     def stmtcachesize(self) -> int:
         """
@@ -1163,6 +1177,16 @@ class BaseConnection(metaclass=BaseMetaClass):
     def stmtcachesize(self, value: int) -> None:
         self._verify_connected()
         self._impl.set_stmt_cache_size(value)
+
+    @property
+    def supports_opentelemetry_tracing(self) -> bool:
+        """
+        This read-only attribute returns whether the database supports
+        OpenTelemetry tracing on this connection. It does not indicate whether
+        an OpenTelemetry export endpoint is configured on the database.
+        """
+        self._verify_connected()
+        return self._impl.supports_opentelemetry_tracing()
 
     @property
     def tag(self) -> str:

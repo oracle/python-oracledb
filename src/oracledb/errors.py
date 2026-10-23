@@ -363,6 +363,7 @@ ERR_DB_CS_NOT_SUPPORTED = 3040
 ERR_UNSUPPORTED_DEEP_DATA_SECURITY_FEATURE = 3041
 ERR_ARROW_UNSUPPORTED_INTERVAL = 3042
 ERR_UNSUPPORTED_TXN_PRIORITY = 3043
+ERR_UNSUPPORTED_DB_OPENTELEMETRY_FEATURE = 3044
 
 # error numbers that result in DatabaseError
 ERR_TNS_ENTRY_NOT_FOUND = 4000
@@ -1034,6 +1035,9 @@ ERR_MESSAGE_FORMATS = {
         "internal error: unknown transaction sync version {version}"
     ),
     ERR_UNSUPPORTED_ARROW_TYPE: 'unsupported Apache Arrow type "{arrow_type}"',
+    ERR_UNSUPPORTED_DB_OPENTELEMETRY_FEATURE: (
+        "database does not support Oracle Database OpenTelemetry tracing"
+    ),
     ERR_UNSUPPORTED_DEEP_DATA_SECURITY_FEATURE: (
         "database does not support Oracle Deep Data Security"
     ),

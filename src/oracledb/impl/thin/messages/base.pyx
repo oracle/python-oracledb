@@ -673,6 +673,10 @@ cdef class Message:
             flags |= TNS_END_TO_END_MODULE
         if conn_impl._dbop_modified:
             flags |= TNS_END_TO_END_DBOP
+        if conn_impl._database_opentelemetry_tracing_modified:
+            flags |= TNS_END_TO_END_OPENTELEMETRY_RESET
+            if conn_impl._database_opentelemetry_tracing:
+                flags |= TNS_END_TO_END_OPENTELEMETRY_TRACE
 
         # write initial packet data
         self._write_piggyback_code(buf, TNS_FUNC_SET_END_TO_END_ATTR)
@@ -777,6 +781,7 @@ cdef class Message:
         conn_impl._dbop = None
         conn_impl._module_modified = False
         conn_impl._module = None
+        conn_impl._database_opentelemetry_tracing_modified = False
 
     cdef int _write_function_code(self, WriteBuffer buf) except -1:
         self._write_piggybacks(buf)
@@ -854,7 +859,8 @@ cdef class Message:
                 or self.conn_impl._client_identifier_modified \
                 or self.conn_impl._client_info_modified \
                 or self.conn_impl._dbop_modified \
-                or self.conn_impl._module_modified:
+                or self.conn_impl._module_modified \
+                or self.conn_impl._database_opentelemetry_tracing_modified:
             self._write_end_to_end_piggyback(buf)
         if self.conn_impl._temp_lobs_total_size > 0:
             self._write_close_temp_lobs_piggyback(buf)

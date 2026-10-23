@@ -193,6 +193,12 @@ AsyncConnection Methods
 
     .. versionadded:: 26.0.0
 
+.. automethod:: AsyncConnection.set_opentelemetry_trace_context
+
+    See :ref:`opentelemetry`.
+
+    .. versionadded:: 26.1.0
+
 .. automethod:: AsyncConnection.suspend_sessionless_transaction
 
     See :ref:`sessionlesstxns`.
@@ -375,6 +381,10 @@ AsyncConnection Attributes
 .. autoproperty:: AsyncConnection.stmtcachesize
 
     See :ref:`Statement Caching <stmtcache>` for more information.
+
+.. autoproperty:: AsyncConnection.supports_opentelemetry_tracing
+
+    .. versionadded:: 26.1.0
 
 .. autoproperty:: AsyncConnection.thin
 

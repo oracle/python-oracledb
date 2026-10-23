@@ -69,6 +69,8 @@ cdef class ThinConnImpl(BaseConnImpl):
         bint _action_modified
         str _dbop
         bint _dbop_modified
+        bint _database_opentelemetry_tracing
+        bint _database_opentelemetry_tracing_modified
         str _client_info
         bint _client_info_modified
         str _client_identifier
@@ -547,6 +549,11 @@ cdef class ThinConnImpl(BaseConnImpl):
             ThinDbObjectTypeCache type_cache
             SessionReleaseMessage message
             int cache_num
+
+        # reset database OpenTelemetry tracing
+        if self._database_opentelemetry_tracing:
+            self._database_opentelemetry_tracing = False
+            self._database_opentelemetry_tracing_modified = True
 
         # clear end user security context and any pending warning
         self._security_context = None
@@ -1152,6 +1159,30 @@ cdef class ThinConnImpl(BaseConnImpl):
         # action to be set as well (which eliminates this error)
         self._action_modified = True
 
+    def set_opentelemetry_trace_context(self, traceparent, tracestate):
+        """
+        Sets the OpenTelemetry trace context, or disables it if traceparent is
+        None.
+        """
+        cdef:
+            bint enabled = traceparent is not None
+            str trace_context
+        if not self._protocol._caps.supports_opentelemetry_tracing:
+            errors._raise_err(errors.ERR_UNSUPPORTED_DB_OPENTELEMETRY_FEATURE)
+        if not enabled:
+            trace_context = ""
+        else:
+            trace_context = f"traceparent: {traceparent}\r\n"
+            if tracestate:
+                trace_context += f"tracestate: {tracestate}\r\n"
+        self.set_app_context(
+            "CLIENTCONTEXT",
+            **{"ORA$OPENTELEM$TRACECTX": trace_context},
+        )
+        if self._database_opentelemetry_tracing != enabled:
+            self._database_opentelemetry_tracing = enabled
+            self._database_opentelemetry_tracing_modified = True
+
     def set_stmt_cache_size(self, uint32_t value):
         self._statement_cache.resize(value)
 
@@ -1164,6 +1195,12 @@ cdef class ThinConnImpl(BaseConnImpl):
             errors._raise_err(errors.ERR_UNSUPPORTED_TXN_PRIORITY)
         self._txn_priority = value
         self._txn_priority_modified = True
+
+    def supports_opentelemetry_tracing(self):
+        """
+        Returns whether the database supports OpenTelemetry tracing or not.
+        """
+        return self._protocol._caps.supports_opentelemetry_tracing
 
     def supports_pipelining(self):
         """

@@ -107,6 +107,7 @@ cdef class Capabilities:
         bint supports_request_boundaries
         bint supports_ha_readiness
         bint supports_txn_priority
+        bint supports_opentelemetry_tracing
         uint32_t sdu
 
     def __init__(self):
@@ -160,6 +161,10 @@ cdef class Capabilities:
             self.max_string_size = 4000
         if not (server_caps[TNS_RCAP_TTC] & TNS_RCAP_TTC_SESSION_STATE_OPS):
             self.supports_request_boundaries = False
+        self.supports_opentelemetry_tracing = \
+            len(server_caps) > TNS_RCAP_OPENTELEMETRY \
+            and (server_caps[TNS_RCAP_OPENTELEMETRY] &
+                 TNS_RCAP_OPENTELEMETRY_SUPPORTED) != 0
 
     cdef const char* _get_encoding(self) except NULL:
         """

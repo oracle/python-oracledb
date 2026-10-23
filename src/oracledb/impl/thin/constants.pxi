@@ -376,6 +376,8 @@ cdef enum:
     TNS_END_TO_END_CLIENT_INFO = 0x0100
     TNS_END_TO_END_DBOP = 0x0200
     TNS_END_TO_END_MODULE = 0x0008
+    TNS_END_TO_END_OPENTELEMETRY_RESET = 0x0400
+    TNS_END_TO_END_OPENTELEMETRY_TRACE = 0x80000000
 
 # versions
 cdef enum:
@@ -570,7 +572,8 @@ cdef enum:
 cdef enum:
     TNS_RCAP_COMPAT = 0
     TNS_RCAP_TTC = 6
-    TNS_RCAP_MAX = 11
+    TNS_RCAP_OPENTELEMETRY = 12
+    TNS_RCAP_MAX = 13
 
 # runtime capability values
 cdef enum:
@@ -578,6 +581,7 @@ cdef enum:
     TNS_RCAP_TTC_ZERO_COPY = 0x01
     TNS_RCAP_TTC_32K = 0x04
     TNS_RCAP_TTC_SESSION_STATE_OPS = 0x10
+    TNS_RCAP_OPENTELEMETRY_SUPPORTED = 0x01
 
 # verifier types
 cdef enum:

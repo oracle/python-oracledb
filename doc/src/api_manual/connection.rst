@@ -191,6 +191,12 @@ Connection Methods
 
     .. versionadded:: 4.0.0
 
+.. automethod:: Connection.set_opentelemetry_trace_context
+
+    See :ref:`opentelemetry`.
+
+    .. versionadded:: 26.1.0
+
 .. automethod:: Connection.shutdown
 
     See :ref:`startup`.
@@ -493,6 +499,12 @@ Connection Attributes
     See :ref:`Statement Caching <stmtcache>` for more information.
 
     .. dbapiattributeextension::
+
+.. autoproperty:: Connection.supports_opentelemetry_tracing
+
+    .. dbapiattributeextension::
+
+    .. versionadded:: 26.1.0
 
 .. autoproperty:: Connection.tag
 

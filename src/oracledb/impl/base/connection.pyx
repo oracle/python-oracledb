@@ -502,6 +502,11 @@ cdef class BaseConnImpl:
     def set_module(self, value):
         errors._raise_not_supported("setting the module")
 
+    def set_opentelemetry_trace_context(self, traceparent, tracestate):
+        errors._raise_not_supported(
+            "setting Oracle Database OpenTelemetry tracing"
+        )
+
     def set_stmt_cache_size(self, value):
         errors._raise_not_supported("setting the statement cache size")
 
@@ -513,6 +518,9 @@ cdef class BaseConnImpl:
 
     def startup(self, bint force, bint restrict, str pfile):
         errors._raise_not_supported("starting up the database")
+
+    def supports_opentelemetry_tracing(self):
+        return False
 
     def supports_pipelining(self):
         return False

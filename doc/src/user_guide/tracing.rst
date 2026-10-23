@@ -724,6 +724,10 @@ Database API Instrumentation package `opentelemetry-instrumentation-dbapi
 <https://pypi.org/project/opentelemetry-instrumentation-dbapi/>`__ to
 automatically instrument your applications.
 
+In python-oracledb Thin mode, additional support is available to correlate
+application spans with work performed inside Oracle Database. See
+:ref:`opentelemetryextensions`.
+
 OpenTelemetry's `backend trace exporters
 <https://opentelemetry.io/docs/languages/python/exporters/>`__ can provide
 graphic and intuitive representation of OpenTelemetry trace
@@ -918,13 +922,83 @@ shows:
 The Python OpenTelemetry modules allow further customization for tracing. See
 their documentation for more information.
 
+.. _opentelemetryextensions:
+
 OpenTelemetry and extended python-oracledb functionality
 --------------------------------------------------------
 
-Python-oracledb calls that are part of the Python DB API standard are
-automatically instrumented by ``opentelemetry-instrumentation-dbapi``.  For
-python-oracledb's great functionality that extends the standard, you can add
-explicit instrumentation. For example, to monitor a call to
+Some python-oracledb features extend the Python DB API standard and are not
+automatically handled by ``opentelemetry-instrumentation-dbapi``. You can use
+OpenTelemetry APIs together with python-oracledb-specific features to correlate
+application spans with Oracle Database work and to explicitly trace
+non-standard driver calls.
+
+**Propagating OpenTelemetry Trace Context**
+
+An instrumentation library can pass the current W3C ``traceparent`` value and
+optional ``tracestate`` value to
+:meth:`Connection.set_opentelemetry_trace_context()`. Python-oracledb
+formats and sends them as the ``ora$opentelem$tracectx`` attribute in the
+``CLIENTCONTEXT`` application context namespace on the next round-trip. Pass
+*None* as ``traceparent`` to disable tracing and clear the OpenTelemetry trace
+context. Other values in the ``CLIENTCONTEXT`` namespace are unchanged.
+Python-oracledb does not depend on the OpenTelemetry SDK or create the trace
+values.
+
+.. _enabledbopentelemetry:
+
+**Enabling Oracle Database OpenTelemetry**
+
+Oracle Database OpenTelemetry was introduced in Oracle AI Database 26ai
+(version 23.26.2). It must be configured and enabled in the database server to
+collect database server-side spans. For information on configuring Oracle
+Database OpenTelemetry, see `Observability with OpenTelemetry <https://www.
+oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-8896FEDD-D6C3-46FE-ADA2-
+DB73DEC7CE51>`__ and `DBMS_OBSERVABILITY <https://www.oracle.com/pls/topic/
+lookup?ctx=dblatest&id=GUID-889590D2-D6F9-4D6C-82D3-EE7205D1F395>`__.
+
+When connected to Oracle AI Database 26ai (version 23.26.2) or later,
+python-oracledb Thin mode can use
+:meth:`Connection.set_opentelemetry_trace_context()` to request database
+server-side tracing and correlate it with application spans. These methods are
+not supported in python-oracledb Thick mode. If you use Oracle AI Database 26ai
+versions earlier than 23.26.2, the ``DPY-3044`` error is raised.  Use the
+attribute :attr:`Connection.supports_opentelemetry_tracing` attribute to check
+whether the database advertises tracing support before calling either method.
+
+For example:
+
+.. code-block:: python
+
+    connection.set_opentelemetry_trace_context(traceparent, tracestate)
+
+Pass *None* as ``traceparent`` to disable tracing and clear its context:
+
+.. code-block:: python
+
+    connection.set_opentelemetry_trace_context(None)
+
+Changes take effect on the next database round-trip.
+
+Ensure that Oracle Database OpenTelemetry is configured and enabled on the
+database server before using this method. Database server-side spans are
+exported by Oracle Database to the database's configured OpenTelemetry endpoint
+or collector; they are not returned to python-oracledb.
+
+To view application and Oracle Database spans together, configure both the
+Python application and Oracle Database to export spans to the same collector
+or observability backend.
+
+Database server-side OpenTelemetry spans can provide details about work inside
+Oracle Database for a traced operation, such as SQL execution, timing, waits,
+errors, and other database-side execution information. The exact span
+attributes and events depend on the Oracle Database release and database
+OpenTelemetry configuration.
+
+**Instrumenting Extended python-oracledb Features**
+
+For python-oracledb features that are not part of the Python DB API standard,
+you can add explicit instrumentation. For example, to monitor a call to
 :meth:`Connection.fetch_df_all()`, add a tracer like:
 
 .. code-block:: python

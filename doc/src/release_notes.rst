@@ -19,6 +19,11 @@ oracledb `26.1.0 <https://github.com/oracle/python-oracledb/compare/v26.0.1...v2
 Thin Mode Changes
 +++++++++++++++++
 
+#)  Added :meth:`Connection.set_opentelemetry_trace_context` (and async
+    variant) for enabling Oracle Database :ref:`OpenTelemetry <opentelemetry>`
+    tracing and propagating trace context. The attribute
+    :attr:`Connection.supports_opentelemetry_tracing` (and async variant) can
+    be used to determine if the database supports this capability.
 #)  Fixed bug that prevented connection pools from handing out new connections
     after a failure to close a connection takes place
     (`issue 610 <https://github.com/oracle/python-oracledb/issues/610>`__).
