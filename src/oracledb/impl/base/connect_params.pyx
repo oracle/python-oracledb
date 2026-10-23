@@ -170,7 +170,12 @@ cdef class ConnectParamsImpl:
             if address is not self._default_address:
                 address.set_from_args(args)
 
-    def set_from_config(self, dict config, bint update_cache=True):
+    def set_from_config(
+        self,
+        dict config,
+        bint update_cache=True,
+        object notification_fn=None,
+    ):
         """
         Internal method for setting the property from the supplied
         configuration.
@@ -191,7 +196,7 @@ cdef class ConnectParamsImpl:
         if args is not None:
             self.set(args)
         if update_cache and self._config_cache_key is not None:
-            update_config_cache(self._config_cache_key, config)
+            update_config_cache(self._config_cache_key, config, notification_fn)
 
     cdef int _check_credentials(self) except -1:
         """

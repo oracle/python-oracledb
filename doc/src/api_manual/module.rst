@@ -354,6 +354,14 @@ Oracledb Methods
 
     .. versionadded:: 3.0.0
 
+.. autofunction:: update_config_cache
+
+    .. dbapimethodextension::
+
+    See :ref:`configchangenotification` for more information.
+
+    .. versionadded:: 26.1.0
+
 
 .. _moduleattributes:
 

@@ -65,25 +65,38 @@ def test_ext_2500(test_env):
 
 def test_ext_2501(test_env):
     "E2501 - test config cache is disabled with config_time_to_live = 0"
+    raise_error = False
     sdu = 4096
     protocol = "proto-test"
     connect_string = f"{protocol}://test_ext_2501"
     config = dict(
         connect_descriptor=test_env.connect_string,
-        config_time_to_live=0,
+        config_time_to_live=3600,
         pyo=dict(sdu=sdu),
     )
 
     def hook(passed_protocol, passed_protocol_arg, passed_params):
+        if raise_error:
+            raise Exception("Arbitrary exception!")
         passed_params.set_from_config(config)
         config["pyo"]["sdu"] *= 2
 
     oracledb.register_protocol(protocol, hook)
     try:
-        for i in range(2):
+        params = oracledb.ConnectParams()
+        params.parse_connect_string(connect_string)
+        assert params.sdu == sdu
+
+        config["config_time_to_live"] = 0
+        oracledb.update_config_cache(connect_string)
+        params = oracledb.ConnectParams()
+        params.parse_connect_string(connect_string)
+        assert params.sdu == 2 * sdu
+
+        raise_error = True
+        with test_env.assert_raises_full_code("DPY-2056"):
             params = oracledb.ConnectParams()
             params.parse_connect_string(connect_string)
-            assert params.sdu == sdu + i * sdu
     finally:
         oracledb.register_protocol(protocol, None)
 
@@ -145,5 +158,47 @@ def test_ext_2503(test_env):
         with test_env.assert_raises_full_code("DPY-2056"):
             params = oracledb.ConnectParams()
             params.parse_connect_string(connect_string)
+    finally:
+        oracledb.register_protocol(protocol, None)
+
+
+def test_ext_2504(test_env):
+    "E2504 - test notification expiry preserves the grace period"
+    grace_period = 2
+    num_calls = 0
+    protocol = "proto-test"
+    stmtcachesize = 24
+    connect_string = f"{protocol}://test_ext_2504"
+    config = dict(
+        connect_descriptor=test_env.connect_string,
+        config_time_to_live=3600,
+        config_time_to_live_grace_period=grace_period,
+        pyo=dict(stmtcachesize=stmtcachesize),
+    )
+
+    def hook(passed_protocol, passed_protocol_arg, passed_params):
+        nonlocal num_calls
+        num_calls += 1
+        if num_calls > 1:
+            raise Exception("Arbitrary exception!")
+        passed_params.set_from_config(config)
+
+    oracledb.register_protocol(protocol, hook)
+    try:
+        params = oracledb.ConnectParams()
+        params.parse_connect_string(connect_string)
+        assert params.stmtcachesize == stmtcachesize
+        oracledb.update_config_cache(connect_string)
+
+        params = oracledb.ConnectParams()
+        params.parse_connect_string(connect_string)
+        assert params.stmtcachesize == stmtcachesize
+        assert num_calls == 2
+
+        time.sleep(grace_period + 0.1)
+        with test_env.assert_raises_full_code("DPY-2056"):
+            params = oracledb.ConnectParams()
+            params.parse_connect_string(connect_string)
+        assert num_calls == 3
     finally:
         oracledb.register_protocol(protocol, None)

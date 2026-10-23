@@ -1849,3 +1849,96 @@ def test_misc_1385():
         with pytest.raises(oracledb.ProgrammingError) as exc_info:
             oracledb.ConnectParams(**{name: 1})
         assert exc_info.value.args[0].full_code == "DPY-2070"
+
+
+def test_1386():
+    "1386 - test config notification hook updates cache"
+    expected_num_calls = 1
+    initial_stmtcachesize = 20
+    refreshed_stmtcachesize = 21
+    config = dict(
+        connect_descriptor="host_1386/service_1386",
+        config_time_to_live=3600,
+        pyo=dict(stmtcachesize=initial_stmtcachesize),
+    )
+    notifications = []
+    num_calls = 0
+    protocol = "proto-test-1386"
+    connect_string = f"{protocol}://test_1386_config_cache"
+
+    def hook(passed_protocol, passed_protocol_arg, passed_params):
+        nonlocal num_calls
+        num_calls += 1
+        passed_params.set_from_config(
+            config,
+            notification_fn=notification_hook,
+        )
+        config["pyo"]["stmtcachesize"] = refreshed_stmtcachesize
+
+    def notification_hook(dsn):
+        notifications.append(dsn)
+
+    oracledb.register_protocol(protocol, hook)
+    try:
+        params = oracledb.ConnectParams()
+        params.parse_connect_string(connect_string)
+        assert params.stmtcachesize == initial_stmtcachesize
+        assert num_calls == expected_num_calls
+        assert notifications == [connect_string] * expected_num_calls
+
+        params = oracledb.ConnectParams()
+        params.parse_connect_string(connect_string)
+        assert params.stmtcachesize == initial_stmtcachesize
+        assert num_calls == expected_num_calls
+        assert notifications == [connect_string] * expected_num_calls
+
+        oracledb.update_config_cache(connect_string, remove_permanently=False)
+        expected_num_calls += 1
+        params = oracledb.ConnectParams()
+        params.parse_connect_string(connect_string)
+        assert params.stmtcachesize == refreshed_stmtcachesize
+        assert num_calls == expected_num_calls
+        assert notifications == [connect_string] * expected_num_calls
+
+        oracledb.update_config_cache(connect_string, remove_permanently=True)
+        expected_num_calls += 1
+        params = oracledb.ConnectParams()
+        params.parse_connect_string(connect_string)
+        assert params.stmtcachesize == refreshed_stmtcachesize
+        assert num_calls == expected_num_calls
+        assert notifications == [connect_string] * expected_num_calls
+    finally:
+        oracledb.update_config_cache(connect_string, remove_permanently=True)
+        oracledb.register_protocol(protocol, None)
+
+
+def test_1387():
+    "1387 - test config notification hook is not called when cache disabled"
+    host = "host_1387"
+    service_name = "service_1387"
+    config = dict(
+        connect_descriptor=f"{host}/{service_name}",
+        config_time_to_live=0,
+    )
+    notifications = []
+    protocol = "proto-test-1387"
+    connect_string = f"{protocol}://test_1387_config_cache"
+
+    def hook(passed_protocol, passed_protocol_arg, passed_params):
+        passed_params.set_from_config(
+            config,
+            notification_fn=notification_hook,
+        )
+
+    def notification_hook(dsn):
+        notifications.append(dsn)
+
+    oracledb.register_protocol(protocol, hook)
+    try:
+        params = oracledb.ConnectParams()
+        params.parse_connect_string(connect_string)
+        assert params.host == host
+        assert params.service_name == service_name
+        assert not notifications
+    finally:
+        oracledb.register_protocol(protocol, None)

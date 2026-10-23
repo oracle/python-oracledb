@@ -168,6 +168,7 @@ from .utils import (
     register_password_type as register_password_type,
     register_protocol as register_protocol,
     unregister_params_hook as unregister_params_hook,
+    update_config_cache as update_config_cache,
 )
 
 from .var import (

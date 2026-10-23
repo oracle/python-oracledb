@@ -24,7 +24,7 @@ Thin Mode Changes
     (`issue 610 <https://github.com/oracle/python-oracledb/issues/610>`__).
 #)  Internal change: improved performance when sending Oracle Deep Data
     Security end-user security contexts.
-#   Fixed handling of token expiration with
+#)  Fixed handling of token expiration with
     :ref:`Cloud Native Authentication <cloudnativemodules>`.
 
 Thick Mode Changes
@@ -33,6 +33,9 @@ Thick Mode Changes
 Common Changes
 ++++++++++++++
 
+#)  Added support for automatic updating of the configuration cache when using
+    the :ref:`oracledb.plugins.aws_config_provider <configawsplugin>` plugin
+    and a queue URL is specified in the configuration.
 #)  Bumped Cython to 3.3.
 
 

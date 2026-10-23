@@ -1909,7 +1909,7 @@ The ``dsn`` parameter for :meth:`oracledb.connect()`,
 :meth:`oracledb.create_pool_async()` calls should use a connection string URL
 in the format::
 
-     config-awss3://<s3-resource>[?option1=value1&option2=value2...]
+     config-awss3://<s3-resource>[?option1=value1&option2=value2...&queueurl=<url-encoded-sqs-queue-url>]
 
 The elements of the connection string are detailed in the table below.
 
@@ -1939,6 +1939,11 @@ The elements of the connection string are detailed in the table below.
         For selecting a top-level configuration in the JSON file, set the ``key`` parameter.
 
         For selecting a specific S3 object version, set the ``versionid`` parameter.
+      - Optional
+    * - queueurl=<url-encoded-sqs-queue-url>
+      - The URL of the Amazon Simple Queue Service (SQS) queue that receives the AWS S3 configuration change notification. The value must be URL-encoded because it is a query parameter.
+
+        This key enables configuration change notification in AWS S3 centralized configuration provider. See :ref:`awss3changenotification` for more information.
       - Optional
 
 .. _s3addressformat:
@@ -2035,6 +2040,129 @@ The configuration can also be used to create a :ref:`connection pool
 
     pool = oracledb.create_pool(dsn=configawss3url)
 
+.. _awss3changenotification:
+
+Setting Up AWS S3 Configuration Change Notifications
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+With configuration change notifications, the AWS configuration provider can
+receive notifications when the JSON configuration file stored in AWS S3
+changes. The provider compares the bucket and object key in the notification
+with the bucket and object key used by each connection string. It then
+identifies the matching connection string and asks python-oracledb to expire
+or remove its cached configuration.
+
+To use python-oracledb with AWS S3 configuration change notification, you must:
+
+1. Create a standard `Amazon Simple Queue Service (SQS) <https://docs.aws.
+   amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/welcome.html>`__
+   queue and configure its queue policy to allow `Amazon EventBridge
+   <https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-what-is.
+   html>`__ to send messages to it. See `Creating a standard queue using the
+   Amazon SQS console <https://docs.aws.amazon.com/AWSSimpleQueueService/latest
+   /SQSDeveloperGuide/creating-sqs-standard-queues.html#step-create-standard-
+   queue>`__ and `Amazon SQS permissions for EventBridge <https://docs.aws.
+   amazon.com/eventbridge/latest/userguide/eb-use-resource-based.html#eb-sqs-
+   permissions>`__.
+
+   Copy the queue URL from the queue details page. You will use this value,
+   URL-encoded, as the ``queueurl`` parameter in the connection string.
+
+2. Enable Amazon EventBridge notifications for the S3 bucket. See `Enabling
+   Amazon EventBridge <https://docs.aws.amazon.com/AmazonS3/latest/userguide/enable-event-notifications-eventbridge.html>`__.
+
+   Create an EventBridge rule that matches ``Object Created`` and ``Object
+   Deleted`` events and targets the SQS queue. For information about S3 event
+   types and destinations, see `Amazon S3 Event Notifications <https://docs.aws
+   .amazon.com/AmazonS3/latest/userguide/EventNotifications.html>`__.
+
+3. Grant the AWS identity used by the application permission to call
+   ``sqs:ReceiveMessage`` and ``sqs:DeleteMessage`` on the queue.
+
+4. Add the URL-encoded SQS queue URL that was copied in step 1 as the
+   ``queueurl`` parameter in an
+   :ref:`AWS S3 Connection String URL <connstringawss3>`. Use this connection
+   string URL in the ``dsn`` parameter of the connection or pool creation
+   method. For example:
+
+   .. code-block:: text
+
+       config-awss3://my-bucket/config.json?aws_region=us-east-1&key=app1&queueurl=https%3A%2F%2Fsqs.us-east-1.amazonaws.com%2F123456789012%2Fconfig-updates
+
+For an overview of configuration change notifications and the effect on the
+python-oracledb configuration cache, see
+:ref:`Configuration Change Notification <configchangenotification>`.
+
+An Amazon SQS queue can serve multiple configuration connection strings. The
+AWS S3 configuration provider matches each notification to the registered
+bucket and object key, so a change to one S3 object does not update cached
+configurations for other objects on the same queue.
+
+When a JSON configuration file is changed, upload the updated file to the same
+S3 bucket and object key. Amazon S3 replaces the existing JSON file and
+generates an ``Object Created`` event. The AWS S3 configuration provider
+receives this object created event from the SQS queue and asks
+python-oracledb to expire the matching cached configuration. The next time the
+connection string is used, python-oracledb retrieves the updated JSON
+configuration from AWS S3 and caches it. If the AWS S3 does not supply a
+refreshed configuration when the connection string is next used,
+python-oracledb can continue using the expired configuration during its
+configured grace period. If ``versionid`` is specified in the connection
+string, the AWS S3 configuration provider retrieves that same object version
+after a change notification, rather than the latest version.
+
+When a JSON configuration file is deleted, the Amazon S3 service generates an
+``Object Deleted`` event, and the AWS S3 configuration provider asks
+python-oracledb to remove the matching cached configuration. After the JSON
+configuration file is removed, if the AWS S3 configuration provider cannot
+supply the configuration when the connection string is next used, the
+connection attempt raises an error.
+
+If ``queueurl`` is not specified in the connection string, the AWS S3
+configuration provider does not listen for change notifications and the
+configurations are cached in python-oracledb by default, see
+:ref:`conncaching`.
+
+**S3 Events Used to Update the Configuration Cache**
+
+The AWS configuration provider handles the following S3 events:
+
+.. list-table-with-summary::
+    :header-rows: 1
+    :class: wy-table-responsive
+    :widths: 35 35 30
+    :name: _s3_events
+    :summary: The first column displays the S3 event. The second column displays the notification format. The third column displays the cache operation.
+
+    * - S3 event
+      - Notification format
+      - Cache operation
+    * - Object created
+      - EventBridge ``Object Created`` or classic S3 ``s3:ObjectCreated:*``
+      - The cached configuration is expired and refreshed on next use.
+    * - Object deleted
+      - EventBridge ``Object Deleted`` or classic S3 ``s3:ObjectRemoved:*``
+      - The cached configuration is removed permanently.
+
+Other S3 event types are ignored.
+
+For EventBridge notifications, the provider matches the event source
+``aws.s3`` and uses ``detail.bucket.name`` and the URL-decoded
+``detail.object.key`` to identify the S3 object.
+
+For classic S3 notifications, the provider reads the bucket and object key
+from the ``Records`` list. Object keys use the S3 notification encoding, in
+which ``+`` represents a space.
+
+For the event types supported by SQS and EventBridge, see `Event notification
+types and destinations <https://docs.aws.amazon.com/AmazonS3/latest/userguide/notification-how-to-event-types-and-destinations.html>`__.
+
+For the JSON structure of classic S3 notification messages, see `Amazon S3
+event message structure <https://docs.aws.amazon.com/AmazonS3/latest/userguide/notification-content-structure.html>`__.
+
+For enabling EventBridge notifications on an S3 bucket, see `Enabling Amazon
+EventBridge <https://docs.aws.amazon.com/AmazonS3/latest/userguide/enable-event-notifications-eventbridge.html>`__.
+
 .. _awssecretsmanagerprovider:
 
 AWS Secrets Manager Centralized Configuration Provider
@@ -2084,7 +2212,7 @@ The ``dsn`` parameter for :meth:`oracledb.connect()`,
 :meth:`oracledb.create_pool_async()` calls should use a connection string URL
 in the format::
 
-    config-awssecretsmanager://<secret-name>[?option1=value1&option2=value2...]
+    config-awssecretsmanager://<secret-name>[?option1=value1&option2=value2...&queueurl=<url-encoded-sqs-queue-url>]
 
 The elements of the connection string are detailed in the table below.
 
@@ -2114,6 +2242,11 @@ The elements of the connection string are detailed in the table below.
         For selecting a top-level configuration in the JSON secret value, set the ``key`` parameter.
 
         For selecting a specific secret version, set the ``versionid`` or ``versionstage`` parameter, or both.
+      - Optional
+    * - queueurl=<url-encoded-sqs-queue-url>
+      - The URL of the Amazon Simple Queue Service (SQS) queue that receives the AWS Secrets Manager configuration change notification. The value must be URL-encoded because it is a query parameter.
+
+        This key enables configuration change notification in AWS Secrets Manager centralized configuration provider. See :ref:`awssecretsmanagerchangenotification` for more information.
       - Optional
 
 **AWS Secrets Manager Centralized Configuration Provider Examples**
@@ -2262,13 +2395,147 @@ below:
         }
     }
 
-.. _conncaching:
+.. _awssecretsmanagerchangenotification:
+
+Setting Up AWS Secrets Manager Configuration Change Notifications
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The :ref:`AWS Secrets Manager <awssecretsmanagerprovider>` centralized
+configuration provider can receive notifications when a secret containing
+configuration information changes. The provider compares the secret identified
+in the notification with the secret used by each connection string. For each
+matching connection string, it asks python-oracledb to expire or remove the
+cached configuration. The next time the connection string is used,
+python-oracledb retrieves the selected secret value and caches it.
+
+The AWS Secrets Manager configuration provider receives Secrets Manager change
+events through `AWS CloudTrail <https://docs.aws.amazon.com/awscloudtrail/
+latest/userguide/cloudtrail-user-guide.html>`__, `Amazon EventBridge
+<https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-what-is.html>`__,
+and an `Amazon SQS Queue <https://docs.aws.amazon.com/AWSSimpleQueueService/
+latest/SQSDeveloperGuide/welcome.html>`__.
+
+To use AWS Secrets Manager configuration change notifications, you must:
+
+1. Create a standard Amazon Simple Queue Service (SQS) queue. Configure its
+   queue policy to allow Amazon EventBridge to call ``sqs:SendMessage`` on the
+   queue. Copy the queue URL from the queue details page which you will use in
+   the connection string.
+
+2. Configure AWS CloudTrail to deliver Secrets Manager API events to Amazon
+   EventBridge. Create an EventBridge rule that targets the SQS queue and
+   matches the following fields:
+
+   - ``source`` set to ``aws.secretsmanager``.
+   - ``detail.eventSource`` set to ``secretsmanager.amazonaws.com``.
+   - ``detail-type`` set to ``AWS API Call via CloudTrail`` or
+     ``AWS Service Event via CloudTrail``.
+   - ``detail.eventName`` set to the supported Secrets Manager events listed
+     in :ref:`Secrets Manager Events <awssecretsmanagerevents>`.
+
+   See `Creating trails for AWS CloudTrail <https://docs.aws.amazon.com/
+   awscloudtrail/latest/userguide/cloudtrail-create-and-update-a-
+   trail.html>`__, `Creating Amazon EventBridge rules for AWS service events
+   <https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-rules.html>`__,
+   and `Match AWS Secrets Manager events with Amazon EventBridge <https://docs.
+   aws.amazon.com/secretsmanager/latest/userguide/monitoring-
+   eventbridge.html>`__ for more information.
+
+3. Grant the AWS identity used by the application permission to call
+   ``sqs:ReceiveMessage`` and ``sqs:DeleteMessage`` on the queue.
+
+4. Add the URL-encoded SQS queue URL as the ``queueurl`` parameter in an
+   :ref:`AWS Secrets Manager Connection String URL
+   <connstringawssecretsmanager>`. Use this URL in the ``dsn`` parameter of
+   the connection or pool creation method.
+
+   For example:
+
+   .. code-block:: text
+
+        config-awssecretsmanager://app-config?aws_region=us-east-1&key=app1&queueurl=https%3A%2F%2Fsqs.us-east-1.amazonaws.com%2F123456789012%2Fconfig-updates
+
+For Secrets Manager, only connection strings registered for the secret
+identified by the event are updated.
+
+For an overview of configuration change notifications and the effect on the
+python-oracledb configuration cache, see
+:ref:`Configuration Change Notification <configchangenotification>`.
+
+When a secret changes, AWS generates a supported event notification and sends
+it through CloudTrail, EventBridge, and the configured SQS queue. The AWS
+Secrets Manager configuration provider receives the notification, identifies
+the changed secret, and matches it to registered connection strings. For each
+matching connection string, the configuration provider asks python-oracledb to
+expire or remove the cached configuration.
+
+The AWS Secrets Manager configuration provider does not retrieve the secret
+while processing the notification. The next time the connection string is used,
+python-oracledb retrieves the selected secret value from AWS Secrets Manager
+and caches it. Existing connections and pools are not reconfigured.
+
+If ``queueurl`` is not specified in the connection string, the AWS Secrets
+Manager configuration provider does not listen for change notifications and the
+configurations are cached in python-oracledb by default, see
+:ref:`conncaching`.
+
+.. _awssecretsmanagerevents:
+
+**Secrets Manager Events Used to Update the Configuration Cache**
+
+The AWS Secrets Manager configuration provider handles the following Secrets
+Manager events:
+
+.. list-table-with-summary::
+    :header-rows: 1
+    :class: wy-table-responsive
+    :widths: 40 60
+    :width: 100%
+    :name: _secrets_manager_events
+    :summary: The first row displays the name of the AWS Secrets Manager event. The second row displays the description of the event.
+
+    * - Event
+      - Description
+    * - ``CreateSecret``
+      - A secret is created.
+    * - ``PutSecretValue``
+      - A new secret value is stored.
+    * - ``UpdateSecret``
+      - Secret metadata or value settings are updated.
+    * - ``UpdateSecretVersionStage``
+      - A staging label is moved between secret versions.
+    * - ``RestoreSecret``
+      - A secret scheduled for deletion is restored.
+    * - ``RotateSecret``
+      - Secret rotation is configured or initiated.
+    * - ``RotationSucceeded``
+      - Secret rotation completes successfully.
+    * - ``DeleteSecret``
+      - A secret is deleted.
+
+All events listed above except ``DeleteSecret`` expire the matching cached
+configuration. A ``DeleteSecret`` event removes the matching cached
+configuration. The next use of the connection string attempts to retrieve the
+secret value and fails if it is unavailable.
+
+For information about the Secrets Manager events that can be matched by Amazon
+EventBridge, see `AWS Secrets Manager events <https://docs.aws.amazon.com/
+eventbridge/latest/ref/events-ref-secretsmanager.html>`__ and `Match AWS
+Secrets Manager events with Amazon EventBridge <https://docs.aws.amazon.com/
+secretsmanager/latest/userguide/monitoring-eventbridge.html>`__.
+
+.. _cachingconfiginfo:
 
 Caching Configuration Information
 ---------------------------------
 
 Python-oracledb caches configurations obtained from Centralized Configuration
-Providers to reduce access overheads.
+Providers to reduce access overheads. A cached configuration can be updated using :ref:`conncaching` and :ref:`configchangenotification`.
+
+.. _conncaching:
+
+Configuration Cache Lifetime
+++++++++++++++++++++++++++++
 
 You can use the ``config_time_to_live`` configuration key to specify the number
 of seconds that python-oracledb should keep the information cached. The default
@@ -2297,6 +2564,53 @@ Providers is::
             "max": 10
         }
     }
+
+.. _configchangenotification:
+
+Configuration Change Notification
++++++++++++++++++++++++++++++++++
+
+Some centralized configuration provider plugins can receive configuration
+change notifications before ``config_time_to_live`` expires. When a
+configuration provider reports that configuration information has changed,
+python-oracledb expires or removes the cached configuration. The next time
+that the connection string is used, python-oracledb retrieves the selected
+configuration information from the configuration provider and caches it.
+
+The :ref:`AWS configuration provider plugin <configawsplugin>` can receive
+configuration change notifications for :ref:`AWS S3 <awss3provider>` and
+:ref:`AWS Secrets Manager <awssecretsmanagerprovider>`. See
+:ref:`awss3changenotification` for more information.
+
+When ``queueurl`` is configured for an AWS S3 or AWS Secrets Manager
+connection string, the ``aws_config_provider`` plugin automatically calls
+:func:`oracledb.update_config_cache()` when it receives a supported change
+notification. Note that applications do not need to explicitly call this
+function for these AWS notifications. Notifications for unsupported event
+types or unrelated resources do not update the cache. See
+:func:`oracledb.update_config_cache()` for more information.
+
+For a configuration update, the configuration provider plugin expires the
+matching cached configuration so that it is retrieved again the next time the
+connection string is used. After the configured cache expires, if the
+configuration provider cannot supply a refreshed configuration when the
+connection string is next used, python-oracledb can continue using the expired
+configuration during its configured grace period.
+
+If the configuration resource is deleted, the plugin removes the matching
+cached configuration. After removal, if the configuration provider cannot
+supply the configuration when the connection string is next used, the
+connection attempt raises an error.
+
+Configuration change notifications require configuration caching. When
+``queueurl`` is configured in the connection string and
+``config_time_to_live`` is set to *0*, the configuration is not cached and no
+notification listener is registered.
+
+A Python application can use multiple queues for configuration change
+notifications. Each application process should use queues that are not shared
+with another process, and each queue should receive only notifications relevant
+to the connection strings that use it.
 
 .. _usingconnparams:
 

@@ -120,6 +120,10 @@ ConnectParams Methods
 
 .. automethod:: ConnectParams.set_from_config
 
+    .. versionchanged:: 26.1.0
+
+        The ``notification_fn`` parameter was added.
+
     .. versionadded:: 3.0.0
 
 .. _connparamsattr:

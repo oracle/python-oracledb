@@ -142,7 +142,9 @@ class ConnectParams(metaclass=BaseMetaClass):
         """
         pass
 
-    def set_from_config(self, config: dict) -> None:
+    def set_from_config(
+        self, config: dict, notification_fn: Callable | None = None
+    ) -> None:
         """
         Sets the property values based on the specified configuration. This
         method is intended for use with Centralized Configuration Providers.
@@ -166,5 +168,12 @@ class ConnectParams(metaclass=BaseMetaClass):
         containing keys corresponding to property names. Any property names
         accepted by the ConnectParams class will be stored in the ConnectParams
         instance; all other values will be ignored.
+
+        The ``notification_fn`` parameter is an optional function that is
+        called with the DSN used as the configuration cache key after the
+        configuration has been added to the cache. It is called each time the
+        configuration is cached, including after a reload. It is not called
+        when caching is disabled by setting ``config_time_to_live`` to *0*.
+        Passing *None* preserves the default behavior.
         """
-        self._impl.set_from_config(config)
+        self._impl.set_from_config(config, notification_fn=notification_fn)

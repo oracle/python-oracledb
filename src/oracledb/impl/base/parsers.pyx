@@ -235,7 +235,11 @@ cdef class BaseParser:
             self.temp_pos += 1
 
 
-cdef int update_config_cache(str config_cache_key, dict config) except -1:
+cdef int update_config_cache(
+    str config_cache_key,
+    dict config,
+    object notification_fn,
+) except -1:
     """
     Updates the cache with the specified configuration.
     """
@@ -252,6 +256,7 @@ cdef int update_config_cache(str config_cache_key, dict config) except -1:
     else:
         time_to_live = int(setting)
     if time_to_live == 0:
+        cached_configs.pop(config_cache_key, None)
         return 0
 
     # the config settings can also include config_time_to_live_grace_period;
@@ -270,6 +275,31 @@ cdef int update_config_cache(str config_cache_key, dict config) except -1:
     config["config_cache_soft_expiry_time"] = soft_expiry_time
     config["config_cache_hard_expiry_time"] = hard_expiry_time
     cached_configs[config_cache_key] = config
+    if notification_fn is not None:
+        notification_fn(config_cache_key)
+
+
+def update_config_cache_from_notification(
+    str config_cache_key,
+    bint remove_permanently,
+):
+    """
+    Updates a cached configuration entry when a notification is received.
+    """
+    cdef double grace_period, soft_expiry_time
+
+    if remove_permanently:
+        cached_configs.pop(config_cache_key, None)
+    else:
+        config = cached_configs.get(config_cache_key)
+        if config is not None:
+            hard_expiry_time = config["config_cache_hard_expiry_time"]
+            soft_expiry_time = config["config_cache_soft_expiry_time"]
+            grace_period = hard_expiry_time - soft_expiry_time
+            soft_expiry_time = time.monotonic()
+            config["config_cache_soft_expiry_time"] = soft_expiry_time
+            config["config_cache_hard_expiry_time"] = \
+                    soft_expiry_time + grace_period
 
 
 cdef class ConnectStringParser(BaseParser):

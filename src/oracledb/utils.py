@@ -435,6 +435,33 @@ def unregister_params_hook(hook_function: Callable) -> None:
     base_impl.REGISTERED_PARAMS_HOOKS.remove(hook_function)
 
 
+def update_config_cache(dsn: str, *, remove_permanently: bool = False) -> None:
+    """
+    Updates the cached configuration information for a Centralized
+    Configuration Provider.
+
+    The ``dsn`` parameter is the connection string used to retrieve the
+    configuration information from the Centralized Configuration Provider. It
+    also identifies the corresponding entry in the configuration cache.
+
+    The ``remove_permanently`` parameter determines whether the cached
+    configuration is expired or removed. This parameter is keyword-only and
+    defaults to *False*. When it is *False*, the cached configuration is
+    expired and retrieved again the next time the connection string is used.
+    If the configuration provider fails to supply a refreshed configuration
+    when the connection string is next used, python-oracledb can continue using
+    the expired configuration during its configured grace period. When it is
+    *True*, the cached configuration is removed immediately. If the
+    configuration provider cannot supply the configuration when the connection
+    string is next used, the connection attempt raises an error.
+
+    This function does not retrieve configuration and does not change existing
+    connections or connection pools. It is intended for configuration provider
+    plugins that process provider-specific change notifications.
+    """
+    base_impl.update_config_cache_from_notification(dsn, remove_permanently)
+
+
 def verify_stored_proc_args(
     parameters: list | tuple, keyword_parameters: dict
 ) -> None:
