@@ -28,7 +28,7 @@ sys.path.insert(0, str(pathlib.Path("..", "src").resolve()))
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = [
     "table_with_summary",
-    "oracle_deprecated",
+    "oracle_version_directives",
     "dbapi_extension",
     "sphinx_rtd_theme",
     "sphinx.ext.autodoc",

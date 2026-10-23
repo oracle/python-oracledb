@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2022, 2023, Oracle and/or its affiliates.
+# Copyright (c) 2022, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -23,16 +23,32 @@
 # -----------------------------------------------------------------------------
 
 # -----------------------------------------------------------------------------
-# oracle_deprecated.py
+# oracle_version_directives.py
 #
-# Overrides the 'deprecated' directive so that a componment name can be used in
-# conjunction with the version.
+# Overrides version change directives so that the rendered text includes the
+# python-oracledb name where appropriate.
 # -----------------------------------------------------------------------------
-
 
 from docutils import nodes
 from docutils.parsers.rst import Directive
 from sphinx import addnodes
+from sphinx.domains.changeset import versionlabels, VersionChange
+
+
+class DriverVersionChange(VersionChange):
+    version_label = None
+
+    def run(self):
+        versionlabels[self.name] = self.version_label
+        return super().run()
+
+
+class DriverVersionAdded(DriverVersionChange):
+    version_label = "Added in python-oracledb version %s"
+
+
+class DriverVersionChanged(DriverVersionChange):
+    version_label = "Changed in python-oracledb version %s"
 
 
 class DriverDeprecated(Directive):
@@ -42,11 +58,12 @@ class DriverDeprecated(Directive):
     final_argument_whitespace = True
 
     def run(self):
+        version = self.arguments[0]
         node = addnodes.versionmodified()
         node.document = self.state.document
         node["type"] = self.name
-        node["version"] = self.arguments[0]
-        text = "Deprecated since {}.".format(self.arguments[0])
+        node["version"] = version
+        text = f"Deprecated since python-oracledb version {version}."
         classes = ["versionmodified", "deprecated"]
         para = nodes.paragraph(
             "", "", nodes.inline("", text, classes=classes), translatable=False
@@ -56,10 +73,6 @@ class DriverDeprecated(Directive):
 
 
 def setup(app):
+    app.add_directive("versionadded", DriverVersionAdded, override=True)
+    app.add_directive("versionchanged", DriverVersionChanged, override=True)
     app.add_directive("deprecated", DriverDeprecated, override=True)
-
-    return {
-        "version": "0.1",
-        "parallel_read_safe": True,
-        "parallel_write_safe": True,
-    }

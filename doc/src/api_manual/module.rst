@@ -304,7 +304,7 @@ Oracledb Methods
 
 .. autofunction:: makedsn
 
-    .. deprecated:: python-oracledb 1.0
+    .. deprecated:: 1.0
 
     Use the :meth:`oracledb.ConnectParams()` method instead.
 
@@ -977,111 +977,111 @@ version of python-oracledb.
 
     A synonym for :data:`DB_TYPE_BFILE`.
 
-    .. deprecated:: cx_Oracle 8.0
+    .. deprecated:: 1.0
 
 
 .. data:: BLOB
 
     A synonym for :data:`DB_TYPE_BLOB`.
 
-    .. deprecated:: cx_Oracle 8.0
+    .. deprecated:: 1.0
 
 
 .. data:: BOOLEAN
 
     A synonym for :data:`DB_TYPE_BOOLEAN`.
 
-    .. deprecated:: cx_Oracle 8.0
+    .. deprecated:: 1.0
 
 
 .. data:: CLOB
 
     A synonym for :data:`DB_TYPE_CLOB`.
 
-    .. deprecated:: cx_Oracle 8.0
+    .. deprecated:: 1.0
 
 .. data:: CURSOR
 
     A synonym for :data:`DB_TYPE_CURSOR`.
 
-    .. deprecated:: cx_Oracle 8.0
+    .. deprecated:: 1.0
 
 
 .. data:: FIXED_CHAR
 
     A synonym for :data:`DB_TYPE_CHAR`.
 
-    .. deprecated:: cx_Oracle 8.0
+    .. deprecated:: 1.0
 
 
 .. data:: FIXED_NCHAR
 
     A synonym for :data:`DB_TYPE_NCHAR`.
 
-    .. deprecated:: cx_Oracle 8.0
+    .. deprecated:: 1.0
 
 
 .. data:: INTERVAL
 
     A synonym for :data:`DB_TYPE_INTERVAL_DS`.
 
-    .. deprecated:: cx_Oracle 8.0
+    .. deprecated:: 1.0
 
 
 .. data:: LONG_BINARY
 
     A synonym for :data:`DB_TYPE_LONG_RAW`.
 
-    .. deprecated:: cx_Oracle 8.0
+    .. deprecated:: 1.0
 
 
 .. data:: LONG_STRING
 
     A synonym for :data:`DB_TYPE_LONG`.
 
-    .. deprecated:: cx_Oracle 8.0
+    .. deprecated:: 1.0
 
 
 .. data:: NATIVE_FLOAT
 
     A synonym for :data:`DB_TYPE_BINARY_DOUBLE`.
 
-    .. deprecated:: cx_Oracle 8.0
+    .. deprecated:: 1.0
 
 
 .. data:: NATIVE_INT
 
     A synonym for :data:`DB_TYPE_BINARY_INTEGER`.
 
-    .. deprecated:: cx_Oracle 8.0
+    .. deprecated:: 1.0
 
 
 .. data:: NCHAR
 
     A synonym for :data:`DB_TYPE_NCHAR`.
 
-    .. deprecated:: cx_Oracle 8.0
+    .. deprecated:: 1.0
 
 
 .. data:: NCLOB
 
     A synonym for :data:`DB_TYPE_NCLOB`.
 
-    .. deprecated:: cx_Oracle 8.0
+    .. deprecated:: 1.0
 
 
 .. data:: OBJECT
 
     A synonym for :data:`DB_TYPE_OBJECT`.
 
-    .. deprecated:: cx_Oracle 8.0
+    .. deprecated:: 1.0
 
 
 .. data:: TIMESTAMP
 
     A synonym for :data:`DB_TYPE_TIMESTAMP`.
 
-    .. deprecated:: cx_Oracle 8.0
+    .. deprecated:: 1.0
 
 
 .. _tpcconstants:

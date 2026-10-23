@@ -99,6 +99,9 @@ An example of creating a standalone connection in SQLAlchemy 2 is:
 
 Note that the ``create_engine()`` argument driver declaration uses
 ``oracle+oracledb://`` for SQLAlchemy 2 but ``oracle://`` for SQLAlchemy 1.4.
+In SQLAlchemy 2.1 and later, URLs of the form ``oracle://`` also use
+python-oracledb by default when a specific driver name is not set. For example,
+``create_engine("oracle://@", connect_args=...)`` uses python-oracledb.
 
 The ``connect_args`` dictionary can use any appropriate
 :meth:`oracledb.connect()` parameter.
@@ -143,6 +146,10 @@ To use a python-oracledb connection pool in SQLAlchemy:
                                         from v$session_connect_info
                                         where sid = sys_context('userenv', 'sid')""")))
 
+In SQLAlchemy 2.1 and later, the pooled connection example can use
+``create_engine("oracle://", creator=pool.acquire, poolclass=NullPool)``
+because SQLAlchemy selects python-oracledb by default when no specific driver
+name is set.
 
 .. _sqlalchemy1:
 
@@ -193,6 +200,8 @@ code shown in :ref:`boilerplatemapping`.  An example is:
 
 Note that the ``create_engine()`` argument driver declaration uses
 ``oracle://`` for SQLAlchemy 1.4 but ``oracle+oracledb://`` for SQLAlchemy 2.
+In SQLAlchemy 2.1 and later, URLs of the form ``oracle://`` use python-oracledb
+by default when no specific driver name is set.
 
 The ``connect_args`` dictionary can use any appropriate
 :meth:`oracledb.connect()` parameter.
