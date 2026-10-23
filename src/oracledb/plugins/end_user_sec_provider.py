@@ -121,12 +121,9 @@ class EndUserSecMiddleware:
             oracledb.clear_all_secrets(thread_local=True)
 
 
-def get_end_user_sec_context(end_user_sec_params, identity):
-    auth_flow = end_user_sec_params["auth_flow"]
-    if auth_flow == "on_behalf_of" and not isinstance(identity, str):
-        raise ValueError(
-            "auth_flow='on_behalf_of' requires a token for its user identity"
-        )
+def get_end_user_sec_context(
+    connection, end_user_sec_params, identity, auth_flow
+):
     spi_type = end_user_sec_params["spi_type"]
     supporting_plugin = importlib.import_module(f"oracledb.plugins.{spi_type}")
     database_access_token = supporting_plugin.get_database_access_token(
@@ -134,6 +131,13 @@ def get_end_user_sec_context(end_user_sec_params, identity):
     )
     data_roles = get_end_user_data_roles()
     attributes = get_end_user_attributes()
+    db_version = tuple(int(part) for part in connection.version.split("."))[:3]
+    if db_version >= (23, 26, 4) and auth_flow == "on_behalf_of":
+        return oracledb.create_end_user_security_context(
+            database_access_token=database_access_token,
+            data_roles=data_roles or end_user_sec_params.get("data_roles"),
+            attributes=attributes or end_user_sec_params.get("attributes"),
+        )
     return oracledb.create_end_user_security_context(
         end_user_identity=identity,
         database_access_token=database_access_token,
@@ -151,14 +155,24 @@ def has_security_params(extra_auth_params):
 def end_user_sec_context_hook(params: oracledb.ConnectParams):
     if has_security_params(params.extra_auth_params):
         end_user_sec_params = params.extra_auth_params["end_user_sec_params"]
+        auth_flow = end_user_sec_params["auth_flow"]
 
         def set_end_user_sec_context(connection):
             identity = get_end_user_identity()
-            if identity is not None:
-                context = get_end_user_sec_context(
-                    end_user_sec_params, identity
+            if auth_flow == "on_behalf_of" and (
+                not isinstance(identity, str) or not identity
+            ):
+                raise ValueError(
+                    "auth_flow='on_behalf_of' requires a non-empty end-user token"
                 )
-                connection.set_end_user_security_context(context)
+
+            context = get_end_user_sec_context(
+                connection,
+                end_user_sec_params,
+                identity,
+                auth_flow,
+            )
+            connection.set_end_user_security_context(context)
 
         async def async_on_connect_callback(
             connection: oracledb.AsyncConnection,

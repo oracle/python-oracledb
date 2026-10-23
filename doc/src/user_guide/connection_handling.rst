@@ -3635,10 +3635,26 @@ shown below:
 .. code-block:: python
 
     user_context = oracledb.create_end_user_security_context(
-        end_user_identity = <user_token_or_db_user_name_and_key>,
-        database_access_token = <db_token_issued_by_an_IAM>,
-        data_roles = [<name_of_roles>],
-        attributes = {
+        database_access_token=<db_token_issued_by_an_IAM>,
+        end_user_identity=<user_token_or_db_user_name_and_key>,
+        data_roles=[<name_of_roles>],
+        attributes={
+            <"attribute_name">: <value>
+        }
+    )
+
+You must set the ``database_access_token`` parameter. The
+``end_user_identity``, ``data_roles``, and ``attributes`` parameters are
+optional keyword-only parameters.
+
+To create a security context without an end-user identity, for example:
+
+.. code-block:: python
+
+    user_context = oracledb.create_end_user_security_context(
+        database_access_token=<db_token_issued_by_an_IAM>,
+        data_roles=[<name_of_roles>],
+        attributes={
             <"attribute_name">: <value>
         }
     )
@@ -3656,6 +3672,14 @@ The parameters of :meth:`~oracledb.create_end_user_security_context()` are:
       - Type
       - Description
       - Required or Optional
+    * - ``database_access_token``
+      - String
+      - A security token issued by an external IAM system that authorizes an application to access Oracle Database. This can either be an On-Behalf-Of (OBO) token or a Client Credentials token.
+
+        An OBO token is obtained using the user token as an assertion. This access token can only be used when ``end_user_identity`` contains a token issued by the IAM system. An OBO token requires an IAM-issued end-user identity.
+
+        A Client Credentials token is obtained using the application's token. This access token can be used when ``end_user_identity`` contains either the token issued by external IAMs, or the end user name and key.
+      - Required
     * - ``end_user_identity``
       - String or Two-tuple
       - The unique identification of an end user.
@@ -3663,15 +3687,11 @@ The parameters of :meth:`~oracledb.create_end_user_security_context()` are:
         For users managed by an external IAM system, set this parameter to a string value that contains the end-user token issued by these IAM systems after user authentication.
 
         For users managed by Oracle Database, set this parameter to a two-item tuple containing the local database user name and a key, where the key may be *None* if not required. The local database user name is the name of a local database user created in Oracle Database that has the ``CREATE END USER SECURITY CONTEXT`` database privilege set. The key (also referred to as a cookie), if specified, is a unique string provided by the application user. It enables different sessions for the same local database user with the same data roles, and does not need to be tied to a single end user.
-      - Required
-    * - ``database_access_token``
-      - String
-      - A security token issued by an external IAM system that authorizes an application to access Oracle Database. This can either be an On-Behalf-Of (OBO) token or a Client Credentials token.
 
-        An OBO token is obtained using the user token as an assertion. This access token can only be used when ``end_user_identity`` contains a token issued by the IAM system.
+        .. versionchanged:: 26.1.0
 
-        A Client Credentials token is obtained using the application's token. This access token can be used when ``end_user_identity`` contains either the token issued by external IAMs, or the end user name and key.
-      - Required
+            This parameter was made optional.
+      - Optional
     * - ``data_roles``
       - List
       - The names of data roles granted to the application. These data roles are created with a ``CREATE DATA ROLE`` statement in the database and granted to application identity created with ``CREATE APPLICATION IDENTITY`` statement in the database. During end-user security context creation, the database determines the application identity based on the database-access token provided by the client in the end-user security context payload.
@@ -3705,8 +3725,8 @@ pool using :meth:`ConnectionPool.acquire()` or
     connection.set_end_user_security_context(user_context)
 
 Once :meth:`~Connection.set_end_user_security_context()` is called, the
-specified security context applies to all the subsequent database operations
-executed on that connection for that end user.
+specified end-user security context applies to all subsequent database
+operations executed on that connection.
 
 Clearing an End-User Security Context Payload
 +++++++++++++++++++++++++++++++++++++++++++++
@@ -3736,7 +3756,7 @@ the pool with :meth:`ConnectionPool.release()` or
 Example of Using End-User Security Context
 ++++++++++++++++++++++++++++++++++++++++++
 
-An example of using an end-user security context is:
+An example of using an end-user security context with an end-user identity is:
 
 .. code-block:: python
 
@@ -3766,10 +3786,10 @@ An example of using an end-user security context is:
 
     # Create an end-user security context payload
     context = oracledb.create_end_user_security_context(
-        end_user_identity = user_token,
-        database_access_token = db_token,
-        data_roles = data_roles,
-        attributes = ctx_attrs
+        database_access_token=db_token,
+        end_user_identity=user_token,
+        data_roles=data_roles,
+        attributes=ctx_attrs
     )
 
     # Create a standalone connection
@@ -3808,9 +3828,9 @@ With Oracle Deep Data Security, the python-oracledb
 :ref:`end_user_sec_provider <endusersecurityproviderplugin>` plugin
 automatically creates an end-user security context payload and sets it on a
 connection, which is used to connect to Oracle Database. This plugin configures
-the end-user security context by retrieving the end-user's identity, and using
-it along with the extracted information such as a database-access token, data
-roles, and attributes.
+the end-user security context by retrieving the database-access token through
+the configured token plugin and uses it with the available end-user identity,
+data roles, and attributes.
 
 .. note::
 
@@ -3824,22 +3844,23 @@ imported using:
 
     import oracledb.plugins.end_user_sec_provider
 
-Before creating a standalone connection or acquiring a connection from a pool,
-applications must call
-:func:`oracledb.plugins.end_user_sec_provider.set_end_user_identity()` to set
-the end-user identity. The function stores the identity in python-oracledb's
-internal cache for the current thread, see :ref:`storesecretvalues`. The
-``end_user_sec_provider`` plugin reads this identity and uses it with
-parameters defined in ``end_user_sec_params`` to fetch the database access
-token and create the end-user security context payload. For information on the
-parameters of the ``end_user_sec_params`` key, see
-:ref:`_end_user_security_provider_parameters`.
+An end-user security context payload can be created with or without an end-user
+identity. When an end-user identity is specified, its format depends on how the
+user is managed. For users managed by external IAMs such as OCI IAM or
+Microsoft Entra ID, the value of an end-user's identity is a string consisting
+of an end-user token issued by these IAMs. For users managed by Oracle
+Database, the value of an end-user's identity is a two-item tuple containing
+the local database user name and a key, where the key may be *None* if not
+required.
 
-For users managed by external IAMs such as OCI IAM or Microsoft Entra ID, the
-value of a user's identity is a string consisting of an end-user token issued
-by these IAMs. For users managed by Oracle Database, the value of an
-end-user's identity is a two-item tuple containing the local database user name
-and a key, where the key may be *None* if not required.
+If an en-user identity is required for the end-user security context or for OBO
+token generation, call
+:func:`oracledb.plugins.end_user_sec_provider.set_end_user_identity()` before
+creating a standalone connection or before acquiring a connection from a pool.
+The function securely stores the identity in python-oracledb's internal cache
+for the current thread, see :ref:`storesecretvalues`. The identity must be set
+in the same thread that creates the connection or calls ``pool.acquire()``.
+For example:
 
 .. code:: python
 
@@ -3859,8 +3880,15 @@ Also, you can use an alias, for example:
 
     provider.set_end_user_identity(end_user_token)
 
-For connection and pool creation using Deep Data Security, you must define the
-``end_user_sec_params`` key for the ``extra_auth_params`` parameter. The
+The plugin behavior depends on the configured authentication flow and the
+Oracle Database version. If you are using Oracle AI Database 26ai version
+23.26.4 or later and the ``auth_flow`` is "on_behalf_of", the plugin uses the
+end-user identity token to obtain the database-access token but does not
+include the end-user token in the end-user security context payload. For
+earlier Oracle Database versions, the plugin includes the end-user identity in
+the security context payload.
+
+For connection and pool creation using Deep Data Security, you must define the ``end_user_sec_params`` key in the ``extra_auth_params`` parameter. The
 ``end_user_sec_params`` key should be a dictionary which contains the
 parameters listed in the following table.
 
@@ -3884,9 +3912,13 @@ parameters listed in the following table.
     * - ``auth_flow``
       - The authentication flow to use for database access token acquisition such as "client_credentials" or "on_behalf_of".
 
-        If the user's identity is a string containing the end user token, the value can be the string "client_credentials" or "on_behalf_of". For "client_credentials", the token is obtained using the application's client ID and secret. For "on_behalf_of", the token is obtained using the application's client ID and secret along with the user token as an assertion.
+        If the end-user identity is a string containing the end-user token, set this parameter to:
 
-        If the user's identity is a two-item tuple containing a local database user name and a key, the value can be the string "client_credentials".
+        - "client_credentials": The database-access token is obtained using the application's client ID and secret.
+
+        - "on_behalf_of": The database-access token is obtained using the application's client ID and secret along with the end-user token as an assertion. The "on_behalf_of" flow requires an end-user identity to be set with :func:`oracledb.plugins.end_user_sec_provider.set_end_user_identity()`. For Oracle AI Database version 23.26.4 or later, the end-user token is not included in the security context payload. For earlier database versions, the available end-user identity is included in the payload.
+
+        If the end-user identity specified is a two-item tuple containing a local database user name and a key, set this parameter to "client_credentials".
       - Required
     * - ``authority``
       - The URL that indicates a directory from which the IAM can request authentication tokens.
@@ -3894,8 +3926,8 @@ parameters listed in the following table.
     * - ``client_id``
       - The client identifier of the application registered with the identity provider.
       - Required
-    * - ``client_secret``
-      - The client secret associated with the client as required by the authentication flow.
+    * - ``client_credential``
+      - The client credential associated with the client as required by the authentication flow.
       - Required
     * - ``scopes``
       - The access scope or resource identifier for which the token is requested.
@@ -3975,28 +4007,49 @@ invoked when a standalone connection is created or when a connection is
 acquired from a pool. Once invoked, the ``on_connect_callback`` parameter
 performs the following:
 
-- Checks which authentication flow to use (On-Behalf-Of or Client Credentials).
+- Retrieves the end-user identity, if one has been specified, from
+  python-oracledb's internal cache for the current thread.
 
-- Retrieves the end-user identity, and any dynamically set data roles and
-  context attributes, from python-oracledb's internal cache for the current
-  thread.
+- Validates the identity according to ``auth_flow``. The "on_behalf_of" flow
+  requires a non-empty IAM-issued end-user token.
 
-- Validates the format of the identity for the specified authentication flow.
+- Obtains the mandatory database access token through the configured
+  supporting token plugin.
 
-- Creates an end-user security context payload using the identity, any
-  dynamically set data roles and context attributes, and the values set in the
-  ``end_user_sec_params`` key, if the identity exists. The data roles and
-  context attributes come from dynamically set values when available, otherwise
-  from ``end_user_sec_params``.
+- Retrieves the dynamically set data roles and context attributes. When a
+  dynamic value is not available, the corresponding value from
+  ``end_user_sec_params`` is used.
 
-- Sets the end-user security context payload on the connection which applies to
-  all subsequent database operations performed on this connection for this end
-  user.
+- Creates an end-user security context payload using the database-access token,
+  the data roles, and the context attributes. For Oracle AI Database 26ai
+  version 23.26.4 and later, if the ``auth_flow`` is "on_behalf_of", then only
+  the database-access token is included in the security context payload.
+  For versions earlier than 23.26.4, the end-user identity and database-access
+  token are used to create the security context payload.
+
+- Sets the end-user security context payload on the connection. The context
+  applies to subsequent database operations performed on that connection.
+
+When a standalone connection is created or a connection is acquired from a
+pool, the ``end_user_sec_provider`` plugin retrieves the end-user identity, if
+one has been specified, validates it when required by ``auth_flow``, and
+obtains the database-access token through the configured supporting token
+plugin. It then retrieves the data roles and attributes, creates the end-user
+security context payload, and sets the payload on the connection.
+
+For Oracle Database 23.26.4 and later, when ``auth_flow`` is "on_behalf_of",
+the end-user identity is used to obtain the database-access token but is not
+included in the security context payload.
+
+For information about the ``end_user_sec_params`` parameters, see
+:ref:`_end_user_security_provider_parameters`.
 
 The examples in the subsequent sections use the
 :ref:`end_user_sec_provider <endusersecurityproviderplugin>` plugin to
 automate the acquisition of tokens from the IAM and set the end-user security
 context payload to connect to :ref:`Oracle Autonomous Database <autonomousdb>`.
+
+.. _endusersecstandalone:
 
 **Standalone Connections Using end_user_sec_provider Plugin**
 
@@ -4006,13 +4059,16 @@ Autonomous Database, you need to explicitly set the ``end_user_sec_params`` key
 of the ``extra_auth_params`` parameter with the IAM or Oracle Database specific
 parameters, and also any other desired parameters of
 :func:`~oracledb.connect()` such as ``config_dir``, ``wallet_location``, and
-``wallet_password``. For example:
+``wallet_password``.
+
+In the ``end_user_sec_params`` key, the end-user identity is optional when
+``auth_flow`` is "client_credentials". The following example creates a
+standalone connection using the "client_credentials" authentication flow
+without specifying an end-user identity:
 
 .. code:: python
 
     import oracledb.plugins.end_user_sec_provider
-
-    oracledb.plugins.end_user_sec_provider.set_end_user_identity(end_user_token)
 
     connection = oracledb.connect(
         dsn=mydb_low,
@@ -4020,25 +4076,106 @@ parameters, and also any other desired parameters of
         wallet_location="location_of_pem_file",
         wallet_password=wp,
         extra_auth_params={
-          "end_user_sec_params":{
-            "spi_type": "oci_tokens",
-            "auth_flow": "client_credentials",        # IAM or database
-            "client_id": <client_id>,                 # specific parameters to
-            "client_credential": <client_credential>, # be set when using the
-            "authority": <authority>,                 # end_user_sec_provider
-            "scopes": <scopes>,                       # plugin
-            "data_roles" : ["HCM_ROLE"],
-          }
-        })
+            "end_user_sec_params": {
+                "spi_type": "oci_tokens",
+                "auth_flow": "client_credentials",
+                "client_id": <client_id>,                 # IAM or database
+                "client_credential": <client_credential>, # specific parameters to
+                "authority": <authority>,                 # be set when using the
+                "scopes": <scopes>,                       # end_user_sec_provider plugin
+                "data_roles": ["HCM_ROLE"],
+            }
+        },
+    )
+
+For the "on_behalf_of" authentication flow, set a non-empty IAM-issued end-user
+token before creating the standalone connection. Call
+:func:`oracledb.plugins.end_user_sec_provider.set_end_user_identity()` to store
+the token in python-oracledb's internal cache for the current thread, see
+:ref:`storesecretvalues`.
+
+For Oracle Database 23.26.4 and later, the end-user token is used to obtain
+the database-access token but is not included in the end-user security context
+payload. For earlier database versions, the available end-user identity is
+included in the payload.
+
+The following example creates a standalone connection using the
+"on_behalf_of" authentication flow:
+
+.. code:: python
+
+    import oracledb.plugins.end_user_sec_provider
+
+    oracledb.plugins.end_user_sec_provider.set_end_user_identity(
+        end_user_token
+    )
+
+    connection = oracledb.connect(
+        dsn=mydb_low,
+        config_dir="path_to_unzipped_wallet",
+        wallet_location="location_of_pem_file",
+        wallet_password=wp,
+        extra_auth_params={
+            "end_user_sec_params": {
+                "spi_type": "azure_tokens",
+                "auth_flow": "on_behalf_of",
+                "client_id": <client_id>,
+                "client_credential": <client_credential>,
+                "authority": <authority>,
+                "scopes": <scopes>,
+            }
+        },
+    )
+
+.. _endusersecpool:
 
 **Connection Pools in Thin Mode Using end_user_sec_provider Plugin**
 
 When using the :ref:`end_user_sec_provider <endusersecurityproviderplugin>`
 plugin to set the end-user security context payload to connect to Oracle
 Autonomous Database, you need to explicitly set the ``end_user_sec_params`` key
-of the ``extra_auth_params`` parameter , and also any other desired parameters
+of the ``extra_auth_params`` parameter, and also any other desired parameters
 of :func:`~oracledb.create_pool` such as ``config_dir``, ``wallet_location``,
-and ``wallet_password``. For example:
+and ``wallet_password``.
+
+The following example creates a connection pool using the "client_credentials"
+authentication flow without specifying an end-user identity:
+
+.. code:: python
+
+    import oracledb.plugins.end_user_sec_provider
+
+    pool = oracledb.create_pool(
+        dsn=mydb_low,
+        config_dir="path_to_unzipped_wallet",
+        wallet_location="location_of_pem_file",
+        wallet_password=wp,
+        extra_auth_params={
+            "end_user_sec_params": {
+                "spi_type": "azure_tokens",
+                "auth_flow": "client_credentials",
+                "client_id": <client_id>,
+                "client_credential": <client_credential>,
+                "authority": <authority>,
+                "scopes": <scopes>,
+                "data_roles": ["HCM_ROLE"],
+            }
+        },
+    )
+
+    connection = pool.acquire()
+
+For the "on_behalf_of" authentication flow, set the end-user identity before
+calling ``pool.acquire()``. The token is required to obtain the database-access
+token.
+
+For Oracle Database 23.26.4 and later, the token is used to obtain the
+database access token but is not included in the security context payload. For
+earlier database versions, the available end-user identity is included in the
+payload.
+
+The following example creates a connection pool using the "on_behalf_of"
+authentication flow and an end-user identity:
 
 .. code:: python
 
@@ -4052,11 +4189,11 @@ and ``wallet_password``. For example:
         extra_auth_params={
           "end_user_sec_params":{
             "spi_type": "azure_tokens",
-            "auth_flow": "client_credentials",        # IAM or database
-            "client_id": <client_id>,                 # specific parameters to
-            "client_credential": <client_credential>, # be set when using the
-            "authority": <authority>,                 # end_user_sec_provider
-            "scopes": <scopes>,                       # plugin
+            "auth_flow": "on_behalf_of",
+            "client_id": <client_id>,
+            "client_credential": <client_credential>,
+            "authority": <authority>,
+            "scopes": <scopes>,
             "data_roles" : ["HCM_ROLE"],
           }
         })

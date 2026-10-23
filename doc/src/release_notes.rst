@@ -33,6 +33,10 @@ Thin Mode Changes
     Security end-user security contexts.
 #)  Fixed handling of token expiration with
     :ref:`Cloud Native Authentication <cloudnativemodules>`.
+#)  Modified :func:`oracledb.create_end_user_security_context()` to make the
+    ``end_user_identity`` parameter optional. The ``end_user_identity``,
+    ``data_roles``, and ``attributes`` must now be supplied as keyword
+    arguments.
 
 Thick Mode Changes
 ++++++++++++++++++

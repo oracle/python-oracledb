@@ -132,6 +132,14 @@ Oracledb Methods
 
     See :ref:`endusersecuritycontextcreation`.
 
+    .. versionchanged:: 26.1.0
+
+        The ``end_user_identity`` parameter is now optional. The
+        ``database_access_token`` parameter can now be supplied positionally or
+        as a keyword argument. The ``end_user_identity``, ``data_roles``, and
+        ``attributes`` parameters must be specified as keyword arguments.
+        Previously, all parameters could be supplied positionally.
+
     .. versionchanged:: 26.0.0
 
         The key value in the two-item tuple ``end_user_identity`` parameter can
@@ -1418,11 +1426,13 @@ See :ref:`cloudnativeauthoauth` for more information.
 End-User Security Provider Plugin
 ---------------------------------
 
-``end_user_sec_provider`` is a plugin that can be imported to retrieve the
-identity of a user, and then create and set up an end-user security context
-payload during connection creation to establish a secure connection to Oracle
-Database. The user identity may be provided by an external identity and access
-management (IAM) system or by Oracle Database.
+``end_user_sec_provider`` is a plugin that can be imported to create and set
+an end-user security context payload during connection creation in order to
+establish a secure connection to Oracle Database. The payload uses a database
+access token obtained through a configured supporting token plugin and may
+include an end-user identity, data roles, and attributes. When the
+``on_behalf_of`` authentication flow is used with Oracle Database 23.26.4 or
+later, the end-user token is not included in the security context payload.
 
 This plugin is implemented as a :ref:`parameter hook function
 <registerparamshook>` which uses an end-user identity stored in the secret

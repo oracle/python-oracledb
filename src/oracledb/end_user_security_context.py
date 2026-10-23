@@ -39,8 +39,9 @@ class EndUserSecurityContext(metaclass=BaseMetaClass):
 
 
 def create_end_user_security_context(
-    end_user_identity: str | tuple[str, str | None],
     database_access_token: str,
+    *,
+    end_user_identity: str | tuple[str, str | None] | None = None,
     data_roles: list[str] | None = None,
     attributes: dict | None = None,
 ) -> EndUserSecurityContext:
@@ -48,7 +49,8 @@ def create_end_user_security_context(
     Creates a new end user security context that contains the identity and
     authorization details.
 
-    The ``end_user_identity`` parameter can be a string or a two-item tuple and
+    The ``end_user_identity`` parameter is optional. When provided, the
+    ``end_user_identity`` can be a string or a two-item tuple and
     specifies the unique identifier of an end user. For OCI IAM or Microsoft
     Entra ID users, this parameter must be a string containing the token issued
     by these IAMs after user authentication. For database managed users, set
@@ -83,10 +85,10 @@ def create_end_user_security_context(
                 "For a two-item tuple end_user_identity, the second item "
                 "(key) must be a non-empty string or None."
             )
-    else:
+    elif end_user_identity is not None:
         raise ValueError(
-            "end_user_identity must be a token string or a two-item tuple "
-            "containing (end_user_name, key)."
+            "end_user_identity must be None, a non-empty token string, or "
+            "a two-item tuple containing (end_user_name, key)."
         )
 
     if not isinstance(database_access_token, str) or not database_access_token:

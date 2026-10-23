@@ -167,7 +167,7 @@ def test_ext_3002(
 
 @pytest.mark.parametrize(
     "nullify_user_token,null_value",
-    [(True, ""), (True, None), (False, ""), (False, None)],
+    [(True, ""), (False, ""), (False, None)],
 )
 def test_ext_3003(deep_data_security_config, nullify_user_token, null_value):
     "E3003 - create_end_user_security_context requires non-empty strings"
@@ -188,10 +188,6 @@ def test_ext_3004(deep_data_security_config):
     "E3004 - create_end_user_security_context validates argument types"
     with pytest.raises(TypeError):
         oracledb.create_end_user_security_context()
-    with pytest.raises(TypeError):
-        oracledb.create_end_user_security_context(
-            database_access_token=deep_data_security_config.db_token
-        )
     with pytest.raises(TypeError):
         oracledb.create_end_user_security_context(
             end_user_identity=deep_data_security_config.user_token
