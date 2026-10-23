@@ -170,7 +170,8 @@ cdef class Protocol(BaseProtocol):
 
         # complete connection through proxy, if applicable
         if use_proxy:
-            data = f"CONNECT {host}:{port} HTTP/1.0\r\n\r\n"
+            data = f"CONNECT {host}:{port} HTTP/1.1\r\n" + \
+                   f"Host: {host}:{port}\r\n\r\n"
             sock.send(data.encode())
             reply = sock.recv(1024)
             m = re.search('HTTP/1.[01]\\s+(\\d+)\\s+', reply.decode())
