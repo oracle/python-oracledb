@@ -926,6 +926,10 @@ cdef class Message:
             self._process_message(buf, message_type)
 
     cdef int send(self, WriteBuffer buf) except -1:
+        """
+        Writes the message to the write buffer in preparation for sending the
+        message to the server.
+        """
         buf.start_request(TNS_PACKET_TYPE_DATA, self.name)
         self._write_message(buf)
         if self.pipeline_result_impl is not None:

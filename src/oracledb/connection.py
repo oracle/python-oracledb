@@ -2223,6 +2223,7 @@ def connect(
     operation_callback: Callable | None = None,
     round_trip_callback: Callable | None = None,
     transaction_priority: oracledb.TransactionPriority | None = None,
+    use_eztls: bool | None = None,
     handle: int | None = None,
 ) -> Connection:
     """
@@ -2542,6 +2543,13 @@ def connect(
       enumeration that specifies the priority of any transaction that is
       created by the connection
       (default: None)
+
+    - ``use_eztls``: boolean indicating whether to use EZTLS. For a connection
+      using TCP this enables TLS encryption over TCP, which is similar to what
+      was previously done with Native Network Encryption (NNE). For a
+      connection using TCPS this allows the server to use a simpler method for
+      authenticating itself
+      (default: False)
 
     - ``handle``: an integer representing a pointer to a valid service context
       handle. This value is only used in python-oracledb Thick mode. It should
@@ -3372,6 +3380,7 @@ def connect_async(
     operation_callback: Callable | None = None,
     round_trip_callback: Callable | None = None,
     transaction_priority: oracledb.TransactionPriority | None = None,
+    use_eztls: bool | None = None,
     handle: int | None = None,
 ) -> AsyncConnection:
     """
@@ -3691,6 +3700,13 @@ def connect_async(
       enumeration that specifies the priority of any transaction that is
       created by the connection
       (default: None)
+
+    - ``use_eztls``: boolean indicating whether to use EZTLS. For a connection
+      using TCP this enables TLS encryption over TCP, which is similar to what
+      was previously done with Native Network Encryption (NNE). For a
+      connection using TCPS this allows the server to use a simpler method for
+      authenticating itself
+      (default: False)
 
     - ``handle``: an integer representing a pointer to a valid service context
       handle. This value is only used in python-oracledb Thick mode. It should

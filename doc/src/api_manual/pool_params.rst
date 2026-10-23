@@ -18,6 +18,10 @@ PoolParams Class
 
     See :ref:`usingpoolparams` for more information.
 
+    .. versionchanged:: 26.1.0
+
+        The ``use_eztls`` parameter was added.
+
     .. versionchanged:: 26.0.0
 
         The ``operation_callback`` and ``round_trip_callback`` parameters were
@@ -74,6 +78,10 @@ PoolParams Methods
 .. automethod:: PoolParams.parse_connect_string
 
 .. automethod:: PoolParams.set
+
+    .. versionchanged:: 26.1.0
+
+        The ``use_eztls`` parameter was added.
 
     .. versionchanged:: 26.0.0
 

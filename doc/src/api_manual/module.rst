@@ -25,6 +25,10 @@ Oracledb Methods
 
 .. autofunction:: connect
 
+    .. versionchanged:: 26.1.0
+
+        The ``use_eztls`` parameter was added.
+
     .. versionchanged:: 26.0.0
 
         The ``operation_callback`` and ``round_trip_callback`` parameters were
@@ -71,6 +75,10 @@ Oracledb Methods
         The ``connection_id_prefix`` parameter was added.
 
 .. autofunction:: connect_async
+
+    .. versionchanged:: 26.1.0
+
+        The ``use_eztls`` parameter was added.
 
     .. versionchanged:: 26.0.0
 
@@ -137,6 +145,10 @@ Oracledb Methods
 
 .. autofunction:: create_pool
 
+    .. versionchanged:: 26.1.0
+
+        The ``use_eztls`` parameter was added.
+
     .. versionchanged:: 26.0.0
 
         The ``operation_callback`` and ``round_trip_callback`` parameters were
@@ -182,6 +194,10 @@ Oracledb Methods
         The ``connection_id_prefix`` parameter was added.
 
 .. autofunction:: create_pool_async
+
+    .. versionchanged:: 26.1.0
+
+        The ``use_eztls`` parameter was added.
 
     .. versionchanged:: 26.0.0
 

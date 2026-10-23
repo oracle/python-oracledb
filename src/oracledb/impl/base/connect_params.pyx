@@ -109,7 +109,8 @@ cdef class ConnectParamsImpl:
                 and other_impl.extra_auth_params == \
                         self.extra_auth_params \
                 and other_impl.thick_mode_dsn_passthrough == \
-                        self.thick_mode_dsn_passthrough
+                        self.thick_mode_dsn_passthrough \
+                and other_impl.use_eztls == self.use_eztls \
 
     def set(self, dict args):
         """
@@ -153,6 +154,7 @@ cdef class ConnectParamsImpl:
         _set_obj_param(args, "extra_auth_params", self)
         _set_bool_param(args, "thick_mode_dsn_passthrough",
                         &self.thick_mode_dsn_passthrough)
+        _set_bool_param(args, "use_eztls", &self.use_eztls)
         self._set_access_token_param(args.get("access_token"))
         self._set_callback_param(args, "on_connect_callback", self)
         self._set_callback_param(args, "operation_callback", self)
@@ -248,6 +250,7 @@ cdef class ConnectParamsImpl:
         self.extra_auth_params = other_params.extra_auth_params
         self.thick_mode_dsn_passthrough = \
                 other_params.thick_mode_dsn_passthrough
+        self.use_eztls = other_params.use_eztls
 
     cdef str _get_connect_string(self):
         """

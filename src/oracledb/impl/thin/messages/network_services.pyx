@@ -56,10 +56,14 @@ cdef enum:
 # other network services constants
 cdef uint32_t TNS_NETWORK_MAGIC = 0xdeadbeef
 cdef uint32_t TNS_NETWORK_VERSION = 0x17700000   # 23.7.0.0.0
+cdef uint8_t TNS_NETWORK_ALG_TLS = 21
 
 cdef class NetworkService:
 
-    cdef uint16_t get_data_size(self):
+    cdef:
+        TlsWrapper tls_wrapper
+
+    cdef uint16_t get_data_size(self, bint in_negotiation):
         """
         Returns the size of the data sent by the service.
         """
@@ -71,6 +75,20 @@ cdef class NetworkService:
         plus error).
         """
         return 2 + 2 + 4
+
+    cdef int on_enable_eztls(self):
+        """
+        Called when EZTLS has been enabled and performs any necessary setup
+        specific to the service.
+        """
+        pass
+
+    cdef int on_complete_negotiation(self) except -1:
+        """
+        Called when negotiation is taking place and performs any necessary
+        setup for the negotiation specific to the service.
+        """
+        pass
 
     cdef int read_response(self, ReadBuffer buf,
                            NetworkServicesMessage message) except -1:
@@ -108,12 +126,12 @@ cdef class NetworkService:
         """
         Skips the subpacket data from the server response.
         """
-        cdef uint16_t data_length
+        cdef uint16_t data_length, data_type
         buf.read_uint16be(&data_length)
         buf.skip_raw_bytes(2)               # data type
         buf.skip_raw_bytes(data_length)
 
-    cdef int write_data(self, WriteBuffer buf,
+    cdef int write_data(self, WriteBuffer buf, bint in_negotiation,
                         bytes connection_id_bytes) except -1:
         """
         Writes the data for the service to the buffer.
@@ -140,12 +158,18 @@ cdef class NetworkService:
 
 cdef class AuthenticationService(NetworkService):
 
-    cdef uint16_t get_data_size(self):
+    cdef uint16_t get_data_size(self, bint in_negotiation):
         """
         Returns the size of the data sent by the service. All that is currently
         supported is TCPS authentication.
         """
-        return self.get_header_size() + 8 + 6 + 6 + 5 + 8
+        cdef uint16_t data_size
+        if in_negotiation:
+            return 0
+        data_size = self.get_header_size() + 8 + 6 + 6
+        if self.tls_wrapper is None:
+            data_size += 5 + 8
+        return data_size
 
     cdef int read_subpackets(self, ReadBuffer buf,
                              uint16_t num_subpackets,
@@ -164,14 +188,23 @@ cdef class AuthenticationService(NetworkService):
             errors._raise_err(errors.ERR_ANO_STATUS_FAILURE,
                               service_name="authentication")
 
-    cdef int write_data(self, WriteBuffer buf,
+    cdef int write_data(self, WriteBuffer buf, bint in_negotiation,
                         bytes connection_id_bytes) except -1:
         """
         Writes the data for the service to the buffer.
         """
+        cdef uint16_t num_sub_packets = 3
+
+        # nothing to write in negotiation
+        if in_negotiation:
+            return 0
 
         # write header and version (sub packet 1)
-        self.write_header(buf, TNS_NETWORK_SERVICE_AUTH, num_sub_packets=5)
+        if self.tls_wrapper is None:
+            num_sub_packets += 2
+        self.write_header(
+            buf, TNS_NETWORK_SERVICE_AUTH, num_sub_packets=num_sub_packets
+        )
         self.write_version(buf)
 
         # write auth type (sub packet 2)
@@ -184,30 +217,36 @@ cdef class AuthenticationService(NetworkService):
         buf.write_uint16be(TNS_NETWORK_TYPE_STATUS)
         buf.write_uint16be(TNS_NETWORK_AUTH_STATUS_NOT_REQUIRED)
 
-        # write authentication ids (sub packet 4)
-        buf.write_uint16be(1)           # length
-        buf.write_uint16be(TNS_NETWORK_TYPE_UB1)
-        buf.write_uint8(2)              # TCPS authentication id
+        if self.tls_wrapper is None:
+            # write authentication ids (sub packet 4)
+            buf.write_uint16be(1)           # length
+            buf.write_uint16be(TNS_NETWORK_TYPE_UB1)
+            buf.write_uint8(2)              # TCPS authentication id
 
-        # write authentication names (sub packet 5)
-        buf.write_uint16be(4)           # length
-        buf.write_uint16be(TNS_NETWORK_TYPE_STRING)
-        buf.write_bytes(b"tcps")        # TCPS authentication name
+            # write authentication names (sub packet 5)
+            buf.write_uint16be(4)           # length
+            buf.write_uint16be(TNS_NETWORK_TYPE_STRING)
+            buf.write_bytes(b"tcps")        # TCPS authentication name
 
 
 cdef class DataIntegrityService(NetworkService):
 
-    cdef uint16_t get_data_size(self):
+    cdef uint16_t get_data_size(self, bint in_negotiation):
         """
         Returns the size of the service.
         """
+        if in_negotiation:
+            return 0
         return self.get_header_size() + 8 + 5
 
-    cdef int write_data(self, WriteBuffer buf,
+    cdef int write_data(self, WriteBuffer buf, bint in_negotiation,
                         bytes connection_id_bytes) except -1:
         """
         Writes the data for the service to the buffer.
         """
+        # nothing to write in negotiation
+        if in_negotiation:
+            return 0
 
         # write header and version (sub packet 1)
         self.write_header(buf, TNS_NETWORK_SERVICE_DATA_INTEGRITY,
@@ -221,36 +260,117 @@ cdef class DataIntegrityService(NetworkService):
 
 
 cdef class EncryptionService(NetworkService):
+    cdef:
+        bytes outgoing_data
 
-    cdef uint16_t get_data_size(self):
+    cdef uint16_t get_data_size(self, bint in_negotiation):
         """
         Returns the size of the service.
         """
-        return self.get_header_size() + 8 + 5
+        cdef uint16_t data_size
+        if in_negotiation:
+            return self.get_header_size() + 4 + len(self.outgoing_data)
+        data_size = self.get_header_size() + 8 + 5
+        if self.tls_wrapper is not None:
+            data_size += 1 + len(self.outgoing_data) + 4
+        return data_size
 
-    cdef int write_data(self, WriteBuffer buf,
+    cdef int on_enable_eztls(self):
+        """
+        Called when EZTLS has been enabled and performs any necessary setup
+        specific to the service.
+        """
+        self.outgoing_data = self.tls_wrapper.read_outgoing_data()
+
+    cdef int on_complete_negotiation(self) except -1:
+        """
+        Called when negotiation is taking place and performs any necessary
+        setup for the negotiation specific to the service.
+        """
+        self.outgoing_data = self.tls_wrapper.read_outgoing_data()
+
+    cdef int read_subpackets(self, ReadBuffer buf,
+                             uint16_t num_subpackets,
+                             NetworkServicesMessage message) except -1:
+        """
+        Reads the sub packets from the response.
+        """
+        cdef:
+            uint16_t data_length, i
+            bint enabled = False
+            const char_type *ptr
+            uint8_t alg
+        if self.tls_wrapper is None:
+            return NetworkService.read_subpackets(
+                self, buf, num_subpackets, message
+            )
+        self.skip_subpacket(buf)            # version
+        buf.read_uint16be(&data_length)
+        buf.skip_raw_bytes(2)               # data type
+        for i in range(data_length):
+            buf.read_ub1(&alg)
+            if alg == TNS_NETWORK_ALG_TLS:
+                enabled = True
+        if not enabled:
+            errors._raise_err(errors.ERR_SERVER_REFUSED_EZTLS, protocol="tcp")
+        buf.read_uint16be(&data_length)
+        buf.skip_raw_bytes(2)               # data type
+        ptr = buf.read_raw_bytes(data_length)
+        self.outgoing_data = \
+                self.tls_wrapper.continue_handshake(ptr[:data_length])
+
+    cdef int write_data(self, WriteBuffer buf, bint in_negotiation,
                         bytes connection_id_bytes) except -1:
         """
         Writes the data for the service to the buffer.
         """
+        cdef uint16_t num_sub_packets, num_algos
 
-        # write header and version (sub packet 1)
+        # determine the number of options (initial packet) and subpackets
+        if in_negotiation:
+            num_sub_packets = 1
+        elif self.tls_wrapper is not None:
+            num_sub_packets = 3
+            num_algos = 2
+        else:
+            num_sub_packets = 2
+            num_algos = 1
+
         self.write_header(buf, TNS_NETWORK_SERVICE_ENCRYPTION,
-                          num_sub_packets=2)
-        self.write_version(buf)
+                          num_sub_packets=num_sub_packets)
 
-        # write options (sub packet 2)
-        buf.write_uint16be(1)               # length
-        buf.write_uint16be(TNS_NETWORK_TYPE_RAW)
-        buf.write_uint8(0)                  # no encryption
+        # in negotiation, only write the TLS wrapper outgoing data
+        if in_negotiation:
+            buf.write_uint16be(<uint16_t> len(self.outgoing_data))
+            buf.write_uint16be(TNS_NETWORK_TYPE_RAW)
+            buf.write_bytes(self.outgoing_data)
+
+        # otherwise, write the normal data
+        else:
+            self.write_version(buf)
+
+            # write options (sub packet 2)
+            buf.write_uint16be(num_algos)       # length (number of algorithms)
+            buf.write_uint16be(TNS_NETWORK_TYPE_RAW)
+            buf.write_uint8(0)                  # no encryption
+            if self.tls_wrapper is not None:
+                buf.write_uint8(TNS_NETWORK_ALG_TLS)
+
+            # write ClientHello (sub packet 3)
+            if self.tls_wrapper is not None:
+                buf.write_uint16be(<uint16_t> len(self.outgoing_data))
+                buf.write_uint16be(TNS_NETWORK_TYPE_RAW)
+                buf.write_bytes(self.outgoing_data)
 
 
 cdef class SupervisorService(NetworkService):
 
-    cdef uint16_t get_data_size(self):
+    cdef uint16_t get_data_size(self, bint in_negotiation):
         """
         Returns the size of the service.
         """
+        if in_negotiation:
+            return 0
         return self.get_header_size() + 8 + 12 + 22
 
     cdef int read_subpackets(self, ReadBuffer buf,
@@ -267,11 +387,15 @@ cdef class SupervisorService(NetworkService):
                               service_name="supervisor")
         self.skip_subpacket(buf)            # array of services
 
-    cdef int write_data(self, WriteBuffer buf,
+    cdef int write_data(self, WriteBuffer buf, bint in_negotiation,
                         bytes connection_id_bytes) except -1:
         """
         Writes the data for the service to the buffer.
         """
+
+        # nothing to write in negotiation
+        if in_negotiation:
+            return 0
 
         # write header and version (sub packet 1)
         self.write_header(buf, TNS_NETWORK_SERVICE_SUPERVISOR,
@@ -299,6 +423,8 @@ cdef class SupervisorService(NetworkService):
 cdef class NetworkServicesMessage(Message):
     cdef:
         bint external_auth_configured
+        TlsWrapper tls_wrapper
+        bint in_negotiation
         list services
 
     cdef int _initialize_hook(self) except -1:
@@ -325,7 +451,7 @@ cdef class NetworkServicesMessage(Message):
         num_services = 0
         packet_length = 4 + 2 + 4 + 2 + 1
         for service in self.services:
-            service_data_length = service.get_data_size()
+            service_data_length = service.get_data_size(self.in_negotiation)
             if service_data_length != 0:
                 num_services += 1
                 packet_length += service_data_length
@@ -339,7 +465,27 @@ cdef class NetworkServicesMessage(Message):
 
         # write service data
         for service in self.services:
-            service.write_data(buf, self.conn_impl._connection_id_bytes)
+            service.write_data(buf, self.in_negotiation,
+                               self.conn_impl._connection_id_bytes)
+
+    cdef int enable_eztls(self) except -1:
+        """
+        Adds a TLS wrapper to the network services for enabling TLS over TCP.
+        """
+        cdef NetworkService service
+        self.tls_wrapper = TlsWrapper()
+        for service in self.services:
+            service.tls_wrapper = self.tls_wrapper
+            service.on_enable_eztls()
+
+    cdef int complete_negotiation(self) except -1:
+        """
+        Completes any negotiation that is required.
+        """
+        cdef NetworkService service
+        for service in self.services:
+            service.on_complete_negotiation()
+        self.in_negotiation = True
 
     cdef int process(self, ReadBuffer buf) except -1:
         """

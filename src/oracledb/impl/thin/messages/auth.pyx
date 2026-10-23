@@ -65,18 +65,18 @@ cdef class AuthMessage(Message):
         """
         Encrypts the passwords using the session key.
         """
+        cdef bytes session_key = self.conn_impl._session_key()
 
         # encrypt password
         salt = secrets.token_bytes(16)
         password_with_salt = salt + self.password
-        encrypted_password = encrypt_cbc(self.conn_impl._combo_key,
-                                         password_with_salt)
+        encrypted_password = encrypt_cbc(session_key, password_with_salt)
         self.encoded_password = encrypted_password.hex().upper()
 
         # encrypt new password
         if self.newpassword is not None:
             newpassword_with_salt = salt + self.newpassword
-            encrypted_newpassword = encrypt_cbc(self.conn_impl._combo_key,
+            encrypted_newpassword = encrypt_cbc(session_key,
                                                 newpassword_with_salt)
             self.encoded_newpassword = encrypted_newpassword.hex().upper()
 
@@ -85,7 +85,7 @@ cdef class AuthMessage(Message):
         Generate the multi-round verifier.
         """
         cdef:
-            bytes jdwp_data
+            bytes jdwp_data, session_key
             bytearray b
             ssize_t i
 
@@ -123,22 +123,22 @@ cdef class AuthMessage(Message):
                 b[i - 16] = session_key_part_a[i] ^ session_key_part_b[i]
             part1 = hashlib.md5(b[:16]).digest()
             part2 = hashlib.md5(b[16:]).digest()
-            combo_key = (part1 + part2)[:keylen]
+            session_key = (part1 + part2)[:keylen]
         else:
             self.session_key = encoded_client_key.hex().upper()[:64]
             salt = bytes.fromhex(self.session_data['AUTH_PBKDF2_CSK_SALT'])
             iterations = int(self.session_data['AUTH_PBKDF2_SDER_COUNT'])
             temp_key = session_key_part_b[:keylen] + session_key_part_a[:keylen]
-            combo_key = get_derived_key(temp_key.hex().upper().encode(), salt,
-                                        keylen, iterations)
+            session_key = get_derived_key(temp_key.hex().upper().encode(),
+                                          salt, keylen, iterations)
 
-        # retain session key for use by the change password API
-        self.conn_impl._combo_key = combo_key
+        # retain session key
+        self.conn_impl._protocol._transport._session_key = session_key
 
         # generate speedy key for 12c verifiers
         if self.verifier_type == TNS_VERIFIER_TYPE_12C:
             salt = secrets.token_bytes(16)
-            speedy_key = encrypt_cbc(combo_key, salt + password_key)
+            speedy_key = encrypt_cbc(session_key, salt + password_key)
             self.speedy_key = speedy_key[:80].hex().upper()
 
         # encrypts the passwords
@@ -148,7 +148,8 @@ cdef class AuthMessage(Message):
         # combo session key with zeros padding
         if self.debug_jdwp is not None:
             jdwp_data = self.debug_jdwp.encode()
-            encrypted_jdwp_data = encrypt_cbc(combo_key, jdwp_data, zeros=True)
+            encrypted_jdwp_data = encrypt_cbc(session_key, jdwp_data,
+                                              zeros=True)
             # Add a "01" at the end of the hex encrypted data to indicate the
             # use of AES encryption
             self.encoded_jdwp_data = encrypted_jdwp_data.hex().upper() + "01"
@@ -232,13 +233,13 @@ cdef class AuthMessage(Message):
         if self.function_code == TNS_FUNC_AUTH_PHASE_ONE:
             self.function_code = TNS_FUNC_AUTH_PHASE_TWO
         elif not self.change_password \
-                and self.conn_impl._combo_key is not None:
+                and self.conn_impl._session_key() is not None:
             response = None
             value = self.session_data.get("AUTH_SVR_RESPONSE")
             if value is not None:
                 encoded_response = bytes.fromhex(value)
                 response = decrypt_cbc(
-                    self.conn_impl._combo_key, encoded_response
+                    self.conn_impl._session_key(), encoded_response
                 )
             if response is None or response[16:32] != b"SERVER_TO_CLIENT":
                 errors._raise_err(errors.ERR_INVALID_SERVER_RESPONSE)

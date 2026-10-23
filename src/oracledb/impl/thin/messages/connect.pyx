@@ -69,7 +69,7 @@ cdef class ConnectMessage(Message):
             buf.read_uint16be(&protocol_options)
             buf.skip_raw_bytes(10)
             buf.read_ub1(&flags1)
-            if flags1 & TNS_NSI_NA_REQUIRED:
+            if flags1 & TNS_NSI_NA_REQUIRED and not self.params.use_eztls:
                 feature = "Native Network Encryption and Data Integrity"
                 errors._raise_not_supported(feature)
             buf.skip_raw_bytes(9)
@@ -79,6 +79,13 @@ cdef class ConnectMessage(Message):
                 buf.read_uint32be(&flags2)
             buf._caps._adjust_for_protocol(protocol_version, protocol_options,
                                            flags2)
+            if self.params.use_eztls:
+                if self.address.protocol == "tcps" \
+                        and flags2 & TNS_CONNECT_FLAGS_EZTLS_TCPS == 0 \
+                        or self.address.protocol == "tcp" \
+                        and flags2 & TNS_CONNECT_FLAGS_EZTLS_TCP == 0:
+                    errors._raise_err(errors.ERR_SERVER_REFUSED_EZTLS,
+                                      protocol = self.address.protocol)
             buf._transport._full_packet_size = True
         elif buf._current_packet.packet_type == TNS_PACKET_TYPE_REFUSE:
             response = self.error_info.message
@@ -110,13 +117,19 @@ cdef class ConnectMessage(Message):
             uint32_t connect_flags_1 = 0, connect_flags_2 = 0
             uint8_t nsi_flags
         nsi_flags = TNS_NSI_SUPPORT_SECURITY_RENEG
-        if not self.params.externalauth \
-                or self.address.protocol != "tcps" \
-                or self.description.wallet_location is None:
+        if self.params.use_eztls:
+            if self.address.protocol == "tcps":
+                connect_flags_2 |= TNS_CONNECT_FLAGS_EZTLS_TCPS
+            else:
+                connect_flags_2 |= TNS_CONNECT_FLAGS_EZTLS_TCP
+        if not (self.params.use_eztls and self.address.protocol == "tcp") \
+                and not (self.params.externalauth \
+                        and self.address.protocol == "tcps" \
+                        and self.description.wallet_location is not None):
             nsi_flags |= TNS_NSI_NA_DISABLED
         if buf._caps.supports_oob:
             service_options |= TNS_GSO_CAN_RECV_ATTENTION
-            connect_flags_2 |= TNS_CHECK_OOB
+            connect_flags_2 |= TNS_CONNECT_FLAGS_CHECK_OOB
         buf.start_request(
             TNS_PACKET_TYPE_CONNECT, self.name, self.packet_flags
         )

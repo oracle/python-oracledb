@@ -32,6 +32,7 @@
 
 cdef enum:
     PACKET_HEADER_SIZE = 8
+    DATA_PACKET_HEADER_SIZE = PACKET_HEADER_SIZE + 2
     CHUNKED_BYTES_CHUNK_SIZE = 65536
 
 cdef struct BytesChunk:
@@ -815,14 +816,6 @@ cdef class WriteBuffer(Buffer):
         """
         if self._pos > PACKET_HEADER_SIZE:
             self._send_packet(final_packet=True)
-
-    cdef inline ssize_t max_payload_bytes(self):
-        """
-        Return the maximum number of bytes that can be sent in a packet. This
-        is the maximum size of the entire packet, less the bytes in the header
-        and 2 bytes for the data flags.
-        """
-        return self._max_size - PACKET_HEADER_SIZE - 2
 
     cdef void start_request(self, uint8_t packet_type, str name,
                             uint8_t packet_flags=0, uint16_t data_flags=0):

@@ -71,7 +71,7 @@ cdef class Buffer:
         """
         Initialize the buffer with an empty bytearray of the specified size.
         """
-        self._max_size = max_size
+        self._max_size = self._alloc_size = max_size
         self._data_obj = bytearray(max_size)
         self._data_view = self._data_obj
         self._data = <char_type*> self._data_obj
@@ -80,7 +80,7 @@ cdef class Buffer:
         """
         Initialize the buffer with the data in the specified byte string.
         """
-        self._max_size = self._size = len(data)
+        self._max_size = self._alloc_size = self._size = len(data)
         self._data_obj = bytearray(data)
         self._data_view = self._data_obj
         self._data = <char_type*> self._data_obj
@@ -105,7 +105,7 @@ cdef class Buffer:
         data_obj = bytearray(new_max_size)
         data = <char_type*> data_obj
         memcpy(data, self._data, self._max_size)
-        self._max_size = new_max_size
+        self._max_size = self._alloc_size = new_max_size
         self._data_obj = data_obj
         self._data_view = data_obj
         self._data = data
@@ -435,6 +435,13 @@ cdef class Buffer:
         Read a 32-bit integer in big endian order from the buffer.
         """
         value[0] = decode_uint32be(self._get_raw(4))
+
+    cdef int set_padding_size(self, ssize_t value) except -1:
+        """
+        Sets the padding size to use. This reduces the maximum size from the
+        allocated size.
+        """
+        self._max_size = self._alloc_size - value
 
     cdef int skip_bytes(self) except -1:
         """

@@ -101,7 +101,6 @@ cdef class ThinConnImpl(BaseConnImpl):
         uint32_t _call_timeout
         str _cclass
         int _dbobject_type_cache_num
-        bytes _combo_key
         bytes _connection_id_bytes
         str _connection_id
         bint _is_pooled
@@ -133,16 +132,19 @@ cdef class ThinConnImpl(BaseConnImpl):
 
     def _close(self):
         """
-        Closes the connection to the database.
+        Closes the connection to the database. If recovery should not be
+        attempted, the logoff and eof messages are not sent, since they will
+        result in an error anyway.
         """
         cdef WriteBuffer buf = self._protocol._write_buf
         try:
             self._clear_dbobject_type_cache()
             self._protocol._check_is_healthy()
-            if self._protocol._transport is not None and not self._drcp_enabled:
+            if self._protocol._should_attempt_recovery() \
+                    and not self._drcp_enabled:
                 yield self._create_message(LogoffMessage, "logoff")
             self._protocol._check_is_healthy()
-            if self._protocol._transport is not None:
+            if self._protocol._should_attempt_recovery():
                 buf.start_request(TNS_PACKET_TYPE_DATA, "eof", 0,
                                   TNS_DATA_FLAGS_EOF)
                 buf.end_request()
@@ -307,6 +309,7 @@ cdef class ThinConnImpl(BaseConnImpl):
                 if packet_flags & TNS_PACKET_FLAG_TLS_RENEG:
                     negotiate_tls_sub_op = \
                             NegotiateTlsSubOp.__new__(NegotiateTlsSubOp)
+                    negotiate_tls_sub_op.params = self.connect_params
                     negotiate_tls_sub_op.description = description
                     negotiate_tls_sub_op.address = address
                     negotiate_tls_sub_op.conn_impl = self
@@ -321,6 +324,7 @@ cdef class ThinConnImpl(BaseConnImpl):
         an exception will be raised.
         """
         cdef:
+            NetworkServicesMessage network_services_message
             DataTypesMessage data_types_message
             FastAuthMessage fast_auth_message
             ProtocolMessage protocol_message
@@ -349,11 +353,21 @@ cdef class ThinConnImpl(BaseConnImpl):
             )
 
         # send the network services message, if applicable
-        if self.connect_params.externalauth and address.protocol == "tcps" \
-                and description.wallet_location is not None:
-            yield self._create_message(
+        if (self.connect_params.use_eztls and address.protocol == "tcp") \
+                or (self.connect_params.externalauth \
+                        and address.protocol == "tcps" \
+                        and description.wallet_location is not None):
+            network_services_message = self._create_message(
                 NetworkServicesMessage, "network_services"
             )
+            if self.connect_params.use_eztls and address.protocol == "tcp":
+                network_services_message.enable_eztls()
+            yield network_services_message
+            if network_services_message.tls_wrapper is not None:
+                network_services_message.complete_negotiation()
+                network_services_message.send(self._protocol._write_buf)
+                self._protocol._transport._tls_wrapper = \
+                        network_services_message.tls_wrapper
 
         # create the messages that need to be sent to the server
         protocol_message = self._create_message(ProtocolMessage, "protocol")
@@ -648,6 +662,14 @@ cdef class ThinConnImpl(BaseConnImpl):
         self.warning = auth_message.warning
         buf._pending_error_num = 0
         self._protocol._in_connect = False
+        if self.connect_params.use_eztls:
+            self._protocol._transport._requires_verify_write = True
+            # ensure that the first packet does not exceed the maximum allowed
+            # for encryption expansion and the server verification structure
+            # - 24 bytes for verification structure
+            # - 64 bytes for digest of server certificate
+            # - 128 bytes for encryption expansion
+            self._protocol._write_buf.set_padding_size(24 + 64 + 128)
 
     async def _process_async_operation_sub_op(self, object sub_op):
         """
@@ -723,6 +745,15 @@ cdef class ThinConnImpl(BaseConnImpl):
                               op_type=op_impl.op_type)
         result_impl.warning = cursor.warning
         result_impl.fetch_metadata = cursor._impl.fetch_metadata
+
+    cdef bytes _session_key(self):
+        """
+        Returns the session key that is used to encrypt/decrypt secrets sent
+        to and received from the database. If password authentication was not
+        used, this value is None.
+        """
+        if self._protocol._transport is not None:
+            return self._protocol._transport._session_key
 
     cdef int _start_sessionless_transaction(
         self,
@@ -1374,6 +1405,7 @@ cdef class TcpConnectSubOp(SubOperation):
 cdef class NegotiateTlsSubOp(SubOperation):
     cdef:
         ThinConnImpl conn_impl
+        ConnectParamsImpl params
         Description description
         Address address
         object orig_transport
@@ -1383,7 +1415,7 @@ cdef class NegotiateTlsSubOp(SubOperation):
         Runs the callback synchronously.
         """
         self.conn_impl._protocol._transport.renegotiate_tls(
-            self.address, self.description
+            self.params, self.address, self.description
         )
 
     async def process_async(self):
@@ -1392,5 +1424,8 @@ cdef class NegotiateTlsSubOp(SubOperation):
         """
         self.conn_impl._protocol._transport._transport = self.orig_transport
         await self.conn_impl._protocol._transport.negotiate_tls_async(
-            self.conn_impl._protocol, self.address, self.description
+            self.conn_impl._protocol,
+            self.params,
+            self.address,
+            self.description,
         )

@@ -36,12 +36,19 @@ cdef class Transport:
     cdef:
         object _transport
         object _ssl_context
+        TlsWrapper _tls_wrapper
         str _ssl_sni_data
         Address _address
         uint32_t _transport_num
         ssize_t _max_packet_size
         uint32_t _op_num
+        bytes _session_key
+        bytes _server_verify_digest
+        bytes _server_verify_key
+        bytes _server_verify_iv
         bytes _partial_buf
+        bint _requires_verify_write
+        bint _requires_verify_read
         bint _full_packet_size
         bint _is_async
 
@@ -59,6 +66,18 @@ cdef class Transport:
             f".V3.{TNS_VERSION_DESIRED}"
         )
 
+    cdef bytes _get_certificate(self):
+        """
+        Returns the certificate in use for TLS.
+        """
+        if self._tls_wrapper is not None:
+            ssl_obj = self._tls_wrapper.ssl_obj
+        elif self._is_async:
+            ssl_obj = self._transport.get_extra_info("ssl_object")
+        else:
+            ssl_obj = self._transport
+        return ssl_obj.getpeercert(binary_form=True)
+
     cdef str _get_debugging_header(self, str operation):
         """
         Returns the header line used for debugging packets.
@@ -73,6 +92,129 @@ cdef class Transport:
             f"{current_date} "
             f"{operation} [op {self._op_num}] on socket {self._transport_num}"
         )
+
+    cdef tuple _get_server_verify_key_and_iv(self, uint16_t iterations):
+        """
+        Returns the key and iv used for encryption during server verification.
+        """
+        cdef bytes encoded_key, derived_key
+        encoded_key = base64.b64encode(self._session_key)
+        derived_key = get_derived_key(encoded_key, bytes(32), 64, iterations)
+        return (derived_key[:32], derived_key[32:48])
+
+    cdef bytes _get_server_verify_request_data(self, WriteBuffer buf,
+                                               bytes packet_data):
+        """
+        Takes the packet data and creates the server verify request data from
+        it and the certificate in use for TLS. Returns the data that needs to
+        be sent to the server to request verification.
+        """
+        cdef:
+            uint16_t iterations = 256, tag_len = 16
+            bytes data, key, iv
+        try:
+            # remove extra padding in order to write server verify structure
+            if self._tls_wrapper is not None:
+                packet_data = packet_data[DATA_PACKET_HEADER_SIZE:]
+                buf.set_padding_size(64)
+                buf._pos = DATA_PACKET_HEADER_SIZE
+            else:
+                buf.set_padding_size(0)
+                buf._pos = 0
+
+            # write key verify data
+            self._server_verify_digest = hmac.digest(
+                self._session_key, self._get_certificate(), "sha512"
+            )
+            buf.write_uint16be(TNS_SERVER_VERIFY_HEADER)
+            buf.write_uint16be(TNS_SERVER_VERIFY_TYPE_HMAC_SHA512)
+            buf.write_uint16be(<uint16_t> len(self._server_verify_digest))
+            buf.write_bytes(self._server_verify_digest)
+            buf.write_uint16be(TNS_SERVER_VERIFY_FOOTER)
+
+            # encrypt data using derived key
+            key, iv = self._get_server_verify_key_and_iv(iterations)
+            encrypted_data = encrypt_gcm(key, packet_data, iv)
+
+            # write encrypted data block
+            buf.write_uint16be(TNS_SERVER_VERFIY_ENCRYPT_AES256_GCM)
+            buf.write_uint16be(iterations)
+            buf.write_uint16be(tag_len)
+            buf.write_bytes(encrypted_data[-tag_len:])
+            buf.write_uint16be(<uint16_t> len(encrypted_data) - tag_len)
+            buf.write_bytes(encrypted_data[:-tag_len])
+            data = buf._data[:buf._pos]
+            if DEBUG_PACKETS:
+                self._print_packet("Sending server verification", data)
+
+            # server verification is needed for the response
+            self._requires_verify_write = False
+            self._requires_verify_read = True
+            return data
+        except Exception as e:
+            errors._raise_err(errors.ERR_SERVER_VERIFY_FAILED, cause=e)
+
+    cdef bytes _get_server_verify_response_data(self, bytes packet_data):
+        """
+        Returns the decrypted first packet data after verifying the server.
+        """
+        cdef:
+            uint16_t temp16, verify_type, encrypt_type, data_len, iterations
+            Buffer buf = Buffer.__new__(Buffer)
+            bytes data, tag
+        try:
+            # read key verify data
+            buf._populate_from_bytes(packet_data)
+            if DEBUG_PACKETS:
+                self._print_packet("Receiving server verification", packet_data)
+            buf.read_uint16be(&temp16)
+            if temp16 != TNS_SERVER_VERIFY_HEADER:
+                errors._raise_err(errors.ERR_SERVER_VERIFY_FAILED)
+            buf.read_uint16be(&verify_type)
+            buf.read_uint16be(&data_len)
+            data = buf.read_raw_bytes(data_len)[:data_len]
+            buf.read_uint16be(&temp16)
+            if temp16 != TNS_SERVER_VERIFY_FOOTER:
+                errors._raise_err(errors.ERR_SERVER_VERIFY_FAILED)
+
+            # verify server
+            cert_obj = x509.load_der_x509_certificate(self._get_certificate())
+            public_key = cert_obj.public_key()
+            if verify_type == TNS_SERVER_VERIFY_TYPE_ECDSA_SHA256:
+                public_key.verify(
+                    data, self._server_verify_digest, ec.ECDSA(hashes.SHA256())
+                )
+            elif verify_type == TNS_SERVER_VERIFY_TYPE_RSA_SHA256:
+                public_key.verify(
+                    data,
+                    self._server_verify_digest,
+                    padding.PKCS1v15(),
+                    hashes.SHA256()
+                )
+            else:
+                errors._raise_err(errors.ERR_SERVER_VERIFY_FAILED)
+
+            # read encrypted data block
+            buf.read_uint16be(&encrypt_type)
+            if encrypt_type != TNS_SERVER_VERFIY_ENCRYPT_AES256_GCM:
+                errors._raise_err(errors.ERR_SERVER_VERIFY_FAILED)
+            buf.read_uint16be(&iterations)
+            buf.read_uint16be(&data_len)
+            tag = buf.read_raw_bytes(data_len)[:data_len]
+            buf.read_uint16be(&data_len)
+            data = buf.read_raw_bytes(data_len)[:data_len]
+
+            # decrypt data using derived key
+            key, iv = self._get_server_verify_key_and_iv(iterations)
+            data = decrypt_gcm(key, data + tag, iv)
+
+            # server verification is no longer needed
+            self._requires_verify_read = False
+            return data
+        except exceptions.DatabaseError:
+            raise
+        except Exception as e:
+            errors._raise_err(errors.ERR_SERVER_VERIFY_FAILED, cause=e)
 
     cdef int _print_output(self, str text) except -1:
         """
@@ -179,6 +321,10 @@ cdef class Transport:
         # established
         self._ssl_context.check_hostname = False
 
+        # when using EZTLS, no certificate validation takes place
+        if params.use_eztls:
+            self._ssl_context.verify_mode = ssl.CERT_NONE
+
         # calculate the SNI data to send to the server, if applicable
         if description.use_sni:
             self._ssl_sni_data = self._calc_sni_data(description)
@@ -204,6 +350,10 @@ cdef class Transport:
             else:
                 self._partial_buf += data
         size = 0 if self._partial_buf is None else len(self._partial_buf)
+        if size > 0 and self._requires_verify_read \
+                and self._tls_wrapper is None:
+            self._partial_buf = \
+                    self._get_server_verify_response_data(self._partial_buf)
 
         # if enough bytes for the packet header, extract the packet size
         if size >= PACKET_HEADER_SIZE:
@@ -231,6 +381,17 @@ cdef class Transport:
                     packet.buf = self._partial_buf[:packet_size]
                     self._partial_buf = self._partial_buf[packet_size:]
 
+                # decrypt packet, if applicable
+                if self._tls_wrapper is not None:
+                    packet.buf = \
+                            self._tls_wrapper.process_incoming_data(packet.buf)
+                    if self._requires_verify_read:
+                        packet.buf = packet.buf[:DATA_PACKET_HEADER_SIZE] + \
+                                self._get_server_verify_response_data(
+                                    packet.buf[DATA_PACKET_HEADER_SIZE:]
+                                )
+                        packet.packet_size = len(packet.buf)
+
                 # display packet, if requested
                 if DEBUG_PACKETS:
                     self._print_packet("Receiving packet", packet.buf)
@@ -256,8 +417,8 @@ cdef class Transport:
         read_socks, _, _ = select.select(socket_list, [], [], 0)
         data_ready[0] = bool(read_socks)
 
-    cdef int negotiate_tls(self, object sock, Address address,
-                           Description description) except -1:
+    cdef int negotiate_tls(self, object sock, ConnectParamsImpl params,
+                           Address address, Description description) except -1:
         """
         Negotiate TLS on the socket.
         """
@@ -266,11 +427,11 @@ cdef class Transport:
         self._transport = self._ssl_context.wrap_socket(
             sock, server_hostname=self._ssl_sni_data
         )
-        if description.ssl_server_dn_match:
+        if description.ssl_server_dn_match and not params.use_eztls:
             check_server_dn(self._transport, description.ssl_server_cert_dn,
                             address.host)
 
-    cdef int renegotiate_tls(self, Address address,
+    cdef int renegotiate_tls(self, ConnectParamsImpl params, Address address,
                              Description description) except -1:
         """
         Renegotiate TLS on the socket.
@@ -278,10 +439,11 @@ cdef class Transport:
         orig_sock = self._transport
         sock = socket.socket(family=orig_sock.family, type=orig_sock.type,
                              proto=orig_sock.proto, fileno=orig_sock.detach())
-        self.negotiate_tls(sock, address, description)
+        self.negotiate_tls(sock, params, address, description)
 
     async def negotiate_tls_async(self, BaseAsyncProtocol protocol,
-                                  Address address, Description description):
+                                  ConnectParamsImpl params, Address address,
+                                  Description description):
         """
         Negotiate TLS on the socket asynchronously.
         """
@@ -294,7 +456,7 @@ cdef class Transport:
             self._ssl_context,
             server_hostname=self._ssl_sni_data
         )
-        if description.ssl_server_dn_match:
+        if description.ssl_server_dn_match and not params.use_eztls:
             sock = self._transport.get_extra_info("ssl_object")
             check_server_dn(sock, description.ssl_server_cert_dn, address.host)
         return orig_transport
@@ -376,6 +538,10 @@ cdef class Transport:
         cdef bytes data = buf._data[:buf._pos]
         if DEBUG_PACKETS:
             self._print_packet(f"Sending request {buf._request_name}", data)
+        if self._requires_verify_write:
+            data = self._get_server_verify_request_data(buf, data)
+        if self._tls_wrapper is not None:
+            data = self._tls_wrapper.process_outgoing_data(data)
         try:
             if self._is_async:
                 self._transport.write(data)

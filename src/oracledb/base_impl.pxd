@@ -338,7 +338,7 @@ cdef class BatchLoadManager:
 
 cdef class Buffer:
     cdef:
-        ssize_t _max_size, _size, _pos
+        ssize_t _max_size, _size, _alloc_size, _pos
         char_type[:] _data_view
         char_type *_data
         bytearray _data_obj
@@ -381,6 +381,7 @@ cdef class Buffer:
     cdef int read_uint16be(self, uint16_t *value) except -1
     cdef int read_uint16le(self, uint16_t *value) except -1
     cdef int read_uint32be(self, uint32_t *value) except -1
+    cdef int set_padding_size(self, ssize_t value) except -1
     cdef int skip_bytes(self) except -1
     cdef int skip_bytes_with_length(self) except -1
     cdef int skip_raw_bytes(self, ssize_t num_bytes) except -1
@@ -658,6 +659,7 @@ cdef class ConnectParamsImpl:
         public str transaction_priority
         public dict extra_auth_params
         public bint thick_mode_dsn_passthrough
+        public bint use_eztls
         public str _config_cache_key
 
     cdef int _check_credentials(self) except -1

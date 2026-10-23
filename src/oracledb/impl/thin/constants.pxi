@@ -400,6 +400,9 @@ cdef enum:
     TNS_NSI_NA_REQUIRED = 0x10
     TNS_NSI_NA_DISABLED = 0x04
     TNS_NSI_SUPPORT_SECURITY_RENEG = 0x80
+    TNS_CONNECT_FLAGS_CHECK_OOB = 0x00000001
+    TNS_CONNECT_FLAGS_EZTLS_TCP = 0x00010000
+    TNS_CONNECT_FLAGS_EZTLS_TCPS = 0x00020000
 
 # end user security context flag
 cdef enum:
@@ -409,7 +412,6 @@ cdef enum:
 # other connection constants
 cdef enum:
     TNS_PROTOCOL_CHARACTERISTICS = 0x4f98
-    TNS_CHECK_OOB = 0x01
 
 # TTC functions
 cdef enum:
@@ -715,6 +717,16 @@ cdef enum:
 cdef enum:
     TNS_DP_OP_ABORT = 1
     TNS_DP_OP_FINISH = 2
+
+# server verification constants
+cdef enum:
+    TNS_SERVER_VERIFY_HEADER = 0x5aa5
+    TNS_SERVER_VERIFY_FOOTER = 0xa55a
+    TNS_SERVER_VERFIY_ENCRYPT_AES256_GCM = 0x0041
+    TNS_SERVER_VERIFY_TYPE_HMAC_SHA512 = 0x0002
+    TNS_SERVER_VERIFY_TYPE_RSA_SHA256 = 0x0021
+    TNS_SERVER_VERIFY_TYPE_ECDSA_SHA256 = 0x0023
+
 
 # other constants
 cdef enum:

@@ -435,6 +435,8 @@ ERR_PROXY_FAILURE = 6004
 ERR_CONNECTION_FAILED = 6005
 ERR_INVALID_SERVER_NAME = 6006
 ERR_SUBSCR_FAILED = 6007
+ERR_SERVER_VERIFY_FAILED = 6008
+ERR_SERVER_REFUSED_EZTLS = 6009
 
 # error numbers that result in Warning
 WRN_COMPILATION_ERROR = 7000
@@ -972,6 +974,10 @@ ERR_MESSAGE_FORMATS = {
         "scroll operation would go out of the result set"
     ),
     ERR_SELF_BIND_NOT_SUPPORTED: "binding to self is not supported",
+    ERR_SERVER_REFUSED_EZTLS: (
+        "database server refused EZTLS (protocol {protocol})"
+    ),
+    ERR_SERVER_VERIFY_FAILED: "database server verification failed",
     ERR_SERVER_VERSION_NOT_SUPPORTED: (
         "connections to this database server version are not supported "
         "by python-oracledb in thin mode"

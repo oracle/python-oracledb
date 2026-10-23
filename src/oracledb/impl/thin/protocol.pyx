@@ -107,6 +107,20 @@ cdef class BaseProtocol:
         buf.write_uint8(marker_type)
         buf.end_request()
 
+    cdef bint _should_attempt_recovery(self):
+        """
+        Returns whether the connection should attempt recovery. Recovery should
+        not be attempted during connection, nor when server verification is
+        taking place, nor when the connection has already been closed by the
+        other side.
+        """
+        return not self._in_connect \
+                and self._transport is not None \
+                and self._read_buf._transport is not None \
+                and self._read_buf._transport._transport is not None \
+                and not self._transport._requires_verify_write \
+                and not self._transport._requires_verify_read
+
     cdef int _process_call_status(self, ThinConnImpl conn_impl,
                                   uint32_t call_status) except -1:
         """
@@ -172,7 +186,7 @@ cdef class Protocol(BaseProtocol):
         if use_tcps:
             self._caps.supports_oob = False
             self._transport.create_ssl_context(params, description, address)
-            self._transport.negotiate_tls(sock, address, description)
+            self._transport.negotiate_tls(sock, params, address, description)
 
     cdef int _process_message(self, Message message) except -1:
         cdef uint32_t timeout = message.conn_impl._call_timeout
@@ -199,10 +213,7 @@ cdef class Protocol(BaseProtocol):
             self._reset()
             message.process(self._read_buf)
         except BaseException as e:
-            if not self._in_connect \
-                    and self._write_buf._packet_sent \
-                    and self._read_buf._transport is not None \
-                    and self._read_buf._transport._transport is not None:
+            if self._should_attempt_recovery():
                 self._send_marker(self._write_buf, TNS_MARKER_TYPE_BREAK)
                 self._reset()
             raise
@@ -380,8 +391,9 @@ cdef class BaseAsyncProtocol(BaseProtocol):
         # negotiate TLS, if applicable
         if use_tcps:
             self._transport.create_ssl_context(params, description, address)
-            return await self._transport.negotiate_tls_async(self, address,
-                                                             description)
+            return await self._transport.negotiate_tls_async(
+                self, params, address, description
+            )
 
     async def _process_message(self, Message message):
         """
@@ -407,9 +419,7 @@ cdef class BaseAsyncProtocol(BaseProtocol):
             await self._reset()
             message.process(self._read_buf)
         except:
-            if not self._in_connect \
-                    and self._write_buf._packet_sent \
-                    and self._transport is not None:
+            if self._should_attempt_recovery():
                 self._send_marker(self._write_buf, TNS_MARKER_TYPE_BREAK)
                 await self._reset()
             raise

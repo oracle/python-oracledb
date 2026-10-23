@@ -33,7 +33,8 @@ try:
     from cryptography import x509
     from cryptography.hazmat.primitives import hashes, serialization
     from cryptography.hazmat.primitives.ciphers import algorithms, modes, Cipher
-    from cryptography.hazmat.primitives.asymmetric import padding
+    from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+    from cryptography.hazmat.primitives.asymmetric import ec, padding
     from cryptography.hazmat.primitives.kdf import pbkdf2
 except Exception as e:
     CRYPTOGRAPHY_IMPORT_ERROR = e
@@ -126,6 +127,14 @@ def decrypt_cbc(key, encrypted_text):
     return decryptor.update(encrypted_text)
 
 
+def decrypt_gcm(key, encrypted_text, iv):
+    """
+    Decryptes the given text using the given key and iv.
+    """
+    aesgcm = AESGCM(key)
+    return aesgcm.decrypt(iv, encrypted_text, None)
+
+
 def encrypt_cbc(key, plain_text, zeros=False):
     """
     Encrypt the given text using the given key. If the zeros flag is set, use
@@ -143,6 +152,14 @@ def encrypt_cbc(key, plain_text, zeros=False):
         else:
             plain_text += (bytes([n]) * n)
     return encryptor.update(plain_text) + encryptor.finalize()
+
+
+def encrypt_gcm(key, plain_text, iv):
+    """
+    Encrypts the given text using the given key and iv.
+    """
+    aesgcm = AESGCM(key)
+    return aesgcm.encrypt(iv, plain_text, None)
 
 
 def get_derived_key(key, salt, length, iterations):
@@ -163,3 +180,65 @@ def get_signature(private_key_str, text):
                                                      password=None)
     sig = private_key.sign(text.encode(), padding.PKCS1v15(), hashes.SHA256())
     return base64.b64encode(sig).decode()
+
+
+cdef class TlsWrapper:
+    cdef:
+        object incoming, outgoing, ssl_obj, context
+        bytes _verify_key
+
+    def __init__(self):
+        self.context = ssl.create_default_context()
+        self.context.check_hostname = False
+        self.context.verify_mode = ssl.CERT_NONE
+        self.incoming = ssl.MemoryBIO()
+        self.outgoing = ssl.MemoryBIO()
+        self.ssl_obj = self.context.wrap_bio(self.incoming, self.outgoing)
+        try:
+            self.ssl_obj.do_handshake()
+        except ssl.SSLWantReadError:
+            pass
+
+    cdef bytes _process_data(self, bytes data, bint incoming):
+        """
+        Processes data and adjusts the packet header, as applicable.
+        """
+        cdef:
+            char_type packet_size_buf[4]
+            bytes processed_data
+            uint32_t packet_size
+        if incoming:
+            self.incoming.write(data[DATA_PACKET_HEADER_SIZE:])
+            processed_data = self.ssl_obj.read(len=len(data))
+        else:
+            self.ssl_obj.write(data[DATA_PACKET_HEADER_SIZE:])
+            processed_data = self.outgoing.read()
+        packet_size = <uint32_t> len(processed_data) + DATA_PACKET_HEADER_SIZE
+        encode_uint32be(packet_size_buf, packet_size)
+        return packet_size_buf[:4] + data[4:DATA_PACKET_HEADER_SIZE] + \
+                processed_data
+
+    cdef int continue_handshake(self, bytes data) except -1:
+        """
+        Continues the handshake necessary for establishing a TLS stream.
+        """
+        self.incoming.write(data)
+        self.ssl_obj.do_handshake()
+
+    cdef bytes process_incoming_data(self, bytes data):
+        """
+        Processes incoming data.
+        """
+        return self._process_data(data, incoming=True)
+
+    cdef bytes process_outgoing_data(self, bytes data):
+        """
+        Processes outgoing data.
+        """
+        return self._process_data(data, incoming=False)
+
+    cdef bytes read_outgoing_data(self):
+        """
+        Returns the outgoing data.
+        """
+        return self.outgoing.read()

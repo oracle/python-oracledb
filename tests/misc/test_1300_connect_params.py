@@ -705,6 +705,7 @@ def test_misc_1339():
         ("operation_callback", lambda name, arguments: None),
         ("round_trip_callback", lambda name: None),
         ("transaction_priority", oracledb.TransactionPriority.LOW),
+        ("use_eztls", True),
     ]
     params = oracledb.ConnectParams(**dict(values))
     parts = [f"{name}={value!r}" for name, value in values]
@@ -765,6 +766,7 @@ def test_misc_1339():
         ("operation_callback", lambda name, arguments: None),
         ("round_trip_callback", lambda name: None),
         ("transaction_priority", oracledb.TransactionPriority.HIGH),
+        ("use_eztls", False),
     ]
     params.set(**dict(new_values))
     parts = [f"{name}={value!r}" for name, value in new_values]

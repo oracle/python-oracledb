@@ -15,6 +15,10 @@ ConnectParams Class
 
     .. dbapiobjectextension::
 
+    .. versionchanged:: 26.1.0
+
+        The ``use_eztls`` parameter was added.
+
     .. versionchanged:: 26.0.0
 
         The ``operation_callback`` and ``round_trip_callback`` parameters were
@@ -77,6 +81,10 @@ ConnectParams Methods
     .. versionadded:: 1.3.0
 
 .. automethod:: ConnectParams.set
+
+    .. versionchanged:: 26.1.0
+
+        The ``use_eztls`` parameter was added.
 
     .. versionchanged:: 26.0.0
 
@@ -427,6 +435,12 @@ All properties are read only.
     This attribute is only supported in python-oracledb Thick mode.
 
     .. versionadded:: 3.0.0
+
+.. autoproperty:: ConnectParams.use_eztls
+
+    This attribute is only supported in python-oracledb Thin mode.
+
+    .. versionadded:: 26.1.0
 
 .. autoproperty:: ConnectParams.use_tcp_fast_open
 

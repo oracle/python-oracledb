@@ -138,6 +138,7 @@ def test_misc_1401(test_env):
         ("operation_callback", lambda name, arguments: None),
         ("round_trip_callback", lambda name: None),
         ("transaction_priority", oracledb.TransactionPriority.HIGH),
+        ("use_eztls", True),
     ]
     params = oracledb.PoolParams(**dict(values))
     parts = [f"{name}={value!r}" for name, value in values]

@@ -19,6 +19,8 @@ oracledb `26.1.0 <https://github.com/oracle/python-oracledb/compare/v26.0.1...v2
 Thin Mode Changes
 +++++++++++++++++
 
+#)  Added support for
+    :ref:`Encryption-only, zero-configuration TLS (EZTLS) <eztls>`.
 #)  Added :meth:`Connection.set_opentelemetry_trace_context` (and async
     variant) for enabling Oracle Database :ref:`OpenTelemetry <opentelemetry>`
     tracing and propagating trace context. The attribute

@@ -49,6 +49,7 @@ import datetime
 import decimal
 import getpass
 import hashlib
+import hmac
 import inspect
 import json
 import os
@@ -203,6 +204,7 @@ from .base_impl cimport (
     decode_uint16be,
     decode_uint32be,
     decode_date,
+    encode_uint32be,
     VectorDecoder,
     VectorEncoder,
     encode_uint16be,

@@ -5586,6 +5586,172 @@ Database Security Guide <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&
 id=GUID-41040F53-D7A6-48FA-A92A-0C23118BC8A0>`__ for more configuration
 information.
 
+Both Thin and Thick modes also supports Encryption-only, zero-configuration TLS
+(ezTLS), see :ref:`ezTLS <eztls>`. Thick mode can use Oracle Native Network
+Encryption (NNE), see :ref:`Native Network Encryption <nne>`.
+
+.. _eztls:
+
+Encryption-only, zero-configuration TLS (ezTLS)
+-----------------------------------------------
+
+Oracle AI Database Encryption-only, zero-configuration TLS (ezTLS) provides
+encrypted communication between python-oracledb and the database server
+without requiring client-side certificates or wallets. ezTLS requires Oracle AI
+Database 26ai version 23.26.4 or later.
+
+.. note::
+
+    Oracle ezTLS is only supported in python-oracledb Thin mode.
+
+Traditional certificate-based TLS verifies server identity using certificates.
+ezTLS does not perform certificate-based identity verification. Instead, it
+uses a shared secret established during database authentication to verify and
+bind the encrypted connection to the authenticated database session.
+
+For more information on ezTLS, see `About ezTLS <https://www.oracle.com/pls/
+topic/lookup?ctx=dblatest&id=GUID-26FE147B-5CF0-47C9-B1B3-CDD3B8E10480>`__ in
+the Oracle AI Database Security Guide.
+
+In python-oracledb, ezTLS can be used with connections that use either the TCP
+or TCPS protocol as detailed below.
+
+.. _eztlstcp:
+
+Using ezTLS for TCP Connections
++++++++++++++++++++++++++++++++
+
+Before using ezTLS with TCP connections, enable ezTLS on the database server
+by adding the following settings to the server ``sqlnet.ora`` file:
+
+.. code-block:: text
+
+    SQLNET.ENCRYPTION_SERVER = REQUESTED
+    SQLNET.ENCRYPTION_TYPES_SERVER = (EZTLS)
+
+For more information, see `Configuring ezTLS for TCP Connections
+<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-D9AF19C9-BEC3-
+4A64-8BE9-97C28E07E9C7>`__.
+
+**In python-oracledb Thin mode**
+
+To connect using ezTLS with a TCP connection in Thin mode, set the
+``use_eztls`` parameter to *True* in :func:`oracledb.connect()`,
+:func:`oracledb.connect_async()`, :func:`oracledb.create_pool()`, or
+:func:`oracledb.create_pool_async()`. For example:
+
+.. code-block:: python
+
+    connection = oracledb.connect(
+        user="hr",
+        password="userpwd",
+        dsn="dbhost.example.com/orclpdb",
+        use_eztls=True,
+    )
+
+Note that TCP is the default protocol, so the ``protocol`` parameter need not
+be specified during connection creation.
+
+If ``use_eztls`` is not set to *True*, python-oracledb does not request EZTLS,
+even when the database server is configured to support it. If ezTLS is required
+by the database server, an error is raised and the connection attempt fails.
+
+.. _eztlsconnection:
+
+During connection establishment, the client and database server negotiate an
+encrypted TLS session. After the encrypted session is established, the
+database server is verified using a special EZTLS verification packet. If the
+database server does not support EZTLS or has not been configured for it,
+python-oracledb raises the ``DPY-6009`` error. If server verification fails,
+python-oracledb raises the ``DPY-6008`` error.
+
+**In python-oracledb Thick mode**
+
+For Thick mode, add the following settings to the client ``sqlnet.ora`` file:
+
+.. code-block:: text
+
+    SQLNET.ENCRYPTION_CLIENT = REQUIRED
+    SQLNET.ENCRYPTION_TYPES_CLIENT = (EZTLS)
+
+You can then connect to Oracle Database using Thick mode by calling
+:func:`oracledb.connect()` or :func:`oracledb.create_pool()`. For example:
+
+.. code-block:: python
+
+    connection = oracledb.connect(
+        user="hr",
+        password="userpwd",
+        dsn="dbhost.example.com/orclpdb"
+    )
+
+Note that TCP is the default protocol, so you do not need to specify *tcp* in
+the ``dsn`` parameter.
+
+.. _eztlstcps:
+
+Using ezTLS for TCPS Connections
+++++++++++++++++++++++++++++++++
+
+Before using ezTLS for TCPS connections, configure the database server and
+listener for TCPS.
+
+Add the following setting to the database server ``sqlnet.ora`` file:
+
+.. code-block:: text
+
+    EZTLS = TRUE
+    SSL_CLIENT_AUTHENTICATION = FALSE
+
+The ``listener.ora`` configuration must include a TCPS protocol endpoint.
+
+For more information, see `Configuring ezTLS for TCPS Connections
+<https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-1FD76F25-15FA-
+4DF7-9AAF-BEF98C1D1F07>`__.
+
+**In python-oracledb Thin mode**
+
+To connect using ezTLS with a TCPS connection in Thin mode, specify the *tcps*
+protocol in the ``dsn`` parameter and set the ``use_eztls`` parameter to *True*
+in :func:`oracledb.connect()`, :func:`oracledb.connect_async()`,
+:func:`oracledb.create_pool()`, or :func:`oracledb.create_pool_async()`. For
+example:
+
+.. code-block:: python
+
+    connection = oracledb.connect(
+        user="hr",
+        password="userpwd",
+        dsn="tcps://dbhost.example.com/orclpdb",
+        use_eztls=True
+    )
+
+If ``use_eztls`` is not set to *True*, python-oracledb does not request ezTLS,
+even when the database server and listener are configured to support it.
+
+For more information, see
+:ref:`How ezTLS secures connections <eztlsconnection>`.
+
+**In python-oracledb Thick mode**
+
+For Thick mode, add the following settings to the client ``sqlnet.ora`` file:
+
+.. code-block:: text
+
+    EZTLS = TRUE
+
+To connect using ezTLS with a TCPS connection in Thick mode, set the *tcps*
+protocol in the ``dsn`` parameter of :func:`oracledb.connect()` or
+:func:`oracledb.create_pool()`. For example:
+
+.. code-block:: python
+
+    connection = oracledb.connect(
+        user="hr",
+        password="userpwd",
+        dsn="tcps://dbhost.example.com/orclpdb"
+    )
+
 .. _nne:
 
 Native Network Encryption
