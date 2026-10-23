@@ -46,6 +46,9 @@ nitpick_ignore = [
 ]
 keep_warnings = True
 
+# allow autodoc to import the plugin without its optional dependency
+autodoc_mock_imports = ["opentelemetry"]
+
 # preserve defaults in function signatures
 autodoc_preserve_defaults = True
 

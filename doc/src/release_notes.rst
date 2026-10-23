@@ -45,6 +45,7 @@ Thick Mode Changes
 Common Changes
 ++++++++++++++
 
+#)  Added the :ref:`OpenTelemetry plugin <opentelemetryplugin>`.
 #)  Added support for automatic updating of the configuration cache when using
     the :ref:`oracledb.plugins.aws_config_provider <configawsplugin>` plugin
     and a queue URL is specified in the configuration.

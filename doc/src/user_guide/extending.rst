@@ -130,6 +130,9 @@ All python-oracledb installations bundle the following plugins:
   identity, and creates and sets an end-user security context payload to
   connect to Oracle Database. See :ref:`endusersecurityproviderplugin`.
 
+- ``opentelemetry`` which when enabled creates OpenTelemetry spans from
+  python-oracledb operations. See :ref:`opentelemetry`.
+
 To import these python-oracledb plugins in your application, use
 ``import oracledb.plugins.<name of plugin>``, for example::
 

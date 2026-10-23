@@ -32,6 +32,22 @@ python -m pip install oracledb --upgrade
 
 See [Installing python-oracledb][installation] for details.
 
+To enable the optional embedded OpenTelemetry plugin, install:
+
+```
+python -m pip install "oracledb[opentelemetry]"
+```
+
+Then explicitly enable it with `from oracledb.plugins import opentelemetry`
+followed by `opentelemetry.instrument()`. Installing this dependency alone
+does not change application behavior. Install `opentelemetry-sdk` and an
+exporter to record and export spans and metrics. The plugin emits the
+`db.client.operation.duration` metric when the application configures an
+OpenTelemetry MeterProvider. Do not enable this plugin with another Oracle
+Database or DBAPI OpenTelemetry instrumentation, including
+`opentelemetry-instrumentation-oracledb` or
+`opentelemetry-instrumentation-dbapi`, in the same process.
+
 ## Samples
 
 Examples can be found in the [/samples][samples] directory and the

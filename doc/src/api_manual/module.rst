@@ -1460,6 +1460,35 @@ End-User Security Provider Plugin Methods
 
     .. versionadded:: 4.0.0
 
+.. _opentelemetryplugin:
+
+OpenTelemetry Plugin
+--------------------
+
+``opentelemetry`` is a plugin that can be imported and enabled to create
+OpenTelemetry spans for python-oracledb operations, allowing database activity
+to be included in application traces.
+
+This plugin configures python-oracledb operation callbacks and Thin mode
+round-trip callbacks on your connection and pool creation calls to create
+OpenTelemetry spans. Also, it records operation-duration metrics from operation
+callbacks.
+
+See :ref:`opentelemetry` for more information.
+
+.. versionadded:: 26.1.0
+
+OpenTelemetry Plugin Methods
+++++++++++++++++++++++++++++
+
+.. autofunction:: oracledb.plugins.opentelemetry.instrument
+
+.. autofunction:: oracledb.plugins.opentelemetry.uninstrument
+
+.. autofunction:: oracledb.plugins.opentelemetry.instrument_connection
+
+.. autofunction:: oracledb.plugins.opentelemetry.uninstrument_connection
+
 .. _interval_ym:
 
 Oracledb IntervalYM Class

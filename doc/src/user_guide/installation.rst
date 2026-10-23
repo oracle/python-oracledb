@@ -1320,3 +1320,32 @@ as needed.
 
 See :ref:`cloudnativeauthoauth` for more information on using the plugin in
 python-oracledb.
+
+.. _opentelemetrymodules:
+
+Installing OpenTelemetry Modules for python-oracledb
+====================================================
+
+To use python-oracledb's OpenTelemetry plugin, install the optional
+``[opentelemetry]`` dependency:
+
+.. code-block:: shell
+
+    python -m pip install "oracledb[opentelemetry]"
+
+The ``opentelemetry`` plugin uses the OpenTelemetry API to create spans and
+metrics. It can use tracer and meter providers that the application has
+already configured. If no providers are configured, the OpenTelemetry API uses
+default providers and the telemetry is not recorded. The `OpenTelemetry SDK
+<https://pypi.org/project/opentelemetry-sdk/>`__ can be used to configure
+providers that record telemetry. Note that this SDK is not required to enable
+the ``opentelemetry`` plugin. To install and configure the OpenTelemetry SDK:
+
+.. code-block:: shell
+
+    python -m pip install "oracledb[opentelemetry]" opentelemetry-sdk
+
+To export telemetry to a backend, also install the exporter package required by
+that backend. The OpenTelemetry SDK includes console exporters, so no
+additional exporter package is required when exporting telemetry to the
+console.

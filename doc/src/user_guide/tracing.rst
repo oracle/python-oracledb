@@ -718,227 +718,375 @@ Using python-oracledb with OpenTelemetry
 ========================================
 
 The OpenTelemetry observability framework is useful for monitoring applications
-and identifying bottlenecks. Python-oracledb conforms to the `Python DB API
-specification <https://peps.python.org/pep-0249/>`__ allowing the OpenTelemetry
-Database API Instrumentation package `opentelemetry-instrumentation-dbapi
-<https://pypi.org/project/opentelemetry-instrumentation-dbapi/>`__ to
-automatically instrument your applications.
-
-In python-oracledb Thin mode, additional support is available to correlate
-application spans with work performed inside Oracle Database. See
-:ref:`opentelemetryextensions`.
+and identifying bottlenecks.
 
 OpenTelemetry's `backend trace exporters
 <https://opentelemetry.io/docs/languages/python/exporters/>`__ can provide
-graphic and intuitive representation of OpenTelemetry trace
-information. Recording and reporting tools include Zipkin, Jaeger, Grafana, and
-Prometheus. These make database query relationships and timings easier to
-analyze. Simple tracing can also be directed to the console by making use of
-the exporter ``ConsoleSpanExporter`` from the ``opentelemetry-sdk`` package, as
-shown in the example below.
+graphic and intuitive representation of OpenTelemetry trace information.
+Recording and reporting tools include Zipkin, Jaeger, Grafana, and Prometheus.
+These make database query relationships and timings easier to analyze. Simple
+tracing can also be directed to the console by making use of the exporter
+``ConsoleSpanExporter`` from the ``opentelemetry-sdk`` package.
 
-For details on using OpenTelemetry in Python, see `Python OpenTelemetry
-documentation <https://opentelemetry.io/docs/languages/python/>`_.
+Python-oracledb provides a pre-supplied OpenTelemetry plugin,
+:ref:`opentelemetry <opentelemetryplugin>`, for creating spans from the
+operation and python-oracledb Thin mode round-trip callbacks, and records
+operation-duration metrics from operation callbacks.
+
+.. warning::
+
+    Do not enable the ``opentelemetry`` plugin with another Oracle Database
+    OpenTelemetry instrumentation in the same process because duplicate
+    database spans will be created.
+
+To use the ``opentelemetry`` plugin, you must:
+
+1. Install the OpenTelemetry module, see :ref:`opentelemetrymodules`.
+
+2. Import the :ref:`opentelemetry <opentelemetryplugin>` plugin in your
+   application using:
+
+   .. code-block:: python
+
+      from oracledb.plugins import opentelemetry
+
+3. Enable the ``opentelemetry`` plugin using the function
+   :func:`oracledb.plugins.opentelemetry.instrument()`:
+
+   .. code-block:: python
+
+      opentelemetry.instrument()
+
+After the plugin is enabled, python-oracledb creates OpenTelemetry spans for
+newly created connections and pools. Note that only installing the optional
+dependency and importing the plugin without calling
+:func:`oracledb.plugins.opentelemetry.instrument()` does not enable
+instrumentation.
+
+You can specify the following optional parameters in the
+:func:`oracledb.plugins.opentelemetry.instrument()` function to customize span
+creation:
+
+- ``require_parent_span`` to create spans only when there is an active parent
+  span.
+
+- ``enable_database_trace_propagation`` to request database-side tracing for
+  supported Thin mode round trips and propagate OpenTelemetry trace context so
+  database spans can be linked to application spans. This requires Oracle AI
+  Database 26ai (version 23.26.2 or later) to advertise OpenTelemetry tracing
+  support. Oracle Database OpenTelemetry must also be configured on the server.
+
+- ``db_statement_dump`` to record SQL statement text in spans for operations
+  that do not include bind parameters. SQL text for parameterized statements
+  may be recorded even when this option is *False*.
+
+- ``tracer_provider`` to specify a custom OpenTelemetry trace provider for
+  creating and exporting spans.
+
+- ``meter_provider`` to specify a custom OpenTelemetry meter provider that is
+  used to create and export metrics.
+
+- ``request_hook`` and ``response_hook`` to specify callables that can inspect
+  or customize spans when database operations start and finish.
+
+- ``enhanced_database_reporting`` to record additional database details.
+
+See :func:`oracledb.plugins.opentelemetry.instrument()` for more information
+on these parameters.
+
+.. warning::
+
+    SQL text can be recorded in spans for parameterized statements even when
+    ``db_statement_dump`` is set to *False*. Setting ``db_statement_dump`` to
+    *True* additionally records SQL text for statements without bind
+    parameters. SQL text may contain sensitive information, so ensure it is
+    safe for the telemetry destination.
+
+    The ``enhanced_database_reporting`` option records additional database
+    details, including bind values. Bind values may contain sensitive
+    application data and should only be enabled when they are safe for the
+    telemetry destination.
+
+An example of setting some of the ``opentelemetry.instrument()`` parameters
+is shown below:
+
+.. code-block:: python
+
+    opentelemetry.instrument(
+        require_parent_span=True,
+        enable_database_trace_propagation=True,
+        db_statement_dump=True,
+    )
+
+This example creates spans only when there is an active parent span, requests
+database-side tracing and propagates trace context for supported Thin mode
+round trips, and records SQL statement text in spans.
+
+To disable OpenTelemetry instrumentation, and prevent newly created connections
+and pools from being instrumented, call:
+
+.. code-block:: python
+
+    opentelemetry.uninstrument()
+
+Calling :func:`oracledb.plugins.opentelemetry.instrument()` while
+instrumentation is already enabled raises a ``RuntimeError``. To change the
+instrumentation settings, call
+:func:`oracledb.plugins.opentelemetry.uninstrument()` before calling
+:func:`oracledb.plugins.opentelemetry.instrument()` again with the new values
+specified.
+
+The plugin can also instrument an already open connection with
+:func:`oracledb.plugins.opentelemetry.instrument_connection()`. This is useful
+when a connection was created before
+:func:`oracledb.plugins.opentelemetry.instrument()` was called, or when you
+want to instrument only selected connections instead of all
+newly created connections and pools. The function adds OpenTelemetry callbacks
+to the connection in place while preserving any existing operation and
+round-trip callbacks. To remove instrumentation from a connection and restore
+its original callbacks, call
+:func:`oracledb.plugins.opentelemetry.uninstrument_connection()`. For example:
+
+.. code-block:: python
+
+    connection = oracledb.connect(user="hr", password=userpwd,
+                                  dsn="localhost/orclpdb")
+
+    opentelemetry.instrument_connection(connection)
+
+    with connection.cursor() as cursor:
+        cursor.execute("select 'Hello World!' from dual")
+        print(cursor.fetchone())
+
+    opentelemetry.uninstrument_connection(connection)
+
+Calling :func:`oracledb.plugins.opentelemetry.instrument_connection()` again
+for the same connection raises a ``RuntimeError``. Calling
+:func:`oracledb.plugins.opentelemetry.uninstrument_connection()` for a
+connection that is not instrumented has no effect. You must call
+:func:`oracledb.plugins.opentelemetry.uninstrument_connection()` before
+instrumenting the connection again.
+
+The ``opentelemetry`` plugin uses the OpenTelemetry API to create spans, but
+the API does not record or export them. To record and export spans, also install
+``opentelemetry-sdk`` and a suitable exporter. For installation instructions,
+see
+:ref:`Installing OpenTelemetry Modules for python-oracledb <opentelemetrymodules>`.
+
+After installing these packages, configure an OpenTelemetry tracer provider and
+exporter before enabling the ``opentelemetry`` plugin. For example, the
+following uses ``ConsoleSpanExporter`` and ``ConsoleMetricExporter`` to
+write spans and metrics to the console:
+
+.. code-block:: python
+
+    from opentelemetry import metrics, trace
+    from opentelemetry.sdk.metrics import MeterProvider
+    from opentelemetry.sdk.metrics.export import (
+        ConsoleMetricExporter,
+        PeriodicExportingMetricReader,
+    )
+    from opentelemetry.sdk.trace import TracerProvider
+    from opentelemetry.sdk.trace.export import (
+        ConsoleSpanExporter,
+        SimpleSpanProcessor,
+    )
+
+    provider = TracerProvider()
+    provider.add_span_processor(SimpleSpanProcessor(ConsoleSpanExporter()))
+    trace.set_tracer_provider(provider)
+    meter_provider = MeterProvider(
+        metric_readers=[
+            PeriodicExportingMetricReader(ConsoleMetricExporter())
+        ]
+    )
+    metrics.set_meter_provider(meter_provider)
+
+    from oracledb.plugins import opentelemetry
+
+    opentelemetry.instrument()
+
+The ``opentelemetry`` plugin can trace python-oracledb operations that invoke
+the driver's operation callbacks. Operations that are not supported by
+operation callbacks, such as SODA, database startup, and database shutdown,
+are not currently traced by the plugin. See
+:ref:`operation callbacks <operationcallback>` for more information.
+
+.. _opentelemetrymetrics:
+
+OpenTelemetry Metrics
+---------------------
+
+The ``opentelemetry`` plugin records the stable OpenTelemetry `database client
+operation-duration metric <https://opentelemetry.io/docs/specs/semconv/db/
+database-metrics/#metric-dbclientoperationduration>`__,
+``db.client.operation.duration``, in seconds for each operation covered by the
+operation callback. The metric uses the meter provider specified in the
+``meter_provider`` parameter of
+:func:`oracledb.plugins.opentelemetry.instrument` or
+:func:`oracledb.plugins.opentelemetry.instrument_connection`. If this parameter
+is not set, then the global OpenTelemetry MeterProvider is used.
+
+Metric attributes are limited to ``db.system.name``, ``db.operation.name``,
+``db.operation.batch.size``, ``db.namespace``, ``server.address``,
+``server.port``, and ``error.type`` for failed operations. SQL text, bind
+values, hook payloads, result data, connection strings, and credentials are
+never recorded as metric attributes. Pool metrics are not currently emitted.
+
+.. _exampleusingopentelemetry:
 
 Example of Using python-oracledb with OpenTelemetry
 ---------------------------------------------------
 
-This example shows a python-oracledb application using OpenTelemetry's
-``ConsoleSpanExporter`` exporter to display trace information to the console.
-
-**Installing OpenTelemetry Modules**
-
-For this example, install::
-
-    python -m pip install opentelemetry-sdk opentelemetry-api opentelemetry-instrumentation-dbapi
-
-**Sample Application**
-
-This simple application performs two queries in a custom span. It also sets the
-service name and system attributes to user-chosen values. It uses the
-``capture_parameters`` option to enable bind variable tracing.
-
-.. warning::
-
-   The trace integration setting ``capture_parameters=True`` captures
-   :ref:`bind variable values <bind>` and is a security risk.
-
-The sample code is:
+This example configures console exporters for spans and metrics, enables
+python-oracledb's OpenTelemetry plugin, and executes a parameterized query
+inside an application span.
 
 .. code-block:: python
 
     import oracledb
 
-    from opentelemetry import trace
+    from opentelemetry import metrics, trace
+    from opentelemetry.sdk.metrics import MeterProvider
+    from opentelemetry.sdk.metrics.export import (
+        ConsoleMetricExporter,
+        PeriodicExportingMetricReader,
+    )
     from opentelemetry.sdk.trace import TracerProvider
     from opentelemetry.sdk.trace.export import (
-        BatchSpanProcessor,
         ConsoleSpanExporter,
+        SimpleSpanProcessor,
     )
-    from opentelemetry.sdk.resources import Resource
+    from oracledb.plugins import opentelemetry
 
-    user = "hr"
-    password = userpwd
-    host = "dbhost.example.com"
-    service_name = "orclpdb"
+    tracer_provider = TracerProvider()
+    tracer_provider.add_span_processor(
+        SimpleSpanProcessor(ConsoleSpanExporter())
+    )
+    trace.set_tracer_provider(tracer_provider)
 
-    resource = Resource(attributes={
-        "service.name": service_name,   # displayed as a resource attribute "service.name"
-    })
+    meter_provider = MeterProvider(
+        metric_readers=[
+            PeriodicExportingMetricReader(ConsoleMetricExporter())
+        ]
+    )
+    metrics.set_meter_provider(meter_provider)
 
-    provider = TracerProvider(resource=resource)
-    processor = BatchSpanProcessor(ConsoleSpanExporter())
-    provider.add_span_processor(processor)
-    trace.set_tracer_provider(provider)
+    opentelemetry.instrument()
 
-    from opentelemetry.instrumentation.dbapi import trace_integration
-
-    trace_integration(
-        oracledb,
-        connect_method_name="connect",
-        database_system="oracle",  # displayed as attribute "db.system"
-        capture_parameters=True,   # displays bind values as attribute "db.statement.parameters"
-                                   # SECURITY WARNING: this shows bind variable values
+    connection = oracledb.connect(
+        user="hr",
+        password=userpwd,
+        dsn="localhost/orclpdb",
     )
 
-    connection = oracledb.connect(user=user, password=password,
-                                  host=host, service_name=service_name)
+    tracer = trace.get_tracer("example")
 
-    with connection.cursor() as cursor:
-        tracer = trace.get_tracer("HR-tracer-name")
-        with tracer.start_as_current_span("HR-span-1") as span:
-            sql = "select city from locations where location_id = :1"
-            for r, in cursor.execute(sql, [2200]):
-                print(r)
-            sql = "select 'Hello World!' from dual"
-            for r, in cursor.execute(sql):
-                print(r)
+    with tracer.start_as_current_span("application-query"):
+        with connection.cursor() as cursor:
+            cursor.execute(
+                "select city from locations where location_id = :1",
+                [2200],
+            )
+            print(cursor.fetchone())
 
-**Sample Output**
+    connection.close()
 
-The sample output will be like::
+The following console output is abbreviated and shows the application span and
+database operation span. It does not show the python-oracledb Thin mode
+round-trip child spans that the plugin may also create.
 
-    Sydney
-    Hello World!
+.. code-block:: shell
+
+    ('Sydney',)
+
     {
-        "name": "select",
+        "name": "SELECT localhost",
         "context": {
-            "trace_id": "0xb24817cd2ea38ffa523c2ee2778508f7",
-            "span_id": "0xacfd82ed60e8976d",
-            "trace_state": "[]"
+            "trace_id": "0x...",
+            "span_id": "0x..."
         },
         "kind": "SpanKind.CLIENT",
-        "parent_id": "0x19027598c301cfac",
-        "start_time": "2025-05-29T08:40:10.194645Z",
-        "end_time": "2025-05-29T08:40:10.209815Z",
+        "parent_id": "0x<Application span ID>",
         "status": {
             "status_code": "UNSET"
         },
         "attributes": {
-            "db.system": "oracle",
-            "db.name": "",
-            "db.statement": "select city from locations where location_id = :1",
-            "db.statement.parameters": "[2200]"
-        },
-        "events": [],
-        "links": [],
-        "resource": {
-            "attributes": {
-                "service.name": "orclpdb"
-            },
-            "schema_url": ""
+            "db.system.name": "oracle.db",
+            "db.operation.name": "SELECT",
+            "db.query.text":
+                "select city from locations where location_id = :1",
+            "server.address": "localhost"
         }
     }
+
     {
-        "name": "select",
+        "name": "application-query",
         "context": {
-            "trace_id": "0xb24817cd2ea38ffa523c2ee2778508f7",
-            "span_id": "0x376dff430f66b14f",
-            "trace_state": "[]"
-        },
-        "kind": "SpanKind.CLIENT",
-        "parent_id": "0x19027598c301cfac",
-        "start_time": "2025-05-29T08:40:10.210799Z",
-        "end_time": "2025-05-29T08:40:10.214694Z",
-        "status": {
-            "status_code": "UNSET"
-        },
-        "attributes": {
-            "db.system": "oracle",
-            "db.name": "",
-            "db.statement": "select 'Hello World!' from dual"
-        },
-        "events": [],
-        "links": [],
-        "resource": {
-            "attributes": {
-                "service.name": "orclpdb"
-            },
-            "schema_url": ""
-        }
-    }
-    {
-        "name": "HR-span-1",
-        "context": {
-            "trace_id": "0xb24817cd2ea38ffa523c2ee2778508f7",
-            "span_id": "0x19027598c301cfac",
-            "trace_state": "[]"
+            "trace_id": "0x...",
+            "span_id": "0x<Application span ID>"
         },
         "kind": "SpanKind.INTERNAL",
         "parent_id": null,
-        "start_time": "2025-05-29T08:40:10.194536Z",
-        "end_time": "2025-05-29T08:40:10.214732Z",
         "status": {
             "status_code": "UNSET"
         },
-        "attributes": {},
-        "events": [],
-        "links": [],
-        "resource": {
-            "attributes": {
-                "service.name": "orclpdb"
-            },
-            "schema_url": ""
+        "attributes": {}
+    }
+
+The query result is displayed before the OpenTelemetry output. The output then
+shows a database span created by the python-oracledb ``opentelemetry`` plugin
+and the surrounding application span.
+
+Operation-duration metrics are exported separately from spans when a
+``MeterProvider`` and metric reader are configured. A representative
+operation-duration metric for the example would look like this::
+
+    {
+        "name": "db.client.operation.duration",
+        "description": "Duration of database client operations",
+        "unit": "s",
+        "data": {
+            "data_points": [
+                {
+                    "attributes": {
+                        "db.system.name": "oracle.db",
+                        "db.operation.name": "SELECT",
+                        "server.address": "localhost"
+                    },
+                    "count": 1,
+                    "sum": 0.003,
+                    "min": 0.003,
+                    "max": 0.003
+                }
+            ]
         }
     }
 
-The two query results precede OpenTelemetry's tracing. The console tracing then
-shows:
+The plugin also records the ``db.client.operation.duration`` metric for the
+SELECT operation. The metric records the operation duration in seconds and
+includes database metadata such as ``db.system.name``, ``db.operation.name``,
+and ``server.address``.
 
-- The start and end time of each operation.
-
-- Each "select" trace block's association to the span "HR-span-1" via their
-  ``parent_id`` values, which match the span's ``span_id`` value. If you had
-  alternatively exported to a recording and tracing system like Zipkin, you
-  would be able to conveniently drill down into the spans.
-
-- The bind variable value *2200* in the attribute
-  ``db.statement.parameters``. *Warning*: it is a security risk to monitor bind
-  variable values this way. Keep the ``capture_parameters`` option set to
-  *False* in production applications.
-
-- The system and service name as set in the application.
-
-The Python OpenTelemetry modules allow further customization for tracing. See
-their documentation for more information.
+Metric values such as ``count``, ``sum``, ``min``, and ``max`` depend on the
+operations recorded during the export interval. SQL text and bind values are
+not included in metric attributes.
 
 .. _opentelemetryextensions:
 
 OpenTelemetry and extended python-oracledb functionality
 --------------------------------------------------------
 
-Some python-oracledb features extend the Python DB API standard and are not
-automatically handled by ``opentelemetry-instrumentation-dbapi``. You can use
-OpenTelemetry APIs together with python-oracledb-specific features to correlate
-application spans with Oracle Database work and to explicitly trace
-non-standard driver calls.
+Python-oracledb can pass application trace context to Oracle Database to
+correlate application spans with database work. OpenTelemetry APIs can also be
+used to trace driver calls explicitly.
 
 **Propagating OpenTelemetry Trace Context**
 
 An instrumentation library can pass the current W3C ``traceparent`` value and
 optional ``tracestate`` value to
-:meth:`Connection.set_opentelemetry_trace_context()`. Python-oracledb
-formats and sends them as the ``ora$opentelem$tracectx`` attribute in the
+:meth:`Connection.set_opentelemetry_trace_context`. Python-oracledb formats
+and sends them as the ``ora$opentelem$tracectx`` attribute in the
 ``CLIENTCONTEXT`` application context namespace on the next round-trip. Pass
 *None* as ``traceparent`` to disable tracing and clear the OpenTelemetry trace
 context. Other values in the ``CLIENTCONTEXT`` namespace are unchanged.
@@ -959,12 +1107,14 @@ lookup?ctx=dblatest&id=GUID-889590D2-D6F9-4D6C-82D3-EE7205D1F395>`__.
 
 When connected to Oracle AI Database 26ai (version 23.26.2) or later,
 python-oracledb Thin mode can use
-:meth:`Connection.set_opentelemetry_trace_context()` to request database
+:meth:`Connection.set_opentelemetry_trace_context` or
+:meth:`AsyncConnection.set_opentelemetry_trace_context` to request database
 server-side tracing and correlate it with application spans. These methods are
 not supported in python-oracledb Thick mode. If you use Oracle AI Database 26ai
-versions earlier than 23.26.2, the ``DPY-3044`` error is raised.  Use the
-attribute :attr:`Connection.supports_opentelemetry_tracing` attribute to check
-whether the database advertises tracing support before calling either method.
+versions earlier than 23.26.2, the ``DPY-3044`` error is raised. Before calling
+these methods, you can use :attr:`Connection.supports_opentelemetry_tracing` or
+:attr:`AsyncConnection.supports_opentelemetry_tracing` to check whether the
+database supports OpenTelemetry tracing.
 
 For example:
 

@@ -54,6 +54,7 @@ Issues = "https://github.com/oracle/python-oracledb/issues"
 Source = "https://github.com/oracle/python-oracledb"
 
 [project.optional-dependencies]
+opentelemetry = ["opentelemetry-api ~= 1.12"]
 test = [
     "anyio",
     "numpy",
@@ -87,6 +88,7 @@ zip-safe = false
 packages = [
     "oracledb",
     "oracledb.plugins",
+    "oracledb.plugins.opentelemetry",
 ]
 package-dir = {"" = "src"}
 include-package-data = false
