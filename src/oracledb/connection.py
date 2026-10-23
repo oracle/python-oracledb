@@ -2475,7 +2475,7 @@ def connect(
       <Defaults.driver_name>`)
 
     - ``use_sni``: a boolean indicating whether to use the TLS SNI extension to
-      bypass the second TLS neogiation that would otherwise be required
+      bypass the second TLS negotiation that would otherwise be required
       (default: False)
 
     - ``thick_mode_dsn_passthrough``: a boolean indicating whether to pass the
@@ -3624,7 +3624,7 @@ def connect_async(
       <Defaults.driver_name>`)
 
     - ``use_sni``: a boolean indicating whether to use the TLS SNI extension to
-      bypass the second TLS neogiation that would otherwise be required
+      bypass the second TLS negotiation that would otherwise be required
       (default: False)
 
     - ``thick_mode_dsn_passthrough``: a boolean indicating whether to pass the

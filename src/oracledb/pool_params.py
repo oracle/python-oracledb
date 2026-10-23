@@ -449,8 +449,8 @@ class PoolParams(ConnectParams):
           <Defaults.driver_name>`)
 
         - ``use_sni``: a boolean indicating whether to use the TLS SNI
-          extension to bypass the second TLS neogiation that would otherwise be
-          required
+          extension to bypass the second TLS negotiation that would otherwise
+          be required
           (default: False)
 
         - ``thick_mode_dsn_passthrough``: a boolean indicating whether to pass
@@ -1039,8 +1039,8 @@ class PoolParams(ConnectParams):
           the driver which originated the connection
 
         - ``use_sni``: a boolean indicating whether to use the TLS SNI
-          extension to bypass the second TLS neogiation that would otherwise be
-          required
+          extension to bypass the second TLS negotiation that would otherwise
+          be required
 
         - ``thick_mode_dsn_passthrough``: a boolean indicating whether to pass
           the connect string to the Oracle Client libraries unchanged without
