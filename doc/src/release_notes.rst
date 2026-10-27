@@ -26,35 +26,34 @@ Thin Mode Changes
     tracing and propagating trace context. The attribute
     :attr:`Connection.supports_opentelemetry_tracing` (and async variant) can
     be used to determine if the database supports this capability.
-#)  Fixed bug that prevented connection pools from handing out new connections
-    after a failure to close a connection takes place
-    (`issue 610 <https://github.com/oracle/python-oracledb/issues/610>`__).
-#)  Fixed headers sen5 to the ``https_proxy`` host to be standards compliant.
-#)  Internal change: improved performance when sending Oracle Deep Data
-    Security end-user security contexts.
-#)  Fixed handling of token expiration with
-    :ref:`Cloud Native Authentication <cloudnativemodules>`.
 #)  Modified :func:`oracledb.create_end_user_security_context()` to make the
     ``end_user_identity`` parameter optional. The ``end_user_identity``,
     ``data_roles``, and ``attributes`` must now be supplied as keyword
     arguments.
-
-Thick Mode Changes
-++++++++++++++++++
+#)  Fixed bug that prevented connection pools from handing out new connections
+    after a failure to close a connection takes place
+    (`issue 610 <https://github.com/oracle/python-oracledb/issues/610>`__).
+#)  Fixed headers sent to the ``https_proxy`` host to be standards compliant.
+#)  Fixed handling of token expiration with
+    :ref:`Cloud Native Authentication <cloudnativemodules>`.
+#)  Internal change: improved performance when sending Oracle Deep Data
+    Security end-user security contexts.
 
 Common Changes
 ++++++++++++++
 
 #)  Added the :ref:`OpenTelemetry plugin <opentelemetryplugin>`.
-#)  Added support for automatic updating of the configuration cache when using
-    the :ref:`oracledb.plugins.aws_config_provider <configawsplugin>` plugin
-    and a queue URL is specified in the configuration.
-#)  Added support for automatic updating of the configuration cache when using
-    the :ref:`oracledb.plugins.gcp_config_provider <configgcpplugin>` plugin
-    and a subscription name is specified in the configuration.
+#)  Added support for :ref:`automatic updating <configchangenotification>` of
+    the configuration cache when using the
+    :ref:`oracledb.plugins.aws_config_provider <configawsplugin>` plugin and a
+    queue URL is specified in the configuration.
+#)  Added support for :ref:`automatic updating <configchangenotification>` of
+    the configuration cache when using the
+    :ref:`oracledb.plugins.gcp_config_provider <configgcpplugin>` plugin and a
+    subscription name is specified in the configuration.
 #)  Fixed a resource leak when repeatedly retrieving configurations using the
     :ref:`GCP Centralized Configuration Provider <configgcpplugin>`.
-#)  Bumped Cython to 3.3.
+#)  Bumped the minimum required Cython version to 3.3.
 
 
 oracledb `26.0.1 <https://github.com/oracle/python-oracledb/compare/v26.0.0...v26.0.1>`__ (September 2026)

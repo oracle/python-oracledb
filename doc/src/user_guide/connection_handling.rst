@@ -1825,10 +1825,10 @@ The Google Cloud Storage configuration provider handles the following events:
       - The matching cached configuration is expired.
     * - ``OBJECT_ARCHIVE``
       - An object generation is archived.
-      - The matching cached configuration is expired if the event includes ``overwrittenByGeneration`` (object replacement). Otherwise, the cahced configuration is removed permanently.
+      - The matching cached configuration is expired if the event includes ``overwrittenByGeneration`` (object replacement). Otherwise, the cached configuration is removed permanently.
     * - ``OBJECT_DELETE``
       - An object is deleted.
-      - The matching cached configuration is expired if the event includes ``overwrittenByGeneration`` (object replacement). Otherwise, the cahced configuration is removed permanently.
+      - The matching cached configuration is expired if the event includes ``overwrittenByGeneration`` (object replacement). Otherwise, the cached configuration is removed permanently.
 
 Other Cloud Storage event types are ignored.
 
@@ -3647,16 +3647,13 @@ You must set the ``database_access_token`` parameter. The
 ``end_user_identity``, ``data_roles``, and ``attributes`` parameters are
 optional keyword-only parameters.
 
-To create a security context without an end-user identity, for example:
+To create an end-user security context by specifying only the mandatory
+database-access token:
 
 .. code-block:: python
 
     user_context = oracledb.create_end_user_security_context(
-        database_access_token=<db_token_issued_by_an_IAM>,
-        data_roles=[<name_of_roles>],
-        attributes={
-            <"attribute_name">: <value>
-        }
+        database_access_token=<db_token_issued_by_an_IAM>
     )
 
 The parameters of :meth:`~oracledb.create_end_user_security_context()` are:
@@ -3844,17 +3841,28 @@ imported using:
 
     import oracledb.plugins.end_user_sec_provider
 
-An end-user security context payload can be created with or without an end-user
-identity. When an end-user identity is specified, its format depends on how the
-user is managed. For users managed by external IAMs such as OCI IAM or
-Microsoft Entra ID, the value of an end-user's identity is a string consisting
-of an end-user token issued by these IAMs. For users managed by Oracle
-Database, the value of an end-user's identity is a two-item tuple containing
-the local database user name and a key, where the key may be *None* if not
-required.
+The ``end_user_sec_provider`` plugin can create a security context containing
+either only the database-access token or both the database-access token and an
+end-user identity. The inclusion of the end-user identity in the security
+context payload depends on the configured authentication flow and the Oracle
+AI Database version.
 
-If an en-user identity is required for the end-user security context or for OBO
-token generation, call
+If you are using Oracle AI Database 26ai version 23.26.4 or later, and the
+authentication flow is On-Behalf-of (OBO), the plugin uses the end-user token
+to obtain the database-access token but creates the security context using only
+the database-access token. For Oracle AI Database versions earlier than
+23.26.4, the plugin includes the end-user identity in the security context
+payload.
+
+When an end-user identity is specified, its format depends on how the user is
+managed. For users managed by external IAMs such as OCI IAM or Microsoft Entra
+ID, the value of an end-user's identity is a string consisting of an end-user
+token issued by these IAMs. For users managed by Oracle Database, the value of
+an end-user's identity is a two-item tuple containing the local database user
+name and a key, where the key may be *None* if not required.
+
+If an end-user identity is required for the end-user security context or for an
+On-Behalf-Of (OBO) token generation, call
 :func:`oracledb.plugins.end_user_sec_provider.set_end_user_identity()` before
 creating a standalone connection or before acquiring a connection from a pool.
 The function securely stores the identity in python-oracledb's internal cache
@@ -3880,14 +3888,6 @@ Also, you can use an alias, for example:
 
     provider.set_end_user_identity(end_user_token)
 
-The plugin behavior depends on the configured authentication flow and the
-Oracle Database version. If you are using Oracle AI Database 26ai version
-23.26.4 or later and the ``auth_flow`` is "on_behalf_of", the plugin uses the
-end-user identity token to obtain the database-access token but does not
-include the end-user token in the end-user security context payload. For
-earlier Oracle Database versions, the plugin includes the end-user identity in
-the security context payload.
-
 For connection and pool creation using Deep Data Security, you must define the ``end_user_sec_params`` key in the ``extra_auth_params`` parameter. The
 ``end_user_sec_params`` key should be a dictionary which contains the
 parameters listed in the following table.
@@ -3912,7 +3912,7 @@ parameters listed in the following table.
     * - ``auth_flow``
       - The authentication flow to use for database access token acquisition such as "client_credentials" or "on_behalf_of".
 
-        If the end-user identity is a string containing the end-user token, set this parameter to:
+        If the end-user identity is a string containing the end-user token, set this parameter to one of the following:
 
         - "client_credentials": The database-access token is obtained using the application's client ID and secret.
 
@@ -4021,9 +4021,9 @@ performs the following:
   ``end_user_sec_params`` is used.
 
 - Creates an end-user security context payload using the database-access token,
-  the data roles, and the context attributes. For Oracle AI Database 26ai
-  version 23.26.4 and later, if the ``auth_flow`` is "on_behalf_of", then only
-  the database-access token is included in the security context payload.
+  end-user identity, data roles, and context attributes. For Oracle AI Database
+  26ai version 23.26.4 and later, if the ``auth_flow`` is "on_behalf_of", then
+  only the database-access token is included in the security context payload.
   For versions earlier than 23.26.4, the end-user identity and database-access
   token are used to create the security context payload.
 
@@ -4061,10 +4061,12 @@ parameters, and also any other desired parameters of
 :func:`~oracledb.connect()` such as ``config_dir``, ``wallet_location``, and
 ``wallet_password``.
 
-In the ``end_user_sec_params`` key, the end-user identity is optional when
-``auth_flow`` is "client_credentials". The following example creates a
-standalone connection using the "client_credentials" authentication flow
-without specifying an end-user identity:
+When ``auth_flow`` is "client_credentials", specifying an end-user identity is
+optional. The
+:func:`oracledb.plugins.end_user_sec_provider.set_end_user_identity()` call is
+not required. The following example creates a standalone connection using the
+"client_credentials" authentication flow without specifying an end-user
+identity:
 
 .. code:: python
 
@@ -4170,7 +4172,7 @@ calling ``pool.acquire()``. The token is required to obtain the database-access
 token.
 
 For Oracle Database 23.26.4 and later, the token is used to obtain the
-database access token but is not included in the security context payload. For
+database-access token but is not included in the security context payload. For
 earlier database versions, the available end-user identity is included in the
 payload.
 
@@ -5736,10 +5738,6 @@ Oracle AI Database Encryption-only, zero-configuration TLS (ezTLS) provides
 encrypted communication between python-oracledb and the database server
 without requiring client-side certificates or wallets. ezTLS requires Oracle AI
 Database 26ai version 23.26.4 or later.
-
-.. note::
-
-    Oracle ezTLS is only supported in python-oracledb Thin mode.
 
 Traditional certificate-based TLS verifies server identity using certificates.
 ezTLS does not perform certificate-based identity verification. Instead, it
