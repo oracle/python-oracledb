@@ -497,7 +497,7 @@ class PoolParams(ConnectParams):
           of any transaction that is created by the connection
           (default: None)
 
-        - ``use_eztls``: boolean indicating whether to use EZTLS. For a
+        - ``use_eztls``: boolean indicating whether to use ezTLS. For a
           connection using TCP this enables TLS encryption over TCP, which is
           similar to what was previously done with Native Network Encryption
           (NNE). For a connection using TCPS this allows the server to use a
@@ -1087,7 +1087,7 @@ class PoolParams(ConnectParams):
           oracledb.TransactionPriority enumeration that specifies the priority
           of any transaction that is created by the connection
 
-        - ``use_eztls``: boolean indicating whether to use EZTLS. For a
+        - ``use_eztls``: boolean indicating whether to use ezTLS. For a
           connection using TCP this enables TLS encryption over TCP, which is
           similar to what was previously done with Native Network Encryption
           (NNE). For a connection using TCPS this allows the server to use a

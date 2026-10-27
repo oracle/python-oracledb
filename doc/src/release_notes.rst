@@ -13,14 +13,14 @@ Release changes are listed as affecting Thin Mode (the default runtime behavior
 of python-oracledb), as affecting the optional :ref:`Thick Mode
 <enablingthick>`, or as being 'Common' for changes that impact both modes.
 
-oracledb `26.1.0 <https://github.com/oracle/python-oracledb/compare/v26.0.1...v26.1.0>`__ (TBD)
------------------------------------------------------------------------------------------------
+oracledb `26.1.0 <https://github.com/oracle/python-oracledb/compare/v26.0.1...v26.1.0>`__ (October 2026)
+--------------------------------------------------------------------------------------------------------
 
 Thin Mode Changes
 +++++++++++++++++
 
 #)  Added support for
-    :ref:`Encryption-only, zero-configuration TLS (EZTLS) <eztls>`.
+    :ref:`Encryption-only, zero-configuration TLS (ezTLS) <eztls>`.
 #)  Added :meth:`Connection.set_opentelemetry_trace_context` (and async
     variant) for enabling Oracle Database :ref:`OpenTelemetry <opentelemetry>`
     tracing and propagating trace context. The attribute
