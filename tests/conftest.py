@@ -239,9 +239,9 @@ class TestEnv:
                 return oracledb.IntervalYM(
                     years=years * sign, months=months * sign
                 )
-            return datetime.timedelta(
-                days=df_val.days, microseconds=df_val.microseconds
-            )
+            ns = getattr(df_val, "nanoseconds", 0)
+            us = getattr(df_val, "microseconds", 0) + (ns // 1000)
+            return datetime.timedelta(days=df_val.days, microseconds=us)
         elif pandas.isna(df_val):
             return None
         elif isinstance(df_val, dict):
