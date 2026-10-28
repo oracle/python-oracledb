@@ -573,8 +573,18 @@ cdef class BaseAsyncProtocol(BaseProtocol):
         Called when a connection has been lost. The presence of an exception
         indicates an abornmal loss of the connection. If in the process of
         establishing a connection, losing the connection is ignored since this
-        can happen normally when a listener redirect is encountered.
+        can happen normally when a listener redirect is encountered: the
+        transport to the listener and the transport to the redirected address
+        share this protocol object, so the loss of the former must not be
+        mistaken for the loss of the latter. The two are told apart by checking
+        whether the current transport is closing, which is always the case when
+        it is the one that has been lost.
         """
+        cdef object transport
+        if self._in_connect and self._transport is not None:
+            transport = self._transport._transport
+            if transport is not None and not transport.is_closing():
+                return
         if not self._in_connect:
             self._transport = None
             self._read_buf._transport = None
