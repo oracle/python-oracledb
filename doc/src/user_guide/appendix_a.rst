@@ -130,12 +130,12 @@ For more details see :ref:`driverdiff` and :ref:`upgrading83`.
       - No
       - Yes - No TIMESTAMP support
       - Yes - No TIMESTAMP support
-    * - Oracle ezTLS (see :ref:`eztls`)
+    * - Oracle AI Database ezTLS (see :ref:`eztls`)
       - Yes
       - Yes
       - No
     * - Oracle Database Native Network Encryption (NNE) (see :ref:`nne`)
-      - No - use `TLS <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-8B82DD7E-7189-4FE9-8F3B-4E521706E1E4>`__ instead
+      - No - use :ref:`eztls` or `TLS <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-8B82DD7E-7189-4FE9-8F3B-4E521706E1E4>`__ instead
       - Yes
       - Yes
     * - Connection health check APIs (see :meth:`~Connection.is_healthy()` and :meth:`~Connection.ping()`)
