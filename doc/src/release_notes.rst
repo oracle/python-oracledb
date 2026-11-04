@@ -25,6 +25,8 @@ Thick Mode Changes
 Common Changes
 ++++++++++++++
 
+#)  Added support for building wheels for GraalPy.
+
 
 oracledb `26.1.0 <https://github.com/oracle/python-oracledb/compare/v26.0.1...v26.1.0>`__ (October 2026)
 --------------------------------------------------------------------------------------------------------

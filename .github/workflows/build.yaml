@@ -57,12 +57,20 @@ jobs:
           - "cp313-cp313"
           - "cp314-cp314"
           - "cp315-cp315"
+          - "graalpy312-graalpy250_312_native"
+          - "graalpy313-graalpy253_313_native"
         libc:
           - "manylinux"
           - "musllinux"
         arch:
           - "amd64"
           - "arm64"
+        exclude:
+          # GraalPy distributions are not available for musllinux.
+          - python-tag: "graalpy312-graalpy250_312_native"
+            libc: "musllinux"
+          - python-tag: "graalpy313-graalpy253_313_native"
+            libc: "musllinux"
         include:
           - arch: "amd64"
             libc: "manylinux"
@@ -123,6 +131,14 @@ jobs:
         os: [macos-latest]
         python-version: ['3.10', '3.11', '3.12', '3.13', '3.14', '3.15']
         arch: ['']
+        include:
+          # GraalPy macOS wheels are only built for ARM64.
+          - os: macos-latest
+            python-version: 'graalpy-25.0'  # 3.12
+            arch: arm64
+          - os: macos-latest
+            python-version: 'graalpy-25.4'  # 3.13
+            arch: arm64
 
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
