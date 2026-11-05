@@ -1155,6 +1155,15 @@ cdef class MessageWithData(Message):
         type_handler = cursor_impl._get_output_type_handler(&uses_metadata)
         if type_handler is not statement._last_output_type_handler \
                 or cursor_impl.schema_impl is not statement._last_schema_impl:
+
+            # LOB columns are returned in the form requested by the last
+            # define, which may not match the new fetch variables; clear the
+            # cursor so that the statement is parsed and defined again, and
+            # the fetch variables are created from the new describe
+            if statement._no_prefetch:
+                self.conn_impl._statement_cache.clear_cursor(statement)
+                return 0
+
             for i, var_impl in enumerate(cursor_impl.fetch_var_impls):
                 cursor_impl._create_fetch_var(conn, self.cursor, type_handler,
                                               uses_metadata, i,

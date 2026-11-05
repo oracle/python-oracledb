@@ -26,6 +26,7 @@
 Module for testing other cursor methods and attributes with asyncio.
 """
 
+import datetime
 import decimal
 
 import oracledb
@@ -958,3 +959,25 @@ async def test_cursor_1956(async_cursor):
     await async_cursor.parse("select to_clob('some_value') from dual")
     fetch_info = async_cursor.description[0]
     assert fetch_info.type is oracledb.DB_TYPE_CLOB
+
+
+async def test_cursor_1957(async_conn):
+    "1957 - test changing type handler for cached statement with LOB column"
+
+    def type_handler(cursor, metadata):
+        if metadata.type_code is oracledb.DB_TYPE_CLOB:
+            return cursor.var(
+                oracledb.DB_TYPE_LONG, arraysize=cursor.arraysize
+            )
+
+    sql = "select to_clob('test_1957'), date '2026-11-04' from dual"
+    for handler in (None, type_handler, None):
+        cursor = async_conn.cursor()
+        cursor.outputtypehandler = handler
+        await cursor.execute(sql)
+        clob_value, date_value = await cursor.fetchone()
+        if handler is None:
+            assert isinstance(clob_value, oracledb.AsyncLOB)
+            clob_value = await clob_value.read()
+        assert clob_value == "test_1957"
+        assert date_value == datetime.datetime(2026, 11, 4)

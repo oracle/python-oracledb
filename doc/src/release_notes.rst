@@ -22,6 +22,9 @@ Thin Mode Changes
 #)  Added support for processing `ALTER SESSION SET CONTAINER` statements which
     cause a renegotiation to take place, avoiding the ORA-24964 error
     (`issue 592 <https://github.com/oracle/python-oracledb/issues/592>`__).
+#)  Fixed bug when re-executing a cached statement containing LOB columns
+    with a different output type handler, which resulted in errors decoding
+    the response or in LOB columns being fetched in the wrong form.
 
 Thick Mode Changes
 ++++++++++++++++++
