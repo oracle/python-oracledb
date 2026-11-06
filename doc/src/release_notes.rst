@@ -28,6 +28,9 @@ Common Changes
 ++++++++++++++
 
 #)  Added support for building wheels for GraalPy.
+#)  Fixed bug that caused pool capacity to be reduced when an exception is
+    raised by a pool session callback
+    (`issue 626 <https://github.com/oracle/python-oracledb/issues/626>`__).
 
 
 oracledb `26.1.0 <https://github.com/oracle/python-oracledb/compare/v26.0.1...v26.1.0>`__ (October 2026)

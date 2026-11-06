@@ -766,3 +766,29 @@ async def test_pool_1150(test_env):
     conn = await pool.acquire()
     await asyncio.gather(waiter(), pool.close(force=True))
     await conn.close()
+
+
+async def test_pool_1151(test_env):
+    "1151 - failed session callback does not keep a connection busy"
+    calls = 0
+
+    async def callback(conn, tag):
+        nonlocal calls
+        calls += 1
+        if calls == 1:
+            raise RuntimeError("refused")
+
+    pool = test_env.get_pool_async(
+        min=0,
+        max=1,
+        increment=1,
+        session_callback=callback,
+    )
+    with pytest.raises(RuntimeError, match="refused"):
+        await pool.acquire()
+    assert pool.busy == 0
+    async with pool.acquire() as conn:
+        await conn.ping()
+        assert calls == 2
+    assert pool.busy == 0
+    await pool.close()

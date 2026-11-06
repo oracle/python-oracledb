@@ -1185,3 +1185,31 @@ def test_pool_1064(test_env, skip_unless_thin_mode):
     pool.close(force=True)
     t.join()
     conn.close()
+
+
+def test_pool_1065(test_env):
+    "1065 - failed session callback does not keep a connection busy"
+    calls = 0
+
+    def callback(conn, tag):
+        nonlocal calls
+        calls += 1
+        if calls == 1:
+            raise RuntimeError("refused")
+
+    pool = test_env.get_pool(
+        min=0,
+        max=1,
+        increment=1,
+        getmode=oracledb.POOL_GETMODE_TIMEDWAIT,
+        wait_timeout=5000,
+        session_callback=callback,
+    )
+    with pytest.raises(RuntimeError, match="refused"):
+        pool.acquire()
+    assert pool.busy == 0
+    with pool.acquire() as conn:
+        conn.ping()
+        assert calls == 2
+    assert pool.busy == 0
+    pool.close()

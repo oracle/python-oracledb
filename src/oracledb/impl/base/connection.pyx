@@ -586,10 +586,18 @@ cdef class SessionCallbackSubOp(SubOperation):
         """
         Runs the callback synchronously.
         """
-        self.f(self.conn, self.tag)
+        try:
+            self.f(self.conn, self.tag)
+        except Exception:
+            self.conn._pool.drop(self.conn)
+            raise
 
     async def process_async(self):
         """
         Runs the callback asynchronously.
         """
-        await self.f(self.conn, self.tag)
+        try:
+            await self.f(self.conn, self.tag)
+        except Exception:
+            await self.conn._pool.drop(self.conn)
+            raise
