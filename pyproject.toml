@@ -73,7 +73,10 @@ azure_config = [
     "azure-identity",
     "azure-keyvault-secrets"
 ]
-azure_auth = ["msal"]
+azure_auth = [
+    "msal",
+    "requests"
+]
 aws_config = ["boto3"]
 gcp_config = [
     "google-cloud-pubsub>=2.4.1",

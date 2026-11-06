@@ -33,9 +33,11 @@ import enum
 
 import msal
 import oracledb
+import requests
 
 
 class AuthType(str, enum.Enum):
+    AzureManagedIdentity = "AzureManagedIdentity".lower()
     AzureServicePrincipal = "AzureServicePrincipal".lower()
 
 
@@ -75,6 +77,30 @@ def _service_principal_credentials(token_auth_config):
 
     if "access_token" in auth_response:
         return auth_response["access_token"]
+
+
+def _managed_identity_credentials(token_auth_config):
+    """
+    Returns the access token for authentication with a managed identity.
+    """
+    client_id = token_auth_config.get("client_id")
+    if client_id is None:
+        managed_identity = msal.SystemAssignedManagedIdentity()
+    else:
+        managed_identity = msal.UserAssignedManagedIdentity(
+            client_id=client_id
+        )
+    app = msal.ManagedIdentityClient(
+        managed_identity, http_client=requests.Session()
+    )
+
+    # ManagedIdentityClient expects a resource URI, while the existing plugin
+    # configuration uses the OAuth scope convention of appending "/.default".
+    resource = token_auth_config["scopes"].removesuffix("/.default")
+    auth_response = app.acquire_token_for_client(resource=resource)
+    if "access_token" not in auth_response:
+        raise Exception(f"Token acquisition failed: {auth_response}")
+    return auth_response["access_token"]
 
 
 def get_database_access_token(deepsec_params, user_token):
@@ -132,6 +158,8 @@ def generate_token(token_auth_config, refresh=False):
     auth_type = token_auth_config["auth_type"].lower()
     if auth_type == AuthType.AzureServicePrincipal:
         return _service_principal_credentials(token_auth_config)
+    elif auth_type == AuthType.AzureManagedIdentity:
+        return _managed_identity_credentials(token_auth_config)
 
 
 def has_azure_auth_type(extra_auth_params):

@@ -1315,8 +1315,11 @@ must install the `Microsoft Authentication Library (MSAL) for Python
     python -m pip install oracledb[azure_auth]
 
 Review the `Microsoft MSAL installation instructions
-<https://learn.microsoft.com/en-us/entra/msal/python/?view=msal-py-latest#install-the-package>`__
-as needed.
+<https://learn.microsoft.com/en-us/entra/msal/python/?view=msal-py-latest#
+install-the-package>`__ as needed.
+
+Azure Managed Identities require MSAL for Python package `1.29.0 <https://pypi
+.org/project/msal/1.29.0/>`__ or later.
 
 See :ref:`cloudnativeauthoauth` for more information on using the plugin in
 python-oracledb.

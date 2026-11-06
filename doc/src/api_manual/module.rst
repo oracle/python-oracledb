@@ -1416,6 +1416,11 @@ Python-oracledb then uses these tokens to connect to Oracle Database.
 
 See :ref:`cloudnativeauthoauth` for more information.
 
+.. versionchanged:: 26.2.0
+
+    Added support for Azure Managed Identity authentication - both system-assigned
+    identities and user-assigned identities.
+
 .. versionadded:: 3.0.0
 
 .. _endusersecurityproviderplugin:

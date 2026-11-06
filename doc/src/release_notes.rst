@@ -28,6 +28,9 @@ Common Changes
 ++++++++++++++
 
 #)  Added support for building wheels for GraalPy.
+#)  Added support for
+    :ref:`Azure Managed Identity Authentication <azuremanagedidentityauth>` for
+    system-assigned and user-assigned identities.
 #)  Fixed bug that caused pool capacity to be reduced when an exception is
     raised by a pool session callback
     (`issue 626 <https://github.com/oracle/python-oracledb/issues/626>`__).

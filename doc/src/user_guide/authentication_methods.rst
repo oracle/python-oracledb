@@ -1282,8 +1282,14 @@ Azure Cloud Native Authentication with the azure_tokens Plugin
 With Cloud Native Authentication, python-oracledb's :ref:`azure_tokens
 <azurecloudnativeauthplugin>` plugin can automatically generate and refresh
 OAuth2 tokens when required with the support of the `Microsoft Authentication
-Library (MSAL) <https://learn.microsoft.com/en-us/
-entra/msal/python/?view=msal-py-latest>`__.
+Library (MSAL) <https://learn.microsoft.com/en-us/entra/msal/python/?view=
+msal-py-latest>`__.
+
+The ``azure_tokens`` plugin supports two Azure authentication methods:
+service principal authentication and managed identity authentication for
+system-assigned and user-assigned managed identities. See
+:ref:`azureserviceprincipalauth` and :ref:`azuremanagedidentityauth` for more
+information.
 
 The :ref:`azure_tokens <azurecloudnativeauthplugin>` plugin can be imported
 like:
@@ -1322,21 +1328,33 @@ the following table.
     * - ``auth_type``
       - The authentication type.
 
-        This must be the string "AzureServicePrincipal". This type makes the plugin acquire Azure service principal access tokens through a client credential flow.
+        This can be the string "AzureServicePrincipal" or "AzureManagedIdentity".
+
+        Set this to "AzureServicePrincipal" to make the plugin acquire an Azure access token using a service principal and the client credentials flow.
+
+        Set this to "AzureManagedIdentity" to make the plugin acquire an Azure access token using an Azure managed identity. The managed identity can be either system-assigned or user-assigned.
+
+        .. versionchanged:: 26.2.0
+
+            Azure Managed Identity authentication for system-assigned and user-assigned identities was added.
       - Required
     * - ``authority``
       - This parameter must be set as a string in the URI format with the tenant ID, for example ``https://{identity provider instance}/{tenantId}``.
 
         The tenantId is the directory tenant against which the application operates, in either GUID or domain-name format.
-      - Required
-    * - ``client_id``
-      - The application ID that is assigned to your application.
 
-        This information can be found in the portal where the application was registered.
-      - Required
+        This parameter is not used with Azure Managed Identity.
+      - Required when ``auth_type`` is "AzureServicePrincipal"
+    * - ``client_id``
+      - For "AzureServicePrincipal", this is the application ID assigned to your application. This information can be found in the portal where the application was registered.
+
+        For "AzureManagedIdentity", this is the client ID of a user-assigned managed identity. This parameter is not used for system-assigned managed identity.
+      - Required when ``auth_type`` is "AzureServicePrincipal" and for a user-assigned "AzureManagedIdentity"
     * - ``client_credential``
       - The client secret that was generated for your application in the application registration portal.
-      - Required
+
+        This parameter is not used when ``auth_type`` is "AzureManagedIdentity".
+      - Required when ``auth_type`` is "AzureServicePrincipal"
     * - ``scopes``
       - This parameter represents the value of the scope for the request.
 
@@ -1370,9 +1388,9 @@ parameters of :func:`~oracledb.connect`. For example:
     import oracledb.plugins.azure_tokens
 
     token_based_auth = {
-        "auth_type": "AzureServicePrincipal", # Azure specific configuration
-        "authority": <authority>,             # parameters to be set when using
-        "client_id": <client_id>,             # the azure_tokens plugin
+        "auth_type": <auth_type>,
+        "authority": <authority>,
+        "client_id": <client_id>,
         "client_credential": <client_credential>,
         "scopes": <scopes>
     }
@@ -1398,9 +1416,9 @@ parameter must be *True* (its default value). For example:
     import oracledb.plugins.azure_tokens
 
     token_based_auth = {
-        "auth_type": "AzureServicePrincipal", # Azure specific configuration
-        "authority": <authority>,             # parameters to be set when using
-        "client_id": <client_id>,             # the azure_tokens plugin
+        "auth_type": <auth_type>,
+        "authority": <authority>,
+        "client_id": <client_id>,
         "client_credential": <client_credential>,
         "scopes": <scopes>
     }
@@ -1425,9 +1443,9 @@ parameters of :func:`~oracledb.connect`. For example:
     import oracledb.plugins.azure_tokens
 
     token_based_auth = {
-        "auth_type": "AzureServicePrincipal", # Azure specific configuration
-        "authority": <authority>,             # parameters to be set when using
-        "client_id": <client_id>,             # the azure_tokens plugin
+        "auth_type": <auth_type>,
+        "authority": <authority>,
+        "client_id": <client_id>,
         "client_credential": <client_credential>,
         "scopes": <scopes>
     }
@@ -1450,9 +1468,9 @@ be *True* (its default value). For example:
     import oracledb.plugins.azure_tokens
 
     token_based_auth = {
-        "auth_type": "AzureServicePrincipal", # Azure specific configuration
-        "authority": <authority>,             # parameters to be set when using
-        "client_id": <client_id>,             # the azure_tokens plugin
+        "auth_type": <auth_type>,
+        "authority": <authority>,
+        "client_id": <client_id>,
         "client_credential": <client_credential>,
         "scopes": <scopes>
     }
@@ -1462,6 +1480,114 @@ be *True* (its default value). For example:
         homogeneous=True,  # must always be True for connection pools
         dsn=mydb_low,
         extra_auth_params=token_based_auth)
+
+.. _azureserviceprincipalauth:
+
+Azure Service Principal Authentication
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Service principal authentication uses an application identity registered with
+Microsoft Entra ID. The application obtains access tokens using its client ID
+and client secret, without requiring user interaction. For more information,
+see `Microsoft Entra service principals <https://learn.microsoft.com/en-us/
+entra/identity-platform/app-objects-and-service-principals>`__.
+
+The python-oracledb :ref:`azure_tokens plugin <azurecloudnativeauthplugin>`
+uses these credentials with the `Microsoft Authentication Library (MSAL)
+<https://learn.microsoft.com/en-us/entra/msal/python/?view=msal-py-latest>`__
+to acquire an access token. The token is then used to authenticate the
+connection to Oracle Database.
+
+Before using service principal authentication, ensure that the application is
+registered in Microsoft Entra ID, that the client ID and client secret are
+available, and that the service principal has permission to access the target
+resource.
+
+To use the service principal authentication, set the ``auth_type`` property to
+"AzureServicePrincipal" in the ``extra_auth_params`` parameter. You must also
+set ``authority``, ``client_id``, ``client_credential`` and ``scopes``
+parameters. For example:
+
+.. code-block:: python
+
+    token_based_auth = {
+        "auth_type": "AzureServicePrincipal,
+        "authority": <authority>,
+        "client_id": <client_id>,
+        "client_credential": <client_credential>,
+        "scopes": <scopes>
+    }
+
+See :ref:`_azure_configuration_parameters` for information on the
+Azure-specific parameters.
+
+.. _azuremanagedidentityauth:
+
+Azure Managed Identity Authentication
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Managed identities are identities assigned to Microsoft Azure resources. They
+allow an application running on Azure to obtain Microsoft Entra access tokens
+without storing a client secret or certificate in the application. Azure
+Managed Identities require `Microsoft Authentication Library (MSAL) for Python
+<https://pypi.org/project/msal/>`__ package 1.29.0 or later. For more
+information, see `Using Managed Identity <https://learn.microsoft.com/en-us/
+entra/msal/python/advanced/managed-identity>`__.
+
+Azure supports two types of managed identities - system-assigned and
+user-assigned. See `Managed Identity Types <https://learn.microsoft.com/en-us/
+entra/identity/managed-identities-azure-resources/overview#managed-identity-
+types>`__ for more information on these types of managed identities.
+
+Azure Managed Identity authentication can be specified by setting the
+``auth_type`` key in ``extra_auth_params`` to *"AzureManagedIdentity"*. When
+this authentication is set, the plugin uses MSAL managed identity APIs to
+obtain the database access token.
+
+Before using managed identity authentication, ensure that the application is
+running on an Azure resource that supports managed identities and that the
+managed identity has the required permissions to access the target resource.
+
+**System-assigned managed identity**
+
+A system-assigned managed identity is automatically created and managed by
+Azure for an Azure resource. The identity is created as part of an Azure
+resource and is deleted when that resource is deleted.
+
+For a system-assigned managed identity, set ``auth_type`` to
+*"AzureManagedIdentity"*. Also, set the ``scopes`` key. Do not specify the
+``client_id`` key. For example:
+
+.. code-block:: python
+
+    system_assigned_auth = {
+        "auth_type": "AzureManagedIdentity",
+        "scopes": "https://<resource-app-id-uri>/.default",
+    }
+
+For information on the authentication configuration keys defined in
+``extra_auth_params``, see :ref:`_azure_configuration_parameters`.
+
+**User-assigned managed identity**
+
+A user-assigned managed identity (UAMI) in Azure is a standalone identity
+created as a separate resource in Microsoft Entra ID that you can assign to one
+or more Azure compute services.
+
+For a user-assigned managed identity, set ``auth_type`` to
+*"AzureManagedIdentity"*, and the ``client_id`` key to its client ID. Also,
+set the ``scopes`` key. For example:
+
+.. code-block:: python
+
+    user_assigned_auth = {
+        "auth_type": "AzureManagedIdentity",
+        "client_id": "<managed-identity-client-id>",
+        "scopes": "https://<resource-app-id-uri>/.default",
+    }
+
+For information on the authentication configuration keys defined in
+``extra_auth_params``, see :ref:`_azure_configuration_parameters`.
 
 .. _instanceprincipalauth:
 
