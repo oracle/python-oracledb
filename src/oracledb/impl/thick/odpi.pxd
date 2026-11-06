@@ -750,6 +750,9 @@ cdef extern from "impl/thick/odpi/embed/dpi.c":
     int dpiConn_setEcontextId(dpiConn *conn, const char *value,
             uint32_t valueLength) nogil
 
+    int dpiConn_setEndUserSecurityContextFromOson(dpiConn *conn,
+            const void *oson, uint32_t osonLength) nogil
+
     int dpiConn_setExternalName(dpiConn *conn, const char *value,
             uint32_t valueLength) nogil
 

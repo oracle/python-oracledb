@@ -91,6 +91,7 @@ import copy
 import datetime
 import decimal
 import getpass
+import hashlib
 import inspect
 import json
 import os
@@ -174,6 +175,7 @@ include "impl/base/converters.pyx"
 include "impl/base/buffer.pyx"
 include "impl/base/parsers.pyx"
 include "impl/base/oson.pyx"
+include "impl/base/end_user_security_context.pyx"
 include "impl/base/vector.pyx"
 include "impl/base/connect_params.pyx"
 include "impl/base/pool_params.pyx"

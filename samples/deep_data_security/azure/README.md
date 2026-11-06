@@ -1,11 +1,14 @@
 # Deep Data Security Samples
 
 The samples in this directory and its subdirectories use Microsoft Entra ID
-OAUTH tokens for overall authentication.
+OAuth tokens for overall authentication. They can run in python-oracledb Thin
+or Thick mode.
 
 ## Prerequisites
 
 - The database must support Deep Data Security (23.26.2 or higher).
+- For Thick mode, install Oracle Client libraries (23.26.4 or higher).
+- Configure the client for a TCPS connection for both Thick and Thin mode.
 - Install the third-party Python library `msal` (used for Microsoft Entra token
   flows).
 ```bash
@@ -85,6 +88,16 @@ export PYO_SAMPLES_MAIN_PASSWORD="change_me"
 export PYO_SAMPLES_WALLET_LOCATION="/path/to/wallet"
 export PYO_SAMPLES_WALLET_PASSWORD="wallet_password"
 ```
+
+To run in Thick mode, set the driver mode and Oracle Client library path (the
+path is only needed on macOS and Windows):
+
+```bash
+export PYO_SAMPLES_DRIVER_MODE="thick"
+export PYO_SAMPLES_ORACLE_CLIENT_PATH="/path/to/instantclient"
+```
+
+Leave `PYO_SAMPLES_DRIVER_MODE` unset, or set it to `thin`, to use Thin mode.
 
 
 ## 2) Ensure main sample schema has already been created. If not, run this:

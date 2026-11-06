@@ -583,7 +583,7 @@ cdef class Message:
             bytes context_bytes = None
             str hash_text = None
 
-        security_context = self.conn_impl._security_context
+        security_context = self.conn_impl.security_context
         if (
             self.conn_impl._protocol._caps.supports_end_user_security_context_hash
             and security_context.hash_value is not None
@@ -844,7 +844,7 @@ cdef class Message:
         """
         Writes all of the piggybacks to the server.
         """
-        if self.conn_impl._security_context is not None:
+        if self.conn_impl.security_context is not None:
             self._write_end_user_sec_piggyback(buf)
         if self.conn_impl.pipeline_mode != 0:
             self._write_begin_pipeline_piggyback(buf)

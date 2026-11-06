@@ -99,6 +99,7 @@ from .base_impl cimport (
     BaseSubscrImpl,
     BaseVarImpl,
     BatchLoadManager,
+    EndUserSecurityContextImpl,
     PipelineOpImpl,
     PipelineOpResultImpl,
     PIPELINE_OP_TYPE_CALL_FUNC,
@@ -274,4 +275,3 @@ include "impl/thin/dbobject.pyx"
 include "impl/thin/dbobject_cache.pyx"
 include "impl/thin/lob.pyx"
 include "impl/thin/pool.pyx"
-include "impl/thin/end_user_security_context.pyx"

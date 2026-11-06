@@ -75,6 +75,7 @@ from .base_impl cimport (
     DRIVER_NAME,
     DRIVER_VERSION,
     DRIVER_INSTALLATION_URL,
+    EndUserSecurityContextImpl,
     ENCODING_UTF8,
     OracleData,
     OracleMetadata,

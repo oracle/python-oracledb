@@ -28,7 +28,7 @@
 # Contains the methods required to create the end user security context.
 # -----------------------------------------------------------------------------
 
-from . import errors, thin_impl
+from . import base_impl, errors
 from .base import BaseMetaClass
 
 
@@ -99,7 +99,7 @@ def create_end_user_security_context(
         or not all(isinstance(role, str) for role in data_roles)
     ):
         raise ValueError("data_roles must be a list of strings or None.")
-    impl = thin_impl.EndUserSecurityContextImpl.create(
+    impl = base_impl.EndUserSecurityContextImpl.create(
         end_user_token,
         end_user_name,
         key,

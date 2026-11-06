@@ -707,6 +707,7 @@ cdef class BaseConnImpl:
     cdef:
         readonly bint thin
         readonly str dsn
+        EndUserSecurityContextImpl security_context
         public object inputtypehandler
         public object operation_callback
         public object outputtypehandler
@@ -1022,6 +1023,13 @@ cdef class SecretValueImpl:
     cpdef bool has_expired(self)
     cpdef int set_value(self, object secret_value, object expires=*) except -1
 
+
+cdef class EndUserSecurityContextImpl:
+    cdef:
+        SecretValueImpl full_payload_oson_bytes
+        SecretValueImpl partial_payload_oson_bytes
+        SecretValueImpl hash_value
+        bint is_localuser
 
 cdef class SparseVectorImpl:
     cdef:

@@ -127,9 +127,6 @@ Oracledb Methods
 
 .. autofunction:: create_end_user_security_context
 
-    In this release, this method is only relevant to python-oracledb's Thin
-    mode.
-
     See :ref:`endusersecuritycontextcreation`.
 
     .. versionchanged:: 26.1.0

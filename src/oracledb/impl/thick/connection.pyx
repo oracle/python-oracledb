@@ -380,6 +380,19 @@ cdef class ThickConnImpl(BaseConnImpl):
         if status < 0:
             _raise_from_odpi()
 
+    def clear_end_user_security_context(self):
+        """
+        Clears the end user security context from the connection.
+        """
+        cdef int status
+        with nogil:
+            status = dpiConn_setEndUserSecurityContextFromOson(
+                self._handle, NULL, 0
+            )
+        if status < 0:
+            _raise_from_odpi()
+        self.security_context = None
+
     @sync_operation
     def close(self):
         cdef:
@@ -388,6 +401,8 @@ cdef class ThickConnImpl(BaseConnImpl):
             uint32_t tag_length = 0
             bytes tag_bytes
             int status
+        if self.security_context is not None:
+            self.clear_end_user_security_context()
         if self.tag is not None:
             mode = DPI_MODE_CONN_CLOSE_RETAG
             tag_bytes = self.tag.encode()
@@ -832,6 +847,27 @@ cdef class ThickConnImpl(BaseConnImpl):
 
     def set_dbop(self, str value):
         self._set_text_attr(dpiConn_setDbOp, value)
+
+    def set_end_user_security_context(self,
+                                      EndUserSecurityContextImpl context):
+        """
+        Sets the end user security context on the connection.
+        """
+        cdef:
+            const char *oson_ptr
+            uint32_t oson_length
+            bytes oson_bytes
+            int status
+        oson_bytes = context.full_payload_oson_bytes.get_value_as_bytes()
+        oson_length = <uint32_t> len(oson_bytes)
+        oson_ptr = oson_bytes
+        with nogil:
+            status = dpiConn_setEndUserSecurityContextFromOson(
+                self._handle, oson_ptr, oson_length
+            )
+        if status < 0:
+            _raise_from_odpi()
+        self.security_context = context
 
     def set_transaction_priority(self, str value):
         self._set_text_attr(dpiConn_setTransactionPriority, value)

@@ -61,10 +61,11 @@ Connection Methods
 
 .. automethod:: Connection.clear_end_user_security_context
 
-    In this release, this method is only relevant to python-oracledb's Thin
-    mode.
-
     See :ref:`endusersecuritycontextcreation`.
+
+    .. versionchanged:: 26.2.0
+
+        Support was added in python-oracledb Thick mode.
 
     .. versionadded:: 4.0.0
 
@@ -184,10 +185,11 @@ Connection Methods
 
 .. automethod:: Connection.set_end_user_security_context
 
-    In this release, this method is only relevant to python-oracledb's Thin
-    mode.
-
     See :ref:`endusersecuritycontextcreation`.
+
+    .. versionchanged:: 26.2.0
+
+        Support was added in python-oracledb Thick mode.
 
     .. versionadded:: 4.0.0
 

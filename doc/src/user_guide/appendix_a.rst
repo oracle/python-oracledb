@@ -96,7 +96,7 @@ For more details see :ref:`driverdiff` and :ref:`upgrading83`.
       - Yes
     * - Oracle Deep Data Security (DeepSec) (see :ref:`deepdatasecurity`)
       - Yes
-      - No
+      - Yes
       - No
     * - Proxy connections (see :ref:`proxyauth`)
       - Yes

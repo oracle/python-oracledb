@@ -43,12 +43,6 @@ cdef SecretValueImpl _encode_payload(dict payload):
 
 
 cdef class EndUserSecurityContextImpl:
-    cdef:
-        SecretValueImpl full_payload_oson_bytes
-        SecretValueImpl partial_payload_oson_bytes
-        SecretValueImpl hash_value
-        bint is_localuser
-
     @classmethod
     def create(
         cls,

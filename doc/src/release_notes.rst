@@ -22,6 +22,8 @@ Thin Mode Changes
 Thick Mode Changes
 ++++++++++++++++++
 
+#)  Added support for :ref:`Oracle Deep Data Security <deepdatasecurity>`.
+
 Common Changes
 ++++++++++++++
 

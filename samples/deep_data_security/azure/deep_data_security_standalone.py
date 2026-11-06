@@ -48,6 +48,9 @@ sys.path.insert(0, str(path.parent.parent.parent))
 
 import sample_env  # noqa
 
+if sample_env.run_in_thick_mode():
+    oracledb.init_oracle_client(lib_dir=sample_env.get_oracle_client())
+
 # Azure App client ID used for user token acquisition
 AZURE_USER_CLIENT_ID = os.environ.get("AZURE_USER_CLIENT_ID")
 # Microsoft Entra authority URL (for example: https://login.microsoftonline.com/<tenant-id>)

@@ -111,7 +111,6 @@ cdef class ThinConnImpl(BaseConnImpl):
         uint8_t pipeline_mode
         uint8_t _session_state_desired
         _SessionlessData _sessionless_data
-        EndUserSecurityContextImpl _security_context
         bint _send_full_security_context
         bint _send_ha_readiness
 
@@ -570,7 +569,7 @@ cdef class ThinConnImpl(BaseConnImpl):
             self._database_opentelemetry_tracing_modified = True
 
         # clear end user security context and any pending warning
-        self._security_context = None
+        self.security_context = None
         self._send_full_security_context = True
         self.warning = None
 
@@ -821,7 +820,7 @@ cdef class ThinConnImpl(BaseConnImpl):
         """
         Clears the end user security context.
         """
-        self._security_context = None
+        self.security_context = None
         self._send_full_security_context = True
 
     def close(self):
@@ -1174,7 +1173,7 @@ cdef class ThinConnImpl(BaseConnImpl):
             errors._raise_err(
                 errors.ERR_UNSUPPORTED_DEEP_DATA_SECURITY_FEATURE
             )
-        self._security_context = context
+        self.security_context = context
         self._send_full_security_context = True
 
     def set_external_name(self, value):

@@ -3591,10 +3591,6 @@ at the database layer. Deep Data Security ensures fine-grained and end-to-end
 user access control at the row, column, and cell levels. Deep Data Security
 requires Oracle AI Database 26ai.
 
-.. note::
-
-    Oracle Deep Data Security is only supported in python-oracledb Thin mode.
-
 With Deep Data Security, an application sends a specific set of identity and
 authorization details to the database called end-user security context payload.
 The details that can be defined in an end-user security context payload are an
@@ -3828,11 +3824,6 @@ connection, which is used to connect to Oracle Database. This plugin configures
 the end-user security context by retrieving the database-access token through
 the configured token plugin and uses it with the available end-user identity,
 data roles, and attributes.
-
-.. note::
-
-    The end_user_sec_provider plugin is only supported in python-oracledb Thin
-    mode.
 
 The :ref:`end_user_sec_provider <endusersecurityproviderplugin>` plugin can be
 imported using:
