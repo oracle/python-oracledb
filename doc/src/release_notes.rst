@@ -23,6 +23,11 @@ Thin Mode Changes
     cause a renegotiation to take place, avoiding the ORA-24964 error
     (`issue 592 <https://github.com/oracle/python-oracledb/issues/592>`__).
 
+#)  Fixed bug resulting in a segfault when a cached query is executed again
+    after its first execution failed with an integrity error such as
+    ``ORA-01438`` before any rows were fetched
+    (`issue 631 <https://github.com/oracle/python-oracledb/issues/631>`__).
+
 Thick Mode Changes
 ++++++++++++++++++
 
