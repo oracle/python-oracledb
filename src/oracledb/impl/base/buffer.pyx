@@ -799,7 +799,7 @@ cdef class GrowableBuffer(Buffer):
         pointer forward, allocating more space if necessary.
         """
         self._pos += num_bytes
-        if self._pos > self._size:
+        if self._pos > self._max_size:
             self._write_more_data(self._size - self._pos + num_bytes,
                                   num_bytes)
 

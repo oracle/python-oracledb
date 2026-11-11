@@ -38,6 +38,8 @@ Common Changes
 #)  Fixed bug that caused pool capacity to be reduced when an exception is
     raised by a pool session callback
     (`issue 626 <https://github.com/oracle/python-oracledb/issues/626>`__).
+#)  Fixed bug that caused memory allocation to be performed unnecessarily when
+    encoding OSON.
 
 
 oracledb `26.1.0 <https://github.com/oracle/python-oracledb/compare/v26.0.1...v26.1.0>`__ (October 2026)
