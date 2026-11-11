@@ -45,9 +45,11 @@ cdef class FastAuthMessage(Message):
         if message_type == TNS_MSG_TYPE_PROTOCOL:
             ProtocolMessage._process_message(self.protocol_message, buf,
                                              message_type)
+            self.end_of_response = False
         elif message_type == TNS_MSG_TYPE_DATA_TYPES:
             DataTypesMessage._process_message(self.data_types_message, buf,
                                               message_type)
+            self.end_of_response = False
         else:
             AuthMessage._process_message(self.auth_message, buf, message_type)
             self.end_of_response = self.auth_message.end_of_response

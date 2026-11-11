@@ -237,7 +237,8 @@ cdef class Capabilities:
         self.compile_caps[TNS_CCAP_SESS_SIGNATURE_VERSION] = \
                 TNS_CCAP_FIELD_VERSION_12_2
         self.compile_caps[TNS_CCAP_TTC4] = TNS_CCAP_INBAND_NOTIFICATION | \
-                TNS_CCAP_EXPLICIT_BOUNDARY
+                TNS_CCAP_EXPLICIT_BOUNDARY | \
+                TNS_CCAP_FAST_RENEGOTIATION
         self.compile_caps[TNS_CCAP_TTC5] = TNS_CCAP_VECTOR_SUPPORT | \
                 TNS_CCAP_TOKEN_SUPPORTED | TNS_CCAP_PIPELINING_SUPPORT | \
                 TNS_CCAP_PIPELINING_BREAK | TNS_CCAP_TTC5_SESSIONLESS_TXNS

@@ -267,10 +267,17 @@ cdef class Protocol(BaseProtocol):
         """
         Process a single message within a request.
         """
+        cdef DataTypesMessage data_types_message
         message.preprocess()
         with self._request_lock:
             self._process_round_trip(message)
-            if message.resend:
+            if message.in_renegotiation:
+                data_types_message = message.conn_impl._create_message(
+                    DataTypesMessage, "data types"
+                )
+                self._process_round_trip(data_types_message)
+                message.process(self._read_buf)
+            elif message.resend:
                 self._process_round_trip(message)
         message.postprocess()
 
@@ -494,13 +501,20 @@ cdef class BaseAsyncProtocol(BaseProtocol):
         """
         Process a single message within a request.
         """
+        cdef DataTypesMessage data_types_message
         message.preprocess()
         async with self._request_lock:
             if isinstance(message, EndPipelineMessage):
                 await message.process_pipeline()
             else:
                 await self._process_round_trip(message)
-            if message.resend:
+            if message.in_renegotiation:
+                data_types_message = message.conn_impl._create_message(
+                    DataTypesMessage, "data types"
+                )
+                await self._process_round_trip(data_types_message)
+                message.process(self._read_buf)
+            elif message.resend:
                 await self._process_round_trip(message)
         await message.postprocess_async()
 

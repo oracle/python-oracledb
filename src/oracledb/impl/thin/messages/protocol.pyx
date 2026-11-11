@@ -50,8 +50,7 @@ cdef class ProtocolMessage(Message):
                               uint8_t message_type) except -1:
         if message_type == TNS_MSG_TYPE_PROTOCOL:
             self._process_protocol_info(buf)
-            if not buf._caps.supports_end_of_response:
-                self.end_of_response = True
+            self.end_of_response = True
         else:
             Message._process_message(self, buf, message_type)
 

@@ -85,6 +85,7 @@ cdef class Message:
         bint resend
         bint retry
         bint is_one_way
+        bint in_renegotiation
         object warning
         str name
 
@@ -282,10 +283,14 @@ cdef class Message:
                     self._update_sessionless_txn_state(binary_value)
             elif keyword_num == TNS_KEYWORD_NUM_TXN_PRIORITY:
                 self.conn_impl._txn_priority = text_value
+            elif keyword_num == TNS_KEYWORD_NUM_SERVICE_NAME:
+                self.conn_impl._service_name = text_value
 
     cdef int _process_message(self, ReadBuffer buf,
                               uint8_t message_type) except -1:
-        cdef uint64_t token_num
+        cdef:
+            ProtocolMessage protocol_message
+            uint64_t token_num
         if message_type == TNS_MSG_TYPE_ERROR:
             self._process_error_info(buf)
         elif message_type == TNS_MSG_TYPE_WARNING:
@@ -306,6 +311,12 @@ cdef class Message:
         elif message_type == TNS_MSG_TYPE_SERVER_SIDE_PIGGYBACK:
             self._process_server_side_piggyback(buf)
         elif message_type == TNS_MSG_TYPE_END_OF_RESPONSE:
+            self.end_of_response = True
+        elif message_type == TNS_MSG_TYPE_RENEGOTIATE:
+            self.in_renegotiation = True
+            protocol_message = \
+                    self.conn_impl._create_message(ProtocolMessage, "protocol")
+            protocol_message.process(buf)
             self.end_of_response = True
         else:
             errors._raise_err(errors.ERR_MESSAGE_TYPE_UNKNOWN,

@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Copyright (c) 2021, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2021, 2026, Oracle and/or its affiliates.
 #
 # This software is dual-licensed to you under the Universal Permissive License
 # (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl and Apache License
@@ -680,8 +680,10 @@ cdef DataType[323] DATA_TYPES = [
 @cython.final
 cdef class DataTypesMessage(Message):
 
-    cdef int _process_message(self, ReadBuffer buf,
-                              uint8_t message_type) except -1:
+    cdef int _process_data_types_info(self, ReadBuffer buf) except -1:
+        """
+        Processes the response to the data types message.
+        """
         cdef uint16_t data_type, conv_data_type
         while True:
             buf.read_uint16be(&data_type)
@@ -690,8 +692,14 @@ cdef class DataTypesMessage(Message):
             buf.read_uint16be(&conv_data_type)
             if conv_data_type != 0:
                 buf.skip_raw_bytes(4)
-        if not buf._caps.supports_end_of_response:
+
+    cdef int _process_message(self, ReadBuffer buf,
+                              uint8_t message_type) except -1:
+        if message_type == TNS_MSG_TYPE_DATA_TYPES:
+            self._process_data_types_info(buf)
             self.end_of_response = True
+        else:
+            Message._process_message(self, buf, message_type)
 
     cdef int _write_message(self, WriteBuffer buf) except -1:
         cdef:
