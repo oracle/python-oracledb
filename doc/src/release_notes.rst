@@ -27,6 +27,9 @@ Thick Mode Changes
 ++++++++++++++++++
 
 #)  Added support for :ref:`Oracle Deep Data Security <deepdatasecurity>`.
+#)  Fixed memory leak when internal re-execution takes place with SQL
+    containing bind variables
+    (`ODPI-C <https://github.com/oracle/odpi>`__ dependency update).
 
 Common Changes
 ++++++++++++++
