@@ -25,6 +25,8 @@ Thin Mode Changes
 #)  Fixed timing issue when an interrupt is sent to the server after the
     database has already sent its response
     (`issue 624 <https://github.com/oracle/python-oracledb/issues/624>`__).
+#)  Corrected character set ID to encoding mapping
+    (`issue 636 <https://github.com/oracle/python-oracledb/issues/636>`__).
 
 Thick Mode Changes
 ++++++++++++++++++

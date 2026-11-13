@@ -32,6 +32,23 @@
 
 # defines the mapping between Oracle Database character set and IANA encoding
 # names used by Python
+#
+# The following query was used to validate the mapping.
+#
+# select cs, nls_charset_id(cs) as id, utl_i18n.map_charset(cs) as iana_name
+# from (select value as cs
+#       from v$nls_valid_values
+#       where parameter = 'CHARACTERSET'
+#         and utl_i18n.map_charset(value) is not null)
+# order by 2
+#
+# and each IANA name was checked with codecs.lookup().
+#
+# There are a few exceptions:
+#   - Character sets JA16SJIS and JA16SJISTILDE which Oracle maps to SHIFT_JIS
+#     in the query but in reality they both map to "cp932"
+#   - Character set KO16MSWIN949 which Oracle maps to EUC_KR in the query but
+#     in reality is mapped to "cp949"
 cdef dict ORACLE_CHARSET_TO_PYTHON_ENCODING = {
     # ASCII
     1: "ascii",                         # US7ASCII
@@ -50,36 +67,37 @@ cdef dict ORACLE_CHARSET_TO_PYTHON_ENCODING = {
     41: "tis_620",                      # TH8TISASCII
     46: "iso_8859_15",                  # WE8ISO8859P15
     47: "iso_8859_13",                  # BLT8ISO8859P13
+    48: "iso_8859_14",                  # CEL8ISO8859P14
 
     # Windows code pages
+    45: "cp1258",                       # VN8MSWIN1258
     170: "cp1250",                      # EE8MSWIN1250
     171: "cp1251",                      # CL8MSWIN1251
-    172: "cp1253",                      # EL8MSWIN1253
-    173: "cp1254",                      # TR8MSWIN1254
-    174: "cp1255",                      # IW8MSWIN1255
-    175: "cp1256",                      # AR8MSWIN1256
-    176: "cp1257",                      # BLT8MSWIN1257
-    177: "cp1258",                      # VN8MSWIN1258
+    174: "cp1253",                      # EL8MSWIN1253
+    175: "cp1255",                      # IW8MSWIN1255
+    177: "cp1254",                      # TR8MSWIN1254
     178: "cp1252",                      # WE8MSWIN1252
+    179: "cp1257",                      # BLT8MSWIN1257
+    560: "cp1256",                      # AR8MSWIN1256
 
     # DOS / PC code pages
-    351: "cp850",                       # WE8PC850
-    354: "cp437",                       # US8PC437
-    368: "cp866",                       # RU8PC866
-    382: "cp852",                       # EE8PC852
+    4: "cp437",                         # US8PC437
+    10: "cp850",                        # WE8PC850
+    150: "cp852",                       # EE8PC852
+    152: "cp866",                       # RU8PC866
 
     # East Asian multi-byte
-    829: "big5",                        # ZHT16BIG5
-    830: "euc_kr",                      # KO16KSC5601
-    831: "euc_jp",                      # JA16EUC
+    830: "euc_jp",                      # JA16EUC
     832: "cp932",                       # JA16SJIS
-    833: "cp932",                       # JA16SJISTILDE
-    834: "euc_jp",                      # JA16EUCTILDE
-    846: "gbk",                         # ZHS16GBK
-    850: "big5hkscs",                   # ZHT16HKSCS
-    852: "euc_kr",                      # KO16MSWIN949
-    854: "big5",                        # ZHT16MSWIN950
-    870: "gb18030",                     # ZHS32GB18030
+    837: "euc_jp",                      # JA16EUCTILDE
+    838: "cp932",                       # JA16SJISTILDE
+    840: "euc_kr",                      # KO16KSC5601
+    846: "cp949",                       # KO16MSWIN949
+    852: "gbk",                         # ZHS16GBK
+    854: "gb18030",                     # ZHS32GB18030
+    865: "big5",                        # ZHT16BIG5
+    867: "big5",                        # ZHT16MSWIN950
+    868: "big5hkscs",                   # ZHT16HKSCS
 
     # universal encodings
     873: "utf_8",                       # AL32UTF8
