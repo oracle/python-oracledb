@@ -1368,7 +1368,9 @@ cdef class MessageWithData(Message):
             self.retry = True
             conn_impl._statement_cache.clear_cursor(cursor_impl._statement)
         elif self.error_info.num != 0 and self.error_info.cursor_id != 0:
-            if self.error_info.num not in errors.ERR_INTEGRITY_ERROR_CODES:
+            if self.error_info.num not in errors.ERR_INTEGRITY_ERROR_CODES \
+                    or (cursor_impl._statement._is_query
+                        and cursor_impl._statement._fetch_var_impls is None):
                 conn_impl._statement_cache.clear_cursor(cursor_impl._statement)
 
     cdef int _process_implicit_result(self, ReadBuffer buf) except -1:

@@ -605,3 +605,14 @@ async def test_cursor_1137(async_cursor, test_env):
         await async_cursor.execute("")
     with test_env.assert_raises_full_code("DPY-2066"):
         await async_cursor.execute("  ")
+
+
+async def test_cursor_1138(async_conn, test_env):
+    "1138 - test re-executing cached query that failed on first execute"
+    sql = "select cast(:1 as number(1)) from dual"
+    with async_conn.cursor() as cursor:
+        with test_env.assert_raises_full_code("ORA-01438"):
+            await cursor.execute(sql, [10])
+    with async_conn.cursor() as cursor:
+        await cursor.execute(sql, [5])
+        assert await cursor.fetchall() == [(5,)]

@@ -577,3 +577,14 @@ def test_cursor_1036(cursor, test_env):
         cursor.execute("")
     with test_env.assert_raises_full_code("DPY-2066"):
         cursor.execute("  ")
+
+
+def test_cursor_1037(conn, test_env):
+    "1037 - test re-executing cached query that failed on first execute"
+    sql = "select cast(:1 as number(1)) from dual"
+    with conn.cursor() as cursor:
+        with test_env.assert_raises_full_code("ORA-01438"):
+            cursor.execute(sql, [10])
+    with conn.cursor() as cursor:
+        cursor.execute(sql, [5])
+        assert cursor.fetchall() == [(5,)]

@@ -28,6 +28,11 @@ Thin Mode Changes
 #)  Corrected character set ID to encoding mapping
     (`issue 636 <https://github.com/oracle/python-oracledb/issues/636>`__).
 
+#)  Fixed bug resulting in a segfault when a cached query is executed again
+    after its first execution failed with an integrity error such as
+    ``ORA-01438`` before any rows were fetched
+    (`issue 631 <https://github.com/oracle/python-oracledb/issues/631>`__).
+
 Thick Mode Changes
 ++++++++++++++++++
 
