@@ -913,17 +913,33 @@ def test_cursor_1860(skip_unless_json_supported, cursor, test_env):
     assert cursor.fetchall() == expected_data
 
 
-def test_cursor_1861(skip_unless_domains_supported, cursor, test_env):
-    "1861 - fetch table with domain and annotations"
-    cursor.execute("select * from TableWithDomainAndAnnotations")
-    assert cursor.fetchall() == [(1, 25)]
+def test_cursor_1861(
+    skip_unless_domains_supported, db_object_manager, cursor, test_env
+):
+    "1861 - metadata of table with domain and annotations"
+    domain = db_object_manager.create_domain(
+        "test_1861_domain", "number(3, 0) not null"
+    )
+    db_object_manager.create_table(
+        "test_1861",
+        """
+        id number(9) not null,
+        age number(3, 0) domain test_1861_domain
+        annotations (
+           Anno_1 'first annotation',
+           Anno_2 'second annotation',
+           Anno_3
+        )
+        """,
+    )
+    cursor.execute("select * from test_1861")
     column_1 = cursor.description[0]
     assert column_1.domain_schema is None
     assert column_1.domain_name is None
     assert column_1.annotations is None
     column_2 = cursor.description[1]
     assert column_2.domain_schema == test_env.main_user.upper()
-    assert column_2.domain_name == "SIMPLEDOMAIN"
+    assert column_2.domain_name == domain.name.upper()
     expected_annotations = {
         "ANNO_1": "first annotation",
         "ANNO_2": "second annotation",

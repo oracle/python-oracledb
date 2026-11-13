@@ -31,24 +31,7 @@
  * create_schema.py.
  *---------------------------------------------------------------------------*/
 
-create domain &main_user..SimpleDomain as number(3, 0) NOT NULL
-/
-
-create table &main_user..TableWithDomainAndAnnotations (
-    id number(9) not null,
-    age number(3, 0) domain &main_user..SimpleDomain
-    annotations (
-        Anno_1 'first annotation',
-        Anno_2 'second annotation',
-        Anno_3
-    )
-)
-/
-
-insert into &main_user..TableWithDomainAndAnnotations values (1, 25)
-/
-
-commit
+grant create domain to &main_user
 /
 
 create table &main_user..TestVectors (

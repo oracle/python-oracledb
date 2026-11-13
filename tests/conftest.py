@@ -220,6 +220,119 @@ class ParseCountInfo(SystemStatInfo):
     stat_name = "parse count (total)"
 
 
+class DbObjectManager:
+
+    def __init__(self, conn):
+        self.conn = conn
+        self.objects = []
+
+    def cleanup(self):
+        """
+        Cleans up all of the objects that were created synchronously.
+        """
+        for obj in reversed(self.objects):
+            self.drop_object(obj)
+
+    async def cleanup_async(self):
+        """
+        Cleans up all of the objects that were created asynchronously.
+        """
+        for obj in reversed(self.objects):
+            await self.drop_object_async(obj)
+
+    def create_domain(self, name, body):
+        """
+        Creates a domain synchronously.
+        """
+        domain = DbDomain(name, body)
+        self.create_object(domain)
+        self.objects.append(domain)
+        return domain
+
+    async def create_domain_async(self, name, body):
+        """
+        Creates a domain asynchronously.
+        """
+        domain = DbDomain(name, body)
+        await self.create_object_async(domain)
+        self.objects.append(domain)
+        return domain
+
+    def create_object(self, obj):
+        """
+        Creates the object synchronously.
+        """
+        self.drop_object(obj)
+        with self.conn.cursor() as cursor:
+            cursor.execute(obj.create_sql)
+
+    async def create_object_async(self, obj):
+        """
+        Creates the object asynchronously.
+        """
+        await self.drop_object_async(obj)
+        with self.conn.cursor() as cursor:
+            await cursor.execute(obj.create_sql)
+
+    def create_table(self, name, body, options=""):
+        """
+        Creates a table synchronously.
+        """
+        table = DbTable(name, body, options)
+        self.create_object(table)
+        self.objects.append(table)
+        return table
+
+    async def create_table_async(self, name, body, options=""):
+        """
+        Creates a table asynchronously.
+        """
+        table = DbTable(name, body, options)
+        await self.create_object_async(table)
+        self.objects.append(table)
+        return table
+
+    def drop_object(self, obj):
+        """
+        Drops the object synchronously.
+        """
+        with self.conn.cursor() as cursor:
+            try:
+                cursor.execute(obj.drop_sql)
+            except oracledb.DatabaseError as e:
+                if e.args[0].full_code != obj.ignore_error_code:
+                    raise
+
+    async def drop_object_async(self, obj):
+        """
+        Drops the object asynchronously.
+        """
+        with self.conn.cursor() as cursor:
+            try:
+                await cursor.execute(obj.drop_sql)
+            except oracledb.DatabaseError as e:
+                if e.args[0].full_code != obj.ignore_error_code:
+                    raise
+
+
+class DbDomain:
+    ignore_error_code = "ORA-11504"
+
+    def __init__(self, name, body):
+        self.name = name
+        self.create_sql = f"create domain {name} as {body}"
+        self.drop_sql = f"drop domain {name} force"
+
+
+class DbTable:
+    ignore_error_code = "ORA-00942"
+
+    def __init__(self, name, body, options):
+        self.name = name
+        self.create_sql = f"create table {name} ({body}) {options}"
+        self.drop_sql = f"drop table {name} purge"
+
+
 class TestEnv:
 
     def _convert_df_value(self, df_val):
@@ -792,6 +905,16 @@ async def async_cursor(async_conn):
 
 
 @pytest.fixture
+async def async_db_object_manager(async_conn):
+    """
+    Return an object that manages database objects synchronously.
+    """
+    manager = DbObjectManager(async_conn)
+    yield manager
+    await manager.cleanup_async()
+
+
+@pytest.fixture
 def conn(test_env):
     """
     Return a connection to the database using the pytest configuration.
@@ -809,6 +932,16 @@ def cursor(conn):
     """
     with conn.cursor() as cursor:
         yield cursor
+
+
+@pytest.fixture
+def db_object_manager(conn):
+    """
+    Return an object that manages database objects synchronously.
+    """
+    manager = DbObjectManager(conn)
+    yield manager
+    manager.cleanup()
 
 
 @pytest.fixture
