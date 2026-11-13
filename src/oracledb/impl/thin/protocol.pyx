@@ -201,7 +201,8 @@ cdef class Protocol(BaseProtocol):
             try:
                 self._break_external()
                 self._receive_packet(message)
-                self._break_in_progress = False
+                if self._break_in_progress:
+                    raise socket.timeout("reset did not complete")
                 errors._raise_err(errors.ERR_CALL_TIMEOUT_EXCEEDED,
                                   timeout=timeout)
             except socket.timeout:
@@ -524,7 +525,8 @@ cdef class BaseAsyncProtocol(BaseProtocol):
         """
         self._break_external()
         await self._receive_packet(message)
-        self._break_in_progress = False
+        if self._break_in_progress:
+            raise asyncio.TimeoutError("reset did not complete")
         errors._raise_err(errors.ERR_CALL_TIMEOUT_EXCEEDED, timeout=timeout)
 
     async def _receive_packet(self, Message message,
