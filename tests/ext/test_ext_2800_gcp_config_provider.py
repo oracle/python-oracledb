@@ -569,3 +569,14 @@ def test_ext_2819(test_env, gcp_setup):
     connect_params = oracledb.ConnectParams()
     with test_env.assert_raises_full_code("DPY-2056"):
         connect_params.parse_connect_string(bad_dsn)
+
+
+def test_ext_2820(test_env, gcp_setup):
+    "E2820 - test duplicate GCP query parameter"
+    bad_dsn = (
+        gcp_setup.build_config_dsn(gcp_setup.keyed_object_name)
+        + "?key=not_an_object&key=config_alias"
+    )
+    connect_params = oracledb.ConnectParams()
+    with test_env.assert_raises_full_code("DPY-2056"):
+        connect_params.parse_connect_string(bad_dsn)

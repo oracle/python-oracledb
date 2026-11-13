@@ -88,6 +88,10 @@ Common Changes
     the configuration cache when using the
     :ref:`oracledb.plugins.gcp_config_provider <configgcpplugin>` plugin and a
     subscription name is specified in the configuration.
+#)  Fixed handling of duplicate query parameters and URL-encoded values in the
+    :ref:`GCP Centralized Configuration Provider <configgcpplugin>`, and added
+    validation for Cloud Storage notifications with invalid bucket or object
+    names.
 #)  Fixed a resource leak when repeatedly retrieving configurations using the
     :ref:`GCP Centralized Configuration Provider <configgcpplugin>`.
 #)  Bumped the minimum required Cython version to 3.3.

@@ -33,6 +33,7 @@
 import json
 import threading
 import warnings
+from urllib.parse import unquote
 
 from google.cloud import pubsub_v1
 from google.cloud import secretmanager
@@ -160,6 +161,8 @@ def _handle_gcs_event(
         return
     bucket_name = event["bucket"]
     object_name = event["name"]
+    if not isinstance(bucket_name, str) or not isinstance(object_name, str):
+        raise Exception("Invalid bucket or object name in GCS notification")
 
     remove_permanently = (
         event_type in {"OBJECT_DELETE", "OBJECT_ARCHIVE"}
@@ -318,7 +321,7 @@ def _parse_query_parameters(query_part: str) -> dict:
         for part in query_part.split("&"):
             key, _, value = part.strip().partition("=")
             key = key.strip().lower()
-            value = value.strip()
+            value = unquote(value.strip())
             if not key or not value:
                 raise Exception(
                     f'Invalid query parameter "{part}" in connection string'
@@ -326,6 +329,10 @@ def _parse_query_parameters(query_part: str) -> dict:
             if key not in {"key", "subscriptionname"}:
                 raise Exception(
                     f'Unsupported query parameter "{key}" in connection string'
+                )
+            if key in parameters:
+                raise Exception(
+                    f'Duplicate query parameter "{key}" in connection string'
                 )
             parameters[key] = value
     return parameters
