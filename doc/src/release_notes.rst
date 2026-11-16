@@ -43,6 +43,9 @@ Common Changes
 #)  Added support for
     :ref:`Azure Managed Identity Authentication <azuremanagedidentityauth>` for
     system-assigned and user-assigned identities.
+#)  Fixed bug preventing :func:`Cursor.executemany()` from detecting invalid
+    bind data in all but the final row of data
+    (`issue 628 <https://github.com/oracle/python-oracledb/issues/628>`__).
 #)  Fixed bug that caused pool capacity to be reduced when an exception is
     raised by a pool session callback
     (`issue 626 <https://github.com/oracle/python-oracledb/issues/626>`__).

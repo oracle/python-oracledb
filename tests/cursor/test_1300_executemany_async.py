@@ -483,3 +483,16 @@ async def test_cursor_1330(async_conn, async_cursor):
     )
     output_data = [(e.NUMBERVALUE, e.STRINGVALUE) for e in obj.aslist()]
     assert output_data == data
+
+
+async def test_cursor_1331(test_env, async_db_object_manager, async_cursor):
+    "1331 - test executemany() with invalid type in second row"
+    await async_db_object_manager.create_table_async(
+        "test_1331", "id number(9) not null, value number(5)"
+    )
+    data = [(1, 5), (2, "invalid"), (3, "invalid #2")]
+    async_cursor.setinputsizes(int, int)
+    with test_env.assert_raises_full_code("DPY-3013"):
+        await async_cursor.executemany(
+            "insert into test_1331 values (:1, :2)", data
+        )
