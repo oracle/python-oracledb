@@ -587,10 +587,17 @@ cdef class BaseAsyncProtocol(BaseProtocol):
     def connection_lost(self, exc):
         """
         Called when a connection has been lost. The presence of an exception
-        indicates an abornmal loss of the connection. If in the process of
-        establishing a connection, losing the connection is ignored since this
-        can happen normally when a listener redirect is encountered.
+        indicates an abornmal loss of the connection. If the current socket
+        associated with the protocol's transport is not the one being closed,
+        then it is known that this was a prior socket associated with the
+        protocol's transport (closed automatically when a listener redirect
+        takes place) and nothing further needs to be done with it.
         """
+        if self._in_connect \
+                and self._transport is not None \
+                and self._transport._transport is not None \
+                and not self._transport._transport.is_closing():
+            return
         if not self._in_connect:
             self._transport = None
             self._read_buf._transport = None

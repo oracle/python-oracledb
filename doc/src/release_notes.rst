@@ -22,6 +22,10 @@ Thin Mode Changes
 #)  Added support for processing `ALTER SESSION SET CONTAINER` statements which
     cause a renegotiation to take place, avoiding the ORA-24964 error
     (`issue 592 <https://github.com/oracle/python-oracledb/issues/592>`__).
+#)  Fixed timing issues when the listener closes the original socket after a
+    redirect
+    (`issue 616 <https://github.com/oracle/python-oracledb/issues/616>`__) and
+    (`issue 629 <https://github.com/oracle/python-oracledb/issues/629>`__).
 #)  Fixed timing issue when an interrupt is sent to the server after the
     database has already sent its response
     (`issue 624 <https://github.com/oracle/python-oracledb/issues/624>`__).
