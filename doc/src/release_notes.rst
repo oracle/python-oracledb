@@ -47,6 +47,9 @@ Common Changes
 #)  Added support for
     :ref:`Azure Managed Identity Authentication <azuremanagedidentityauth>` for
     system-assigned and user-assigned identities.
+#)  Added error offset to exceptions raised by :func:`Cursor.executemany()`
+    when executing SQL statements
+    (`issue 612 <https://github.com/oracle/python-oracledb/issues/612>`__).
 #)  Fixed bug preventing :func:`Cursor.executemany()` from detecting invalid
     bind data in all but the final row of data
     (`issue 628 <https://github.com/oracle/python-oracledb/issues/628>`__).

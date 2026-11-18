@@ -154,9 +154,10 @@ async def test_cursor_1308(async_cursor, empty_tab, test_env):
     "1308 - test executing a statement multiple times (with exception)"
     rows = [{"value": n} for n in (1, 2, 3, 2, 5)]
     statement = "insert into TestTempTable (IntCol) values (:value)"
-    with test_env.assert_raises_full_code("ORA-00001"):
+    with test_env.assert_raises_full_code("ORA-00001") as cm:
         await async_cursor.executemany(statement, rows)
     assert async_cursor.rowcount == 3
+    assert cm.error_obj.offset == 3
 
 
 async def test_cursor_1309(async_cursor, test_env):

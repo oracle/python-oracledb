@@ -354,9 +354,9 @@ cdef class ThickCursorImpl(BaseCursorImpl):
         if not self._stmt_info.isPLSQL:
             self.rowcount = rowcount
         if status < 0:
+            if error_info.offset == 0:
+                error_info.offset = rowcount
             error = _create_new_from_info(&error_info)
-            if self._stmt_info.isPLSQL and error_info.offset == 0:
-                error.offset = rowcount
             raise error.exc_type(error)
         elif error_info.isWarning:
             self.warning = _create_new_from_info(&error_info)

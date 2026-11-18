@@ -96,10 +96,14 @@ cdef class Message:
         connection" error is detected, the connection is forced closed
         immediately.
         """
+        cdef uint64_t offset
         if self.error_occurred:
+            offset = self.error_info.pos
+            if offset == 0:
+                offset = self.error_info.rowcount
             error = errors._Error(self.error_info.message,
                                   code=self.error_info.num,
-                                  offset=self.error_info.pos)
+                                  offset=offset)
             if error.is_session_dead:
                 self.conn_impl._protocol._disconnect()
             raise error.exc_type(error)

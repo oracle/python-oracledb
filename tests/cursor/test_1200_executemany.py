@@ -149,9 +149,10 @@ def test_cursor_1208(cursor, empty_tab, test_env):
     "1208 - test executing a statement multiple times (with exception)"
     rows = [{"value": n} for n in (1, 2, 3, 2, 5)]
     statement = "insert into TestTempTable (IntCol) values (:value)"
-    with test_env.assert_raises_full_code("ORA-00001"):
+    with test_env.assert_raises_full_code("ORA-00001") as cm:
         cursor.executemany(statement, rows)
     assert cursor.rowcount == 3
+    assert cm.error_obj.offset == 3
 
 
 def test_cursor_1209(cursor, test_env):
