@@ -1154,11 +1154,16 @@ cdef class MessageWithData(Message):
 
         # if the type handler set on the cursor or connection does not match
         # the one that was used during the last fetch, rebuild the fetch
-        # variables in order to take the new type handler into account
+        # variables in order to take the new type handler into account; if the
+        # statement has LOBs, however, force a reparse as otherwise the
+        # previous define that was performed may not be compatible with the
+        # new type handler and there is no easy way to detect that in advance
         conn = self.cursor.connection
         type_handler = cursor_impl._get_output_type_handler(&uses_metadata)
         if type_handler is not statement._last_output_type_handler \
                 or cursor_impl.schema_impl is not statement._last_schema_impl:
+            if statement._no_prefetch:
+                return self.conn_impl._statement_cache.clear_cursor(statement)
             for i, var_impl in enumerate(cursor_impl.fetch_var_impls):
                 cursor_impl._create_fetch_var(conn, self.cursor, type_handler,
                                               uses_metadata, i,
