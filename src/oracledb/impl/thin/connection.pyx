@@ -1217,6 +1217,8 @@ cdef class ThinConnImpl(BaseConnImpl):
         self._statement_cache.resize(value)
 
     def set_call_timeout(self, uint32_t value):
+        if self._protocol._transport is None:
+            errors._raise_err(errors.ERR_NOT_CONNECTED)
         self._protocol._transport.set_timeout(value / 1000)
         self._call_timeout = value
 
