@@ -407,21 +407,6 @@ cdef class ReadBuffer(Buffer):
             if data_flags == TNS_DATA_FLAGS_EOF:
                 self._pending_error_num = TNS_ERR_SESSION_SHUTDOWN
 
-    async def discard_pipeline_responses(self, ssize_t num_responses):
-        """
-        Discards the specified number of responses after the pipeline has
-        encountered an exception.
-        """
-        while num_responses > 0:
-            if not self.has_response():
-                await self.wait_for_response_async()
-            while True:
-                self._start_packet()
-                if self._current_packet.has_end_of_response():
-                    break
-            num_responses -= 1
-        self.reset_packets()
-
     cdef int notify_packet_received(self) except -1:
         """
         Notify the registered waiter that a packet has been received. This is

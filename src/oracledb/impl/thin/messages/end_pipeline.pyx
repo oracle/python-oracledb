@@ -224,7 +224,16 @@ cdef class EndPipelineMessage(Message):
             self._check_and_raise_exception()
             self.in_completion = True
         except:
-            await buf.discard_pipeline_responses(num_responses_to_discard)
+            while num_responses_to_discard > 0 \
+                    and protocol._transport is not None:
+                if not buf.has_response():
+                    await buf.wait_for_response_async()
+                while True:
+                    buf._start_packet()
+                    if buf._current_packet.has_end_of_response():
+                        break
+                num_responses_to_discard -= 1
+            buf.reset_packets()
             raise
         finally:
             buf._check_request_boundary = False
