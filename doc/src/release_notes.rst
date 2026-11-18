@@ -35,6 +35,9 @@ Thin Mode Changes
 #)  Fixed bug that caused :meth:`AsyncConnection.run_pipeline()` to hang when
     the database or network closed the connection during pipeline execution
     (`issue 630 <https://github.com/oracle/python-oracledb/issues/630>`__).
+#)  Fixed segfault when a cached query is executed again after its first
+    execution failed with an integrity error like ORA-01438
+    (`issue 631 <https://github.com/oracle/python-oracledb/issues/631>`__).
 #)  Fixed incorrect CLOB fetching when the output type handler changes between
     executions of a cached statement
     (`issue 634 <https://github.com/oracle/python-oracledb/issues/634>`__).
