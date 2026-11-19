@@ -199,3 +199,31 @@ async def test_ext_1909(async_tunnel):
     async with pool.acquire():
         pass
     await pool.close()
+
+
+async def test_ext_1910(test_env):
+    "E1910 - validate timing of acquire() which is cancelled"
+    pool = test_env.get_pool_async(
+        min=1,
+        max=1,
+        increment=0,
+        getmode=oracledb.POOL_GETMODE_TIMEDWAIT,
+        wait_timeout=5_000,
+    )
+
+    async def acquire():
+        return await pool.acquire()
+
+    held_conn = await acquire()
+    waiter = asyncio.create_task(acquire())
+    await asyncio.sleep(0.5)
+    await pool.release(held_conn)
+    waiter.cancel()
+    with pytest.raises(asyncio.CancelledError):
+        await waiter
+    await asyncio.sleep(0.5)
+    assert pool.opened == 1
+    assert pool.busy == 0
+    async with await asyncio.wait_for(acquire(), 3):
+        pass
+    await pool.close()

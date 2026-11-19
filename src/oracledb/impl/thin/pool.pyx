@@ -118,6 +118,7 @@ cdef class BaseThinPoolImpl(BasePoolImpl):
                     or request.cclass == conn_impl._cclass:
                 request.conn_impl = conn_impl
                 request.completed = True
+                request.bg_processing = False
                 self._requests.remove(request)
                 self._condition.notify_all()
                 break

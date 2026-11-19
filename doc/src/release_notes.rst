@@ -43,6 +43,10 @@ Thin Mode Changes
     (`issue 634 <https://github.com/oracle/python-oracledb/issues/634>`__).
 #)  Corrected character set ID to encoding mapping
     (`issue 636 <https://github.com/oracle/python-oracledb/issues/636>`__).
+#)  Fixed bug that prevented connection from ever being returned from a
+    connection pool when a waiting acquire() is cancelled right after a
+    connection is handed to it
+    (`issue 638 <https://github.com/oracle/python-oracledb/issues/638>`__).
 
 Thick Mode Changes
 ++++++++++++++++++
