@@ -1592,7 +1592,7 @@ cdef class MessageWithData(Message):
                 buf.write_ub4(0)            # OID
                 buf.write_ub2(0)            # version
             if metadata.dbtype._csfrm != 0:
-                buf.write_ub2(TNS_CHARSET_UTF8)
+                buf.write_ub2(TNS_CHARSET_ID_AL32UTF8)
             else:
                 buf.write_ub2(0)
             buf.write_uint8(metadata.dbtype._csfrm)
@@ -1724,7 +1724,7 @@ cdef class MessageWithData(Message):
                     self._write_bind_params_column(buf, var_impl, i)
             else:
                 if not self.cursor_impl._statement._is_plsql \
-                        and metadata.buffer_size > buf._caps.max_string_size:
+                        and bind_info.is_long:
                     found_long = True
                     continue
                 self._write_bind_params_column(buf, var_impl, pos + offset)
@@ -1734,7 +1734,7 @@ cdef class MessageWithData(Message):
                     continue
                 var_impl = bind_info._bind_var_impl
                 metadata = var_impl.metadata
-                if metadata.buffer_size <= buf._caps.max_string_size:
+                if not bind_info.is_long:
                     continue
                 self._write_bind_params_column(buf, var_impl, pos + offset)
 

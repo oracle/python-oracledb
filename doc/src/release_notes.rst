@@ -32,6 +32,9 @@ Thin Mode Changes
 #)  Fixed timing issue when an interrupt is sent to the server after the
     database has already sent its response
     (`issue 624 <https://github.com/oracle/python-oracledb/issues/624>`__).
+#)  Fixed bug that caused incorrect ordering of string binds with database
+    character sets such as UTF8 (871)
+    (`issue 627 <https://github.com/oracle/python-oracledb/issues/627>`__).
 #)  Fixed bug that caused :meth:`AsyncConnection.run_pipeline()` to hang when
     the database or network closed the connection during pipeline execution
     (`issue 630 <https://github.com/oracle/python-oracledb/issues/630>`__).

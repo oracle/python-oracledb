@@ -78,6 +78,7 @@ cdef class ProtocolMessage(Message):
         ix = 6 + fdo[5] + fdo[6]
         check_min_length(fdo_length, ix + 5)
         caps.ncharset_id = (fdo[ix + 3] << 8) + fdo[ix + 4]
+        caps._set_expansion_ratio()
         self.server_compile_caps = buf.read_bytes()
         if self.server_compile_caps is not None:
             temp_array = bytearray(self.server_compile_caps)

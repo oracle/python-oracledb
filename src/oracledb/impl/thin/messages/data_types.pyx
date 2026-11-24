@@ -708,8 +708,8 @@ cdef class DataTypesMessage(Message):
 
         # write character set and capabilities
         buf.write_uint8(TNS_MSG_TYPE_DATA_TYPES)
-        buf.write_uint16le(TNS_CHARSET_UTF8)
-        buf.write_uint16le(TNS_CHARSET_UTF8)
+        buf.write_uint16le(TNS_CHARSET_ID_AL32UTF8)
+        buf.write_uint16le(TNS_CHARSET_ID_AL32UTF8)
         buf.write_uint8(TNS_ENCODING_MULTI_BYTE | TNS_ENCODING_CONV_LENGTH)
         buf.write_bytes_with_length(bytes(buf._caps.compile_caps))
         buf.write_bytes_with_length(bytes(buf._caps.runtime_caps))

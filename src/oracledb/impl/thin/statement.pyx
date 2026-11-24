@@ -44,6 +44,7 @@ cdef class BindInfo:
         bint is_array
         int16_t scale
         uint8_t csfrm
+        bint is_long
         ThinVarImpl _bind_var_impl
 
     def __cinit__(self, str name, bint is_return_bind):
@@ -398,6 +399,7 @@ cdef class Statement:
         """
         cdef:
             OracleMetadata metadata = var_impl.metadata
+            Capabilities caps
             object value
         if metadata.dbtype._ora_type_num == ORA_TYPE_NUM_CURSOR:
             for value in var_impl._values:
@@ -421,6 +423,8 @@ cdef class Statement:
             bind_info.precision = metadata.precision
             bind_info.scale = metadata.scale
             self._binds_changed = True
+            caps = cursor_impl._conn_impl._protocol._caps
+            bind_info.is_long = caps.is_long(metadata)
         bind_info._bind_var_impl = var_impl
 
     cdef int clear_all_state(self) except -1:

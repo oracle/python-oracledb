@@ -213,6 +213,7 @@ from .base_impl cimport (
 
 from .base_impl import (
     DB_TYPE_BLOB,
+    DB_TYPE_CHAR,
     DB_TYPE_CLOB,
     DB_TYPE_NCLOB,
     DB_TYPE_BINARY_INTEGER,
@@ -220,6 +221,7 @@ from .base_impl import (
     DB_TYPE_INTERVAL_DS,
     DB_TYPE_NUMBER,
     DB_TYPE_OBJECT,
+    DB_TYPE_VARCHAR,
     DB_TYPE_XMLTYPE,
 )
 

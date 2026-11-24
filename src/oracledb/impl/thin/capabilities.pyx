@@ -109,6 +109,7 @@ cdef class Capabilities:
         uint16_t protocol_version
         uint8_t ttc_field_version
         uint16_t charset_id
+        uint8_t expansion_ratio
         bytes encoding
         uint16_t ncharset_id
         bytes nencoding
@@ -276,3 +277,59 @@ cdef class Capabilities:
         self.runtime_caps[TNS_RCAP_COMPAT] = TNS_RCAP_COMPAT_81
         self.runtime_caps[TNS_RCAP_TTC] = TNS_RCAP_TTC_ZERO_COPY | \
                 TNS_RCAP_TTC_32K
+
+    cdef void _set_expansion_ratio(self):
+        """
+        Sets the expansion ratio used by the server when binding strings. The
+        server uses this value to determine whether a bind is "long" or not,
+        which in turn is used to determine the order in which binds are sent.
+        """
+        if self.charset_id in (
+            TNS_CHARSET_ID_UTFE,
+            TNS_CHARSET_ID_ZHT32EUC,
+            TNS_CHARSET_ID_ZHT32SOPS,
+            TNS_CHARSET_ID_ZHT32TRIS,
+        ):
+            self.expansion_ratio = 4
+        if self.charset_id in (
+            TNS_CHARSET_ID_JA16EUC,
+            TNS_CHARSET_ID_JA16DBCS,
+            TNS_CHARSET_ID_JA16EBCDIC930,
+            TNS_CHARSET_ID_JA16EUCTILDE,
+            TNS_CHARSET_ID_KO16DBCS,
+            TNS_CHARSET_ID_UTF8,
+            TNS_CHARSET_ID_ZHS16DBCS,
+            TNS_CHARSET_ID_ZHT16DBCS,
+        ):
+            self.expansion_ratio = 3
+        elif self.charset_id in (
+            TNS_CHARSET_ID_JA16VMS,
+            TNS_CHARSET_ID_JA16SJIS,
+            TNS_CHARSET_ID_JA16SJISTILDE,
+            TNS_CHARSET_ID_KO16KSC5601,
+            TNS_CHARSET_ID_KO16KSCCS,
+            TNS_CHARSET_ID_KO16MSWIN949,
+            TNS_CHARSET_ID_ZHS16CGB231280,
+            TNS_CHARSET_ID_ZHS16GBK,
+            TNS_CHARSET_ID_ZHT16DBT,
+            TNS_CHARSET_ID_ZHT16BIG5,
+            TNS_CHARSET_ID_ZHT16CCDC,
+            TNS_CHARSET_ID_ZHT16MSWIN950,
+            TNS_CHARSET_ID_ZHT16HKSCS,
+            TNS_CHARSET_ID_ZHT16HKSCS31,
+        ):
+            self.expansion_ratio = 2
+        else:
+            self.expansion_ratio = 1
+
+    cdef bint is_long(self, OracleMetadata metadata):
+        """
+        Returns true whether the given buffer size for the given database type
+        is considered "long" or not according to the database server. This is
+        only true for string types.
+        """
+        cdef uint32_t buffer_size = metadata.buffer_size
+        if metadata.dbtype is DB_TYPE_CHAR \
+                or metadata.dbtype is DB_TYPE_VARCHAR:
+            return buffer_size * self.expansion_ratio > self.max_string_size
+        return buffer_size > self.max_string_size

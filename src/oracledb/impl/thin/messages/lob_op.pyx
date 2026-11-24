@@ -129,7 +129,7 @@ cdef class LobOpMessage(Message):
                 buf._caps._get_nencoding()
                 buf.write_ub4(buf._caps.ncharset_id)
             else:
-                buf.write_ub4(TNS_CHARSET_UTF8)
+                buf.write_ub4(TNS_CHARSET_ID_AL32UTF8)
         if self.data is not None:
             buf.write_uint8(TNS_MSG_TYPE_LOB_DATA)
             buf.write_bytes_with_length(self.data)
