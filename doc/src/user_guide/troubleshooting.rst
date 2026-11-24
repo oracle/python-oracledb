@@ -325,12 +325,14 @@ and crypto-checksumming services in the output. For example::
     TCP/IP NT Protocol Adapter for Linux: Version 19.0.0.0.0 - Production
     Encryption service for Linux: Version 19.0.1.0.0 - Production
 
-If NNE or checksumming are enabled, you can resolve this error by either:
+If NNE or checksumming are enabled, you can resolve this error by using one of
+the following options:
 
 - Changing the architecture to use Transport Layer Security (TLS), which is
   supported in python-oracledb Thin and Thick modes. See `Configuring
-  Transport Layer Security Encryption
-  <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-8B82DD7E-7189-4FE9-8F3B-4E521706E1E4>`__.
+  Transport Layer Security Encryption <https://www.oracle.com/pls/topic/lookup?
+  ctx=dblatest&id=GUID-8B82DD7E-7189-4FE9-8F3B-4E521706E1E4>`__.
+- Or by using :ref:`encryption-only, zero-configuration TLS (ezTLS) <eztls>`.
 - Or :ref:`enabling python-oracledb Thick mode <enablingthick>`.
 
 .. seealso::

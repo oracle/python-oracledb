@@ -194,6 +194,32 @@ If it is necessary to install a specific python-oracledb version, use the pip
 The status of Python versions can be found `here <https://devguide.python.org/
 versions/>`__.
 
+.. _graalpy:
+
+GraalPy Wheels
+++++++++++++++
+
+GraalPy is an implementation of the Python language built on GraalVM. For more
+information, see the `GraalPy documentation <https://graalpy.org/python-
+developers/docs/>`__.
+
+Starting with python-oracledb 26.2.0, pre-built wheels are built for GraalPy
+25.0 (Python 3.12) and GraalPy 25.4 (Python 3.13) on the following platforms:
+
+- Linux ``manylinux`` on AMD64 and ARM64
+- macOS on ARM64
+
+On a supported GraalPy version and platform, install python-oracledb with:
+
+.. code-block:: shell
+
+    graalpy -m pip install oracledb
+
+Package availability may vary by GraalPy version and platform.
+
+You can then use python-oracledb in GraalPy applications to connect to Oracle
+Database and execute SQL and PL/SQL statements.
+
 Supported Oracle Database Versions
 ==================================
 
