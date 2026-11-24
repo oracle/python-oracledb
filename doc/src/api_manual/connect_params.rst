@@ -15,6 +15,13 @@ ConnectParams Class
 
     .. dbapiobjectextension::
 
+    .. versionchanged:: 26.2.0
+
+        The ``token_auth``, ``token_location``, ``oci_config_file``,
+        ``oci_profile``, ``oci_compartment``, ``oci_database``,
+        ``azure_db_app_id_uri``, ``tenant_id``, ``client_id``, and
+        ``client_secret`` parameters were added.
+
     .. versionchanged:: 26.1.0
 
         The ``use_eztls`` parameter was added.
@@ -82,6 +89,13 @@ ConnectParams Methods
 
 .. automethod:: ConnectParams.set
 
+    .. versionchanged:: 26.2.0
+
+        The ``token_auth``, ``token_location``, ``oci_config_file``,
+        ``oci_profile``, ``oci_compartment``, ``oci_database``,
+        ``azure_db_app_id_uri``, ``tenant_id``, ``client_id``, and
+        ``client_secret`` parameters were added.
+
     .. versionchanged:: 26.1.0
 
         The ``use_eztls`` parameter was added.
@@ -145,9 +159,21 @@ All properties are read only.
 
     This attribute is supported in both python-oracledb Thin and Thick modes.
 
+.. autoproperty:: ConnectParams.azure_db_app_id_uri
+
+    .. versionadded:: 26.2.0
+
 .. autoproperty:: ConnectParams.cclass
 
     This attribute is supported in both python-oracledb Thin and Thick modes.
+
+.. autoproperty:: ConnectParams.client_id
+
+    .. versionadded:: 26.2.0
+
+.. autoproperty:: ConnectParams.client_secret
+
+    .. versionadded:: 26.2.0
 
 .. autoproperty:: ConnectParams.config_dir
 
@@ -238,6 +264,22 @@ All properties are read only.
 .. autoproperty:: ConnectParams.mode
 
     This attribute is supported in both python-oracledb Thin and Thick modes.
+
+.. autoproperty:: ConnectParams.oci_compartment
+
+    .. versionadded:: 26.2.0
+
+.. autoproperty:: ConnectParams.oci_config_file
+
+    .. versionadded:: 26.2.0
+
+.. autoproperty:: ConnectParams.oci_database
+
+    .. versionadded:: 26.2.0
+
+.. autoproperty:: ConnectParams.oci_profile
+
+    .. versionadded:: 26.2.0
 
 .. autoproperty:: ConnectParams.on_connect_callback
 
@@ -406,6 +448,10 @@ All properties are read only.
         The default value of this attribute was changed from *60.0* seconds to
         *20.0* seconds.
 
+.. autoproperty:: ConnectParams.tenant_id
+
+    .. versionadded:: 26.2.0
+
 .. autoproperty:: ConnectParams.terminal
 
     This is an arbitrary value set by the user in the
@@ -417,6 +463,14 @@ All properties are read only.
     This attribute is only supported in python-oracledb Thin mode.
 
     .. versionadded:: 2.5.0
+
+.. autoproperty:: ConnectParams.token_auth
+
+    .. versionadded:: 26.2.0
+
+.. autoproperty:: ConnectParams.token_location
+
+    .. versionadded:: 26.2.0
 
 .. autoproperty:: ConnectParams.transaction_priority
 

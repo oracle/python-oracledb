@@ -30,6 +30,13 @@ Oracledb Methods
 
 .. autofunction:: connect
 
+    .. versionchanged:: 26.2.0
+
+        The ``token_auth``, ``token_location``, ``oci_config_file``,
+        ``oci_profile``, ``oci_compartment``, ``oci_database``,
+        ``azure_db_app_id_uri``, ``tenant_id``, ``client_id``, and
+        ``client_secret`` parameters were added.
+
     .. versionchanged:: 26.1.0
 
         The ``use_eztls`` parameter was added.
@@ -80,6 +87,13 @@ Oracledb Methods
         The ``connection_id_prefix`` parameter was added.
 
 .. autofunction:: connect_async
+
+    .. versionchanged:: 26.2.0
+
+        The ``token_auth``, ``token_location``, ``oci_config_file``,
+        ``oci_profile``, ``oci_compartment``, ``oci_database``,
+        ``azure_db_app_id_uri``, ``tenant_id``, ``client_id``, and
+        ``client_secret`` parameters were added.
 
     .. versionchanged:: 26.1.0
 
@@ -155,6 +169,13 @@ Oracledb Methods
 
 .. autofunction:: create_pool
 
+    .. versionchanged:: 26.2.0
+
+        The ``token_auth``, ``token_location``, ``oci_config_file``,
+        ``oci_profile``, ``oci_compartment``, ``oci_database``,
+        ``azure_db_app_id_uri``, ``tenant_id``, ``client_id``, and
+        ``client_secret`` parameters were added.
+
     .. versionchanged:: 26.1.0
 
         The ``use_eztls`` parameter was added.
@@ -204,6 +225,13 @@ Oracledb Methods
         The ``connection_id_prefix`` parameter was added.
 
 .. autofunction:: create_pool_async
+
+    .. versionchanged:: 26.2.0
+
+        The ``token_auth``, ``token_location``, ``oci_config_file``,
+        ``oci_profile``, ``oci_compartment``, ``oci_database``,
+        ``azure_db_app_id_uri``, ``tenant_id``, ``client_id``, and
+        ``client_secret`` parameters were added.
 
     .. versionchanged:: 26.1.0
 

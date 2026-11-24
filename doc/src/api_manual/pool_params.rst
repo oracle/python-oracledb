@@ -18,6 +18,13 @@ PoolParams Class
 
     See :ref:`usingpoolparams` for more information.
 
+    .. versionchanged:: 26.2.0
+
+        The ``token_auth``, ``token_location``, ``oci_config_file``,
+        ``oci_profile``, ``oci_compartment``, ``oci_database``,
+        ``azure_db_app_id_uri``, ``tenant_id``, ``client_id``, and
+        ``client_secret`` parameters were added.
+
     .. versionchanged:: 26.1.0
 
         The ``use_eztls`` parameter was added.
@@ -78,6 +85,13 @@ PoolParams Methods
 .. automethod:: PoolParams.parse_connect_string
 
 .. automethod:: PoolParams.set
+
+    .. versionchanged:: 26.2.0
+
+        The ``token_auth``, ``token_location``, ``oci_config_file``,
+        ``oci_profile``, ``oci_compartment``, ``oci_database``,
+        ``azure_db_app_id_uri``, ``tenant_id``, ``client_id``, and
+        ``client_secret`` parameters were added.
 
     .. versionchanged:: 26.1.0
 

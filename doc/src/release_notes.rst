@@ -21,7 +21,9 @@ Thin Mode Changes
 
 #)  Added support for setting ``TOKEN_AUTH`` in Easy Connect strings and
     Connect Descriptors for :ref:`OCI IAM <iamauthconnstr>` and
-    :ref:`OAuth 2.0 <oauth2connstr>` token-based authentication.
+    :ref:`OAuth 2.0 <oauth2connstr>` token-based authentication. Token
+    authentication parameters can also be passed to connection and pool
+    creation functions.
 #)  Added support for processing `ALTER SESSION SET CONTAINER` statements which
     cause a renegotiation to take place, avoiding the ORA-24964 error
     (`issue 592 <https://github.com/oracle/python-oracledb/issues/592>`__).
@@ -65,26 +67,27 @@ Thick Mode Changes
 Common Changes
 ++++++++++++++
 
-#)  Added support for building wheels for GraalPy.
-#)  Fixed handling of duplicate query parameters and URL-encoded values in the
-    :ref:`GCP Centralized Configuration Provider <configgcpplugin>`, and added
-    validation for Cloud Storage notifications with invalid bucket or object
-    names.
+#)  Added support for building wheels for :ref:`GraalPy <graalPy>`.
 #)  Added support for
     :ref:`Azure Managed Identity Authentication <azuremanagedidentityauth>` for
     system-assigned and user-assigned identities.
+#)  Added Delegation Token authentication support to the
+    :ref:`OCI Tokens plugin <cloudnativeauthoci>`.
 #)  Added the ``context_local`` parameter to :func:`save_secret()`,
-    :func:`get_secret()`, and :func:`clear_all_secrets()`. The ``thread_local``
-    parameter is deprecated and emits a ``DeprecationWarning`` when supplied
-    with a value other than *None*. This enables these functions to work
-    correctly with asyncio tasks.
+    :func:`get_secret()`, and :func:`clear_all_secrets()`, enabling these
+    functions to work correctly with :ref:`asyncio <asyncio>` tasks. The
+    ``thread_local`` parameter is :ref:`deprecated <_deprecations_26_2>` and
+    raises a ``DeprecationWarning`` when supplied with a value other than
+    *None*.
 #)  Secret values can now be directly compared with strings and bytes as a
     convenience.
 #)  Added error offset to exceptions raised by :func:`Cursor.executemany()`
     when executing SQL statements
     (`issue 612 <https://github.com/oracle/python-oracledb/issues/612>`__).
-#)  Added Delegation Token authentication support to the
-    :ref:`OCI Tokens plugin <cloudnativeauthoci>`.
+#)  Fixed handling of duplicate query parameters and URL-encoded values in the
+    :ref:`GCP Centralized Configuration Provider <configgcpplugin>`, and added
+    validation for Cloud Storage notifications with invalid bucket or object
+    names.
 #)  Fixed bug preventing :func:`Cursor.executemany()` from detecting invalid
     bind data in all but the final row of data
     (`issue 628 <https://github.com/oracle/python-oracledb/issues/628>`__).

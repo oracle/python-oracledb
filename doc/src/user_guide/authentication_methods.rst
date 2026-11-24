@@ -466,12 +466,13 @@ later), or 21.5 (or later) are needed.
 
 Standalone connections and pooled connections can be created in python-oracledb
 Thick and Thin modes using OCI IAM token-based authentication. This can be done
-by using a class like the sample :ref:`TokenHandlerIAM class <iamhandler>` or
-by using python-oracledb's :ref:`OCI Cloud Native Authentication Plugin
-(oci_tokens) <cloudnativeauthoci>`. Tokens can be specified using the
-connection parameter introduced in python-oracledb 1.1. Users of earlier
-python-oracledb versions can alternatively use :ref:`OCI IAM Token-Based
-Authentication Connection Strings <iamauthconnstr>`.
+by using a class like the sample :ref:`TokenHandlerIAM class <iamhandler>`, or
+by setting :ref:`token_auth parameter <conncreationiamtokenauthparams>` and
+related authentication parameters, or by using python-oracledb's :ref:`OCI
+Cloud Native Authentication Plugin (oci_tokens) <cloudnativeauthoci>`. Tokens
+can be specified using the connection parameter introduced in python-oracledb
+1.1. Users of earlier python-oracledb versions can alternatively use
+:ref:`OCI IAM Token-Based Authentication Connection Strings <iamauthconnstr>`.
 
 OCI IAM Token Generation and Extraction
 +++++++++++++++++++++++++++++++++++++++
@@ -657,6 +658,33 @@ following example shows a standalone connection in python-oracledb Thin mode:
 
 For more information on proxy users, see :ref:`proxyauth`.
 
+.. _conncreationiamtokenauthparams:
+
+Connection Creation with OCI IAM Token Authentication Parameters
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+You can use OCI IAM token authentication by setting the ``token_auth``
+parameter in :func:`oracledb.connect()`, :func:`oracledb.create_pool()`,
+:func:`oracledb.connect_async()`, and :func:`oracledb.create_pool_async()`.
+The additional parameters that can be set depend on the authentication value
+specified. For API key authentication, you can set ``oci_config_file`` and
+``oci_profile``. Use ``oci_compartment`` and ``oci_database`` to scope the
+token, or ``token_location`` to specify token files. See
+:ref:`Thin Mode OCI IAM Authentication Flows <iamauththinflows>` for the
+supported flows and parameters.
+
+For example, to use an OCI configuration file with API key authentication:
+
+.. code-block:: python
+
+    connection = oracledb.connect(
+        user="hr",
+        dsn="tcps://dbhost.example.com:1522/myservice",
+        token_auth="OCI_API_KEY",
+        oci_config_file="/home/app/.oci/config",
+        oci_profile="DEFAULT",
+    )
+
 .. _iamauthconnstr:
 
 OCI IAM Token-Based Authentication Connection Strings
@@ -678,11 +706,12 @@ and ``SSL_SERVER_DN_MATCH`` should be ``ON``.
 
 In Thin mode, python-oracledb processes the Oracle Net ``TOKEN_AUTH`` settings
 and configures the selected OCI IAM authentication flow. The supported values
-are *OCI_API_KEY*, *OCI_INSTANCE_PRINCIPAL*, *OCI_RESOURCE_PRINCIPAL*, and
-*OCI_TOKEN*. OCI API key, instance principal, and resource principal
-authentication use the :ref:`oci_tokens <ocicloudnativeauthplugin>` plugin.
-*OCI_TOKEN* authentication uses token and private key files. For details on
-the authentication flows and parameters, see
+are *OCI_API_KEY*, *OCI_INSTANCE_PRINCIPAL*, *OCI_RESOURCE_PRINCIPAL*,
+*OCI_DELEGATION_TOKEN*, and *OCI_TOKEN*. OCI API key, instance principal,
+resource principal, and delegation token authentication use the
+:ref:`oci_tokens <ocicloudnativeauthplugin>` plugin. *OCI_TOKEN* authentication
+uses token and private key files. For details on the authentication flows and
+parameters, see
 :ref:`Thin Mode OCI IAM Authentication Flows <iamauththinflows>`.
 
 In python-oracledb Thick mode, Oracle Client processes the authentication
@@ -737,8 +766,8 @@ key is the same default location that the OCI-CLI tool writes to. For example
 ``~/.oci/db-token/`` on Linux.
 
 If the token and private key files are not in the default location, then their
-directory must be specified with the ``TOKEN_LOCATION`` parameter in a
-in an :ref:`Easy Connect string <easyconnect>`, or a
+directory must be specified with the ``TOKEN_LOCATION`` parameter in an
+:ref:`Easy Connect string <easyconnect>`, or a
 :ref:`Connect Descriptor <conndescriptor>`. For example when using a
 :ref:`tnsnames.ora <optnetfiles>` file::
 
@@ -807,6 +836,9 @@ The following table lists the OCI IAM authentication flows supported by
       - ResourcePrincipal
       - ``OCI_COMPARTMENT``,
         ``OCI_DATABASE``
+    * - OCI_DELEGATION_TOKEN
+      - DelegationToken
+      - ``OCI_DELEGATION_TOKEN_FILE``
     * - OCI_TOKEN
       - File-based OCI database token
       - ``TOKEN_LOCATION``
@@ -1092,10 +1124,12 @@ later), or 21.7 (or later) are needed.
 
 Standalone connections and pooled connections can be created in python-oracledb
 Thick and Thin modes using OAuth 2.0 token-based authentication. This can be
-done or by using a class such as the example :ref:`TokenHandlerOAuth Class
-<oauthhandler>` or by using python-oracledb's :ref:`Azure Cloud Native
-Authentication Plugin (azure_tokens) <cloudnativeauthoauth>`. Tokens can be
-specified using the connection parameter introduced in python-oracledb 1.1.
+done by using a class such as the example :ref:`TokenHandlerOAuth Class
+<oauthhandler>`, or by setting the
+:ref:`token_auth <conncreationoauthtokenauthparams>` parameter and related
+authentication parameters, or by using python-oracledb's :ref:`Azure Cloud
+Native Authentication Plugin (azure_tokens) <cloudnativeauthoauth>`. Tokens can
+be specified using the connection parameter introduced in python-oracledb 1.1.
 Users of earlier python-oracledb versions can alternatively use :ref:`OAuth 2.0
 Token-Based Authentication Connection Strings <oauth2connstr>`.
 
@@ -1289,6 +1323,37 @@ following example shows a standalone connection in python-oracledb Thin mode:
         wallet_password=wp)
 
 For more information on proxy users, see :ref:`proxyauth`.
+
+.. _conncreationoauthtokenauthparams:
+
+Connection Creation with OAuth 2.0 Token Authentication Parameters
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+You can use OAuth 2.0 token authentication by setting the ``token_auth``
+parameter in :func:`oracledb.connect()`,
+:func:`oracledb.connect_async()`, :func:`oracledb.create_pool()`, or
+:func:`oracledb.create_pool_async()`. The additional parameters depend on
+the authentication flow. For Azure service principal authentication, set
+``azure_db_app_id_uri``, ``tenant_id``, ``client_id``, and
+``client_secret``. For Azure managed identity authentication, set
+``azure_db_app_id_uri`` and optionally ``client_id`` for a user-assigned
+identity. For file-based OAuth authentication, set ``token_location``. See
+:ref:`Thin Mode OAuth 2.0 Authentication Flows <oauthtokenauththinflows>` for
+the supported flows and parameters.
+
+For example, to use Azure service principal authentication:
+
+.. code-block:: python
+
+    connection = oracledb.connect(
+        user="hr",
+        dsn="tcps://dbhost.example.com:1522/myservice",
+        token_auth="AZURE_SERVICE_PRINCIPAL",
+        azure_db_app_id_uri="https://database.example.com/",
+        tenant_id="tenant-id",
+        client_id="client-id",
+        client_secret="client-secret",
+    )
 
 .. _oauth2connstr:
 
