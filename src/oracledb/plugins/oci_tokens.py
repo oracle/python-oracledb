@@ -242,45 +242,6 @@ def _simple_authentication(token_auth_config):
     return _generate_access_token(client, token_auth_config)
 
 
-def get_database_access_token(deepsec_params, user_token):
-    auth_flow = deepsec_params.get("auth_flow")
-    if auth_flow == "client_credentials":
-        return get_database_access_token_client_cred_flow(deepsec_params)
-    else:
-        raise ValueError(f"Incorrect value for auth_flow: {auth_flow}.")
-
-
-# Function to get mid-tier app access token (OCI-IAM)
-def get_database_access_token_client_cred_flow(end_user_sec_params):
-    key = (
-        end_user_sec_params["authority"],
-        end_user_sec_params["client_id"],
-        end_user_sec_params["client_credential"],
-        end_user_sec_params["scopes"],
-    )
-    secret_value = oracledb.get_secret(key)
-    if secret_value is not None:
-        return secret_value.value
-
-    # fetch fresh token, if not present in cache
-    auth_str = f"{end_user_sec_params.get('client_id')}:{end_user_sec_params.get('client_credential')}"
-    b64_auth = base64.b64encode(auth_str.encode()).decode()
-    headers = {
-        "Authorization": f"Basic {b64_auth}",
-        "Content-Type": "application/x-www-form-urlencoded",
-    }
-    payload = {
-        "grant_type": "client_credentials",
-        "scope": end_user_sec_params.get("scopes"),
-    }
-    response = requests.post(
-        end_user_sec_params.get("authority"), headers=headers, data=payload
-    )
-    if response.status_code != 200:
-        raise RuntimeError(f"Token request failed: {response.status_code}")
-    return _get_token(key, response.json())
-
-
 def generate_token(token_auth_config, refresh=False):
     """
     Generates an OCI access token based on provided credentials.
@@ -302,6 +263,42 @@ def generate_token(token_auth_config, refresh=False):
         return _simple_authentication(token_auth_config)
 
 
+def get_database_access_token(deepsec_params, user_token):
+    auth_flow = deepsec_params.get("auth_flow")
+    if auth_flow == "client_credentials":
+        return get_database_access_token_client_cred_flow(deepsec_params)
+    else:
+        raise ValueError(f"Incorrect value for auth_flow: {auth_flow}.")
+
+
+# Function to get mid-tier app access token (OCI-IAM)
+def get_database_access_token_client_cred_flow(end_user_sec_params):
+    authority = end_user_sec_params["authority"]
+    client_id = end_user_sec_params["client_id"]
+    client_credential = end_user_sec_params["client_credential"]
+    scopes = end_user_sec_params["scopes"]
+    key = (authority, client_id, client_credential, scopes)
+    secret_value = oracledb.get_secret(key)
+    if secret_value is not None:
+        return secret_value.value
+
+    # fetch fresh token, if not present in cache
+    auth_str = f"{client_id}:{client_credential}"
+    b64_auth = base64.b64encode(auth_str.encode()).decode()
+    headers = {
+        "Authorization": f"Basic {b64_auth}",
+        "Content-Type": "application/x-www-form-urlencoded",
+    }
+    payload = {
+        "grant_type": "client_credentials",
+        "scope": scopes,
+    }
+    response = requests.post(authority, headers=headers, data=payload)
+    if response.status_code != 200:
+        raise RuntimeError(f"Token request failed: {response.status_code}")
+    return _get_token(key, response.json())
+
+
 def has_oci_auth_type(extra_auth_params):
     """
     Validates that extra_auth_params contains a valid 'auth_type'
@@ -312,7 +309,7 @@ def has_oci_auth_type(extra_auth_params):
     return auth_type is not None and auth_type.lower() in AuthType
 
 
-def oci_token_hook(params: oracledb.ConnectParams):
+def params_hook(params: oracledb.ConnectParams):
     """
     OCI-specific hook for generating a token.
     """
@@ -325,4 +322,4 @@ def oci_token_hook(params: oracledb.ConnectParams):
 
 
 # Register the token hook for OCI
-oracledb.register_params_hook(oci_token_hook)
+oracledb.register_params_hook(params_hook)
