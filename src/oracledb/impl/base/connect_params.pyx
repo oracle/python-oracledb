@@ -228,14 +228,14 @@ cdef class ConnectParamsImpl:
         self.disable_oob = other_params.disable_oob
         self.debug_jdwp = other_params.debug_jdwp
         self.ssl_context = other_params.ssl_context
-        self.description_list = other_params.description_list
+        self.description_list = other_params.description_list.copy()
         self.access_token_callback = other_params.access_token_callback
         self.on_connect_callback = other_params.on_connect_callback
         self.operation_callback = other_params.operation_callback
         self.round_trip_callback = other_params.round_trip_callback
         self._external_handle = other_params._external_handle
-        self._default_description = other_params._default_description
-        self._default_address = other_params._default_address
+        self._default_description = other_params._default_description.copy()
+        self._default_address = other_params._default_address.copy()
         self._password = other_params._password
         self._new_password = other_params._new_password
         self._wallet_password = other_params._wallet_password
@@ -831,7 +831,7 @@ cdef class Address(ConnectParamsNode):
                 parts.append(f"(HTTPS_PROXY_PORT={self.https_proxy_port})")
             return f'(ADDRESS={"".join(parts)})'
 
-    def copy(self):
+    cdef Address copy(self):
         """
         Creates a copy of the address and returns it.
         """
@@ -939,6 +939,18 @@ cdef class AddressList(ConnectParamsNode):
         if len(parts) == 1:
             return parts[0]
         return f'(ADDRESS_LIST={"".join(parts)})'
+
+    cdef AddressList copy(self):
+        """
+        Creates a copy of the address list and returns it.
+        """
+        cdef:
+            AddressList address_list = AddressList.__new__(AddressList)
+            Address address
+        address_list._copy(self)
+        for address in self.children:
+            address_list.children.append(address.copy())
+        return address_list
 
     def set_from_args(self, dict args):
         """
@@ -1142,13 +1154,18 @@ cdef class Description(ConnectParamsNode):
 
         return f'(DESCRIPTION={"".join(parts)})'
 
-    def copy(self):
+    cdef Description copy(self, bint copy_children=True):
         """
         Creates a copy of the description (except for the address lists) and
         returns it.
         """
-        cdef Description description = Description.__new__(Description)
+        cdef:
+            Description description = Description.__new__(Description)
+            AddressList address_list
         description._copy(self)
+        if copy_children:
+            for address_list in self.children:
+                description.children.append(address_list.copy())
         description.expire_time = self.expire_time
         description.retry_count = self.retry_count
         description.retry_delay = self.retry_delay
@@ -1290,6 +1307,19 @@ cdef class DescriptionList(ConnectParamsNode):
         if len(parts) == 1:
             return parts[0]
         return f'(DESCRIPTION_LIST={"".join(parts)})'
+
+    cdef DescriptionList copy(self):
+        """
+        Creates a copy of the description list and returns it.
+        """
+        cdef:
+            DescriptionList description_list
+            Description description
+        description_list = DescriptionList.__new__(DescriptionList)
+        description_list._copy(self)
+        for description in self.children:
+            description_list.children.append(description.copy())
+        return description_list
 
     cdef list get_addresses(self):
         """

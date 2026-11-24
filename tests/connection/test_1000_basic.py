@@ -817,7 +817,7 @@ def test_connection_1052(skip_unless_thin_mode, conn):
 
 def test_connection_1053(skip_unless_thin_mode, test_env):
     "1053 - test passed params in hook with standalone connection"
-    sdu = 4096
+    cache_size = 100
     params = test_env.get_connect_params()
     protocol = "proto-test"
     orig_connect_string = test_env.connect_string
@@ -827,12 +827,12 @@ def test_connection_1053(skip_unless_thin_mode, test_env):
         assert passed_protocol == protocol
         assert passed_protocol_arg == orig_connect_string
         passed_params.parse_connect_string(passed_protocol_arg)
-        passed_params.set(sdu=sdu)
+        passed_params.set(stmtcachesize=cache_size)
 
     try:
         oracledb.register_protocol(protocol, hook)
-        with oracledb.connect(dsn=connect_string, params=params):
-            assert params.sdu == sdu
+        with oracledb.connect(dsn=connect_string, params=params) as conn:
+            assert conn.stmtcachesize == cache_size
     finally:
         oracledb.register_protocol(protocol, None)
 

@@ -403,7 +403,8 @@ cdef class ConnectStringParser(BaseParser):
         if not isinstance(descriptions, list):
             descriptions = [descriptions]
         for desc_args in descriptions:
-            description = self.template_description.copy()
+            description = self.template_description.copy(copy_children=False)
+            description.children.clear()
             description.set_from_description_args(desc_args)
             self.description_list.children.append(description)
             sub_args = desc_args.get("connect_data")
@@ -572,7 +573,7 @@ cdef class ConnectStringParser(BaseParser):
             ssize_t i, port_index = 0
             AddressList address_list
             Py_UCS4 ch
-        self.description = self.template_description.copy()
+        self.description = self.template_description.copy(copy_children=False)
         address_list = AddressList()
         self.description.children.append(address_list)
         self.temp_pos = self.pos

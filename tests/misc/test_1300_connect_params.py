@@ -2059,3 +2059,28 @@ def test_1387():
         assert not notifications
     finally:
         oracledb.register_protocol(protocol, None)
+
+
+def test_misc_1388():
+    "1388 - test modifying parameters after copy doesn't affect original"
+    host = "test_1388"
+    port = 1388
+    service_name = "service_name_1388"
+    connect_string = f"{host}:{port}/{service_name}"
+    params = oracledb.ConnectParams()
+    params.parse_connect_string(connect_string)
+    assert params.host == host
+    assert params.service_name == service_name
+    connect_descriptor = params.get_connect_string()
+    copied_params = params.copy()
+    assert copied_params.host == params.host
+    assert copied_params.service_name == params.service_name
+    assert copied_params.get_connect_string() == connect_descriptor
+    modified_host = "test_1388_modified"
+    modified_service_name = "service_name_1388_modified"
+    copied_params.set(host=modified_host, service_name=modified_service_name)
+    assert params.host == host
+    assert params.service_name == service_name
+    assert params.get_connect_string() == connect_descriptor
+    assert copied_params.host == modified_host
+    assert copied_params.service_name == modified_service_name

@@ -572,6 +572,7 @@ cdef class Address(ConnectParamsNode):
 
     cdef bint _uses_tcps(self)
     cdef str build_connect_string(self)
+    cdef Address copy(self)
     cdef int set_protocol(self, str value) except -1
     cdef list resolve_host_name(self)
 
@@ -579,6 +580,7 @@ cdef class Address(ConnectParamsNode):
 cdef class AddressList(ConnectParamsNode):
 
     cdef str build_connect_string(self)
+    cdef AddressList copy(self)
 
 
 cdef class Description(ConnectParamsNode):
@@ -621,12 +623,14 @@ cdef class Description(ConnectParamsNode):
     cdef str _build_duration_str(self, double value)
     cdef str _value_repr(self, object value)
     cdef str build_connect_string(self, str cid=*)
+    cdef Description copy(self, bint copy_children=*)
     cdef int set_server_type(self, str value) except -1
 
 
 cdef class DescriptionList(ConnectParamsNode):
 
     cdef str build_connect_string(self)
+    cdef DescriptionList copy(self)
     cdef list get_addresses(self)
     cdef int set_active_children(self) except -1
 

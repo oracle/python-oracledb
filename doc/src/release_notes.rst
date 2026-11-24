@@ -94,6 +94,9 @@ Common Changes
 #)  Fixed bug that caused pool capacity to be reduced when an exception is
     raised by a pool session callback
     (`issue 626 <https://github.com/oracle/python-oracledb/issues/626>`__).
+#)  Fixed bug that caused the parameters returned by
+    :func:`ConnectParams.copy()` and :func:`PoolParams.copy()` to retain a
+    reference to some parts of the parameters that were copied.
 #)  Fixed bug that caused memory allocation to be performed unnecessarily when
     encoding OSON.
 

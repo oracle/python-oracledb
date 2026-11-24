@@ -942,7 +942,7 @@ def test_pool_1046(test_env):
 
 def test_pool_1047(skip_unless_thin_mode, test_env):
     "1047 - test register_parameter with pooled connection"
-    sdu = 4096
+    cache_size = 100
     params = test_env.get_pool_params()
     protocol = "proto-test"
     orig_connect_string = test_env.connect_string
@@ -952,12 +952,12 @@ def test_pool_1047(skip_unless_thin_mode, test_env):
         assert passed_protocol == protocol
         assert passed_protocol_arg == orig_connect_string
         passed_params.parse_connect_string(passed_protocol_arg)
-        passed_params.set(sdu=sdu)
+        passed_params.set(stmtcachesize=cache_size)
 
     try:
         oracledb.register_protocol(protocol, hook)
         pool = oracledb.create_pool(dsn=connect_string, params=params)
-        assert params.sdu == sdu
+        assert pool.stmtcachesize == cache_size
         with pool.acquire():
             pass
         pool.close()
