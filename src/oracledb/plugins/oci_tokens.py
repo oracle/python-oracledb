@@ -31,6 +31,7 @@
 import base64
 import datetime
 import enum
+import os
 import pathlib
 
 from cryptography.hazmat.primitives import serialization
@@ -42,6 +43,7 @@ import requests
 
 class AuthType(str, enum.Enum):
     ConfigFileAuthentication = "ConfigFileAuthentication".lower()
+    DelegationToken = "DelegationToken".lower()
     InstancePrincipal = "InstancePrincipal".lower()
     ResourcePrincipal = "ResourcePrincipal".lower()
     SecurityToken = "SecurityToken".lower()
@@ -56,6 +58,32 @@ def _config_file_based_authentication(token_auth_config):
     """
     config = _load_oci_config(token_auth_config)
     client = oci.identity_data_plane.DataplaneClient(config)
+    return _generate_access_token(client, token_auth_config)
+
+
+def _delegation_token_authentication(token_auth_config):
+    """
+    Delegation-token authentication using an OCI instance principal.
+    """
+    token_file = token_auth_config.get(
+        "delegation_token_file",
+        os.environ.get("OCI_DELEGATION_TOKEN_FILE"),
+    )
+    if not token_file:
+        raise ValueError(
+            "A delegation token file must be specified with "
+            "'delegation_token_file' or OCI_DELEGATION_TOKEN_FILE"
+        )
+
+    token_path = pathlib.Path(token_file).expanduser()
+    delegation_token = token_path.read_text().strip()
+    if not delegation_token:
+        raise ValueError(f"OCI delegation token file is empty: {token_path}")
+
+    signer = oci.auth.signers.InstancePrincipalsDelegationTokenSigner(
+        delegation_token=delegation_token
+    )
+    client = oci.identity_data_plane.DataplaneClient(config={}, signer=signer)
     return _generate_access_token(client, token_auth_config)
 
 
@@ -260,6 +288,8 @@ def generate_token(token_auth_config, refresh=False):
     auth_type = token_auth_config["auth_type"].lower()
     if auth_type == AuthType.ConfigFileAuthentication:
         return _config_file_based_authentication(token_auth_config)
+    elif auth_type == AuthType.DelegationToken:
+        return _delegation_token_authentication(token_auth_config)
     elif auth_type == AuthType.InstancePrincipal:
         return _instance_principal_authentication(token_auth_config)
     elif auth_type == AuthType.ResourcePrincipal:

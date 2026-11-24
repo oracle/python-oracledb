@@ -781,9 +781,11 @@ the following table.
       - Description
       - Required or Optional
     * - ``auth_type``
-      - The authentication type. The value should be the string "ConfigFileAuthentication", "InstancePrincipal", "ResourcePrincipal", "SecurityToken", "SecurityTokenSimple" or "SimpleAuthentication".
+      - The authentication type. The value should be the string "ConfigFileAuthentication", "DelegationToken", "InstancePrincipal", "ResourcePrincipal", "SecurityToken", "SecurityTokenSimple" or "SimpleAuthentication".
 
         With Configuration File Authentication, the location of a configuration file containing the necessary information must be provided. By default, this file is located at */home/username/.oci/config*, unless a custom location is specified during OCI IAM setup.
+
+        With Delegation Token authentication, an application running in OCI Cloud Shell or OCI Data Flow uses a delegation token to act on behalf of the IAM user represented by the token and request an access token for Oracle Database. This authentication method requires a delegation token file. Specify the file path by setting the OCI_DELEGATION_TOKEN_FILE environment variable or by passing it using the ``delegation_token_file`` key in ``extra_auth_params``. See `Oracle AI Database Net Services Reference <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-442189CA-D703-4361-936D-22DCE83A6D2C>`__ for more information.
 
         With Instance Principal Authentication, OCI compute instances can be authorized to access services on Oracle Cloud such as Oracle Autonomous Database. Python-oracledb applications running on such a compute instance are automatically authenticated, eliminating the need to provide database user credentials. This authentication method will only work on compute instances where internal network endpoints are reachable. See :ref:`instanceprincipalauth`.
 
@@ -796,6 +798,10 @@ the following table.
         With Simple Authentication, the individual configuration parameters can be provided at runtime.
 
         See `OCI SDK Authentication Methods <https://docs.oracle.com/en-us/iaas/Content/API/Concepts/sdk_authentication_methods.htm>`__ for more information.
+
+        .. versionchanged:: 26.2.0
+
+            Support for Delegation Token Authentication was added.
       - Required
     * - ``user``
       - The Oracle Cloud Identifier (OCID) of the user invoking the API. For example, *ocid1.user.oc1..<unique_ID>*.
@@ -842,6 +848,13 @@ the following table.
         A scope that authorizes access to a single database within a compartment has the format *urn:oracle:db::id::<compartment-ocid>::<database-ocid>*, for example, urn:oracle:db::id::ocid1.compartment.oc1..xxxxxx::ocid1.autonomousdatabase.oc1.phx.xxxxxx.
 
         This parameter can be specified when the value of the ``auth_type`` key is "SimpleAuthentication", "ConfigFileAuthentication", or "InstancePrincipal".
+      - Optional
+    * - ``delegation_token_file``
+      - Path to the file containing the OCI delegation token.
+
+        This parameter can be specified when the value of the ``auth_type`` key is "DelegationToken". If not specified, the plugin checks the OCI_DELEGATION_TOKEN_FILE environment variable.
+
+        .. versionadded:: 26.2.0
       - Optional
 
 All keys and values other than ``auth_type`` are used by the `OCI SDK
