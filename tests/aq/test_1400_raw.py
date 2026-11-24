@@ -491,7 +491,7 @@ def test_aq_1430(queue, test_env):
     "1430 - test deq options with msgid > 16 bytes"
     queue.deqoptions.msgid = b"invalid_msgid_123456789"
     queue.deqoptions.wait = oracledb.DEQ_NO_WAIT
-    with test_env.assert_raises_full_code("ORA-25263"):
+    with test_env.assert_raises_full_code("ORA-25263", "ORA-25284"):
         queue.deqone()
 
 

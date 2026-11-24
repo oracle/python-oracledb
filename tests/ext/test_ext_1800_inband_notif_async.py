@@ -25,15 +25,10 @@
 """
 E1800 - Module for testing inband notification with asyncio. No special setup
 is required but the test makes use of debugging packages that are not intended
-for normal use.
+for normal use with Oracle Database 19c.
 """
 
-# -----------------------------------------------------------------------------
-# priv_test_1800_inband_notif_async.py
-#
-# Private tests for testing inband notification with asyncio. No special setup
-# is required.
-# -----------------------------------------------------------------------------
+import asyncio
 
 import pytest
 
@@ -44,60 +39,73 @@ def module_checks(anyio_backend, skip_unless_thin_mode):
 
 
 @pytest.fixture(scope="module", autouse=True)
-def setup_user(test_env):
+def use_package(test_env, server_version):
+    """
+    Returns whether or not the setup requires use of the package or not. The
+    package must be used prior to Oracle AI Database 26ai but may not be used
+    for recent versions of the database. If the package is needed, the grant is
+    made for the duration of the test and revoked afterwards.
+    """
     test_env.skip_unless_server_version(19)
+    use_package = server_version[0] < 23
     user = test_env.main_user
     with test_env.get_admin_connection() as admin_conn:
         with admin_conn.cursor() as cursor:
-            cursor.execute(f"grant execute on dbms_tg_dbg to {user}")
-            yield
-            cursor.execute(f"revoke execute on dbms_tg_dbg from {user}")
+            if use_package:
+                cursor.execute(f"grant execute on dbms_tg_dbg to {user}")
+            yield use_package
+            if use_package:
+                cursor.execute(f"revoke execute on dbms_tg_dbg from {user}")
 
 
-async def test_ext_1800(test_env):
+async def mark_session_drainable(test_env, conn, use_package):
+    """
+    Marks the session as drainable so that the inband notification is sent. If
+    the package is not used, a thread is used to disconnect the session
+    instead.
+    """
+    assert conn.is_healthy()
+    if use_package:
+        await conn.callproc("dbms_tg_dbg.set_session_drainable")
+    else:
+        sid, serial = (conn.session_id, conn.serial_num)
+        admin_conn = await test_env.get_admin_connection_async()
+        sql = f"alter system disconnect session '{sid},{serial}' drain"
+        task = asyncio.create_task(admin_conn.execute(sql))
+        await asyncio.sleep(1)
+        return task
+
+
+async def test_ext_1800(test_env, use_package):
     "E1800 - test standalone connection is marked unhealthy"
     async with test_env.get_connection_async() as conn:
-        assert conn.is_healthy()
+        task = await mark_session_drainable(test_env, conn, use_package)
         with conn.cursor() as cursor:
-            await cursor.callproc("dbms_tg_dbg.set_session_drainable")
             await cursor.execute("select user from dual")
             (user,) = await cursor.fetchone()
             assert user == test_env.main_user.upper()
         assert not conn.is_healthy()
+    if task is not None:
+        await task
 
 
-async def test_ext_1801(test_env):
+async def test_ext_1801(test_env, use_package):
     "E1801 - test pooled connection that is marked unhealthy"
-    pool = test_env.get_pool_async(min=1, max=1, increment=1)
-    async with pool.acquire() as conn:
-        assert conn.is_healthy()
-        with conn.cursor() as cursor:
-            await cursor.callproc("dbms_tg_dbg.set_session_drainable")
-            info = (conn.session_id, conn.serial_num)
-        assert not conn.is_healthy()
-        with conn.cursor() as cursor:
-            await cursor.execute("select user from dual")
-            (user,) = await cursor.fetchone()
-            assert user == test_env.main_user.upper()
-    async with pool.acquire() as conn:
-        assert conn.is_healthy()
-        new_info = (conn.session_id, conn.serial_num)
-        assert new_info != info
-    await pool.close()
-
-
-async def test_ext_1802(test_env):
-    "E1802 - test pooled connection is dropped from pool"
     pool = test_env.get_pool_async(min=1, max=1, increment=1)
     async with pool.acquire() as conn:
         assert conn.is_healthy()
         info = (conn.session_id, conn.serial_num)
     async with pool.acquire() as conn:
-        new_info = (conn.session_id, conn.serial_num)
-        assert new_info == info
+        assert (conn.session_id, conn.serial_num) == info
+        task = await mark_session_drainable(test_env, conn, use_package)
         with conn.cursor() as cursor:
-            await cursor.callproc("dbms_tg_dbg.set_session_drainable")
+            await cursor.execute("select user from dual")
+            (user,) = await cursor.fetchone()
+            assert user == test_env.main_user.upper()
+        assert not conn.is_healthy()
     async with pool.acquire() as conn:
         assert conn.is_healthy()
-        new_info = (conn.session_id, conn.serial_num)
-        assert new_info != info
+        assert (conn.session_id, conn.serial_num) != info
+    await pool.close()
+    if task is not None:
+        await task

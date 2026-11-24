@@ -1027,6 +1027,15 @@ async def round_trip_checker_async(async_conn, async_admin_conn, test_env):
 
 
 @pytest.fixture(scope="session")
+def server_version(test_env):
+    """
+    Returns the version of the server used for the test configuration.
+    """
+    test_env._initialize()
+    return test_env.server_version
+
+
+@pytest.fixture(scope="session")
 def skip_if_drcp(test_env):
     """
     Skips the test if running with DRCP.

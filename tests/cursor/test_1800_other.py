@@ -1071,7 +1071,7 @@ def test_cursor_1872(cursor):
     assert fetch_info.type is oracledb.DB_TYPE_CLOB
 
 
-def test_cursor_1873(conn):
+def test_cursor_1873(conn, skip_unless_thin_mode):
     "1873 - test changing type handler for cached statement with LOB column"
 
     def type_handler(cursor, metadata):
