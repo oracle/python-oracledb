@@ -155,13 +155,17 @@ such as tokens that are used to configure an end user security context. The
 :func:`save_secret()` function is used to store a secret value with an expiry
 in python-oracledb's internal cache, and :func:`get_secret()` is used to
 retrieve this secret from the cache. The secret value can be stored in global
-storage which is shared across all threads, or in thread local storage where
-each thread has its own secret value. The :func:`clear_all_secrets()` function
-is used to clear all secret values stored in the cache.
+storage which is shared across all threads and execution contexts, or in
+context-local storage associated with the current execution context, including
+asynchronous task contexts. The :func:`clear_all_secrets()` function is used to
+clear all secret values stored in the cache. To use context-local storage, set
+the ``context_local`` parameter to *True* in these functions. Using the
+deprecated ``thread_local`` parameter raises a ``DeprecationWarning`` when
+specified to a value other than *None*.
 
 The :ref:`end_user_sec_provider <endusersecuritycontextcreationplugin>` plugin
 stores end-user security values in python-oracledb's internal cache using
-thread local storage. These values include the end-user identity, data roles,
+context-local storage. These values include the end-user identity, data roles,
 and context attributes. The end-user identity can be provided by an external
 Identity and Access Management (IAM) system such as OCI IAM and Microsoft Entra
 ID, or by Oracle Database. Applications can use the plugin to dynamically store

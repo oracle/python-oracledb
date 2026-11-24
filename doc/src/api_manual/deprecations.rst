@@ -17,6 +17,17 @@ python-oracledb. The relevant functionality may be removed in a future version
 of python-oracledb. The cx_Oracle driver itself is obsolete and should not be
 used for new development.
 
+.. list-table-with-summary:: Deprecated in python-oracledb 26.2
+    :header-rows: 1
+    :class: wy-table-responsive
+    :summary: The first column, Name, displays the deprecated feature. The second column, Comments, includes information about the deprecation and the replacement to use, if applicable.
+    :name: _deprecations_26_2
+
+    * - Name
+      - Comments
+    * - Parameter ``thread_local`` of :func:`oracledb.clear_all_secrets()`, :func:`oracledb.get_secret()`, and :func:`oracledb.save_secret()`
+      - Replace with parameter ``context_local``
+
 .. list-table-with-summary:: Desupported in python-oracledb 26.0
     :header-rows: 1
     :class: wy-table-responsive

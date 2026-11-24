@@ -33,7 +33,7 @@ import json
 
 import oracledb
 
-# key to use in thread local cache
+# key to use in context-local cache
 END_USER_ATTRIBUTES_KEY = "EUC_END_USER_ATTRIBUTES"
 END_USER_DATA_ROLES_KEY = "EUC_END_USER_DATA_ROLES"
 END_USER_IDENTITY_KEY = "EUC_END_USER_IDENTITY"
@@ -44,7 +44,7 @@ def _get_secret(key):
     Returns the secret value stored under the given key or None if no such
     secret was stored.
     """
-    secret = oracledb.get_secret(key, thread_local=True)
+    secret = oracledb.get_secret(key, context_local=True)
     if secret is not None:
         return json.loads(secret.value)
 
@@ -56,7 +56,7 @@ def _save_secret(key, value):
     """
     if value is not None:
         value = json.dumps(value)
-    oracledb.save_secret(key, value, thread_local=True)
+    oracledb.save_secret(key, value, context_local=True)
 
 
 def get_end_user_attributes():
@@ -82,21 +82,21 @@ def get_end_user_identity():
 
 def set_end_user_attributes(value):
     """
-    Securely stores the context attributes for the current thread.
+    Securely stores the context attributes for the current execution context.
     """
     _save_secret(END_USER_ATTRIBUTES_KEY, value)
 
 
 def set_end_user_data_roles(value):
     """
-    Securely stores the data roles for the current thread.
+    Securely stores the data roles for the current execution context.
     """
     _save_secret(END_USER_DATA_ROLES_KEY, value)
 
 
 def set_end_user_identity(value):
     """
-    Securely stores the end user identity for the current thread.
+    Securely stores the end user identity for the current execution context.
     """
     _save_secret(END_USER_IDENTITY_KEY, value)
 
@@ -118,7 +118,7 @@ class EndUserSecMiddleware:
         try:
             return self.get_response(request)
         finally:
-            oracledb.clear_all_secrets(thread_local=True)
+            oracledb.clear_all_secrets(context_local=True)
 
 
 def get_end_user_sec_context(

@@ -15,6 +15,11 @@ Oracledb Methods
 
 .. autofunction:: clear_all_secrets
 
+    .. versionchanged:: 26.2.0
+
+        The ``thread_local`` parameter was deprecated. Use ``context_local``
+        instead.
+
     .. versionadded:: 26.0.0
 
 .. autofunction:: clientversion
@@ -282,6 +287,11 @@ Oracledb Methods
 
 .. autofunction:: get_secret
 
+    .. versionchanged:: 26.2.0
+
+        The ``thread_local`` parameter was deprecated. Use ``context_local``
+        instead.
+
     .. versionadded:: 4.0.0
 
 .. autofunction:: init_oracle_client
@@ -358,6 +368,11 @@ Oracledb Methods
     .. versionadded:: 2.5.0
 
 .. autofunction:: save_secret
+
+    .. versionchanged:: 26.2.0
+
+        The ``thread_local`` parameter was deprecated. Use ``context_local``
+        instead.
 
     .. versionadded:: 4.0.0
 

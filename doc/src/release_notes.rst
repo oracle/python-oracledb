@@ -70,6 +70,13 @@ Common Changes
 #)  Added support for
     :ref:`Azure Managed Identity Authentication <azuremanagedidentityauth>` for
     system-assigned and user-assigned identities.
+#)  Added the ``context_local`` parameter to :func:`save_secret()`,
+    :func:`get_secret()`, and :func:`clear_all_secrets()`. The ``thread_local``
+    parameter is deprecated and emits a ``DeprecationWarning`` when supplied
+    with a value other than *None*. This enables these functions to work
+    correctly with asyncio tasks.
+#)  Secret values can now be directly compared with strings and bytes as a
+    convenience.
 #)  Added error offset to exceptions raised by :func:`Cursor.executemany()`
     when executing SQL statements
     (`issue 612 <https://github.com/oracle/python-oracledb/issues/612>`__).

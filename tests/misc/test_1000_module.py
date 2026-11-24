@@ -287,30 +287,30 @@ def test_misc_1014():
     secret = "secret_1014"
     assert oracledb.get_secret(key) is None
     oracledb.save_secret(key, secret)
-    assert oracledb.get_secret(key).value == secret
+    assert oracledb.get_secret(key) == secret
 
 
 def test_misc_1015():
-    "1015 - test storing secrets in the thread local cache"
+    "1015 - test storing secrets in the context local cache"
     key = (1015, "key")
     main_secret = "secret_1015"
 
     def thread_fn():
-        assert oracledb.get_secret(key, thread_local=True) is None
+        assert oracledb.get_secret(key, context_local=True) is None
         thread_secret = "secret_1015_thread"
-        oracledb.save_secret(key, thread_secret, thread_local=True)
-        secret_value = oracledb.get_secret(key, thread_local=True)
+        oracledb.save_secret(key, thread_secret, context_local=True)
+        secret_value = oracledb.get_secret(key, context_local=True)
         assert secret_value.value == thread_secret
 
-    assert oracledb.get_secret(key, thread_local=True) is None
-    oracledb.save_secret(key, main_secret, thread_local=True)
-    secret_value = oracledb.get_secret(key, thread_local=True)
+    assert oracledb.get_secret(key, context_local=True) is None
+    oracledb.save_secret(key, main_secret, context_local=True)
+    secret_value = oracledb.get_secret(key, context_local=True)
     assert secret_value.value == main_secret
 
     thread = threading.Thread(target=thread_fn)
     thread.start()
     thread.join()
-    secret_value = oracledb.get_secret(key, thread_local=True)
+    secret_value = oracledb.get_secret(key, context_local=True)
     assert secret_value.value == main_secret
 
 
@@ -333,7 +333,7 @@ def test_misc_1017():
         datetime.timezone.utc
     ) + datetime.timedelta(10)
     oracledb.save_secret(key, secret, expires=expires)
-    assert oracledb.get_secret(key).value == secret
+    assert oracledb.get_secret(key) == secret
 
 
 def test_misc_1018():
@@ -343,7 +343,7 @@ def test_misc_1018():
     assert oracledb.get_secret(key) is None
     secret = "secret_1018"
     oracledb.save_secret(key, secret)
-    assert oracledb.get_secret(key).value == secret
+    assert oracledb.get_secret(key) == secret
     oracledb.save_secret(key, None)
     assert oracledb.get_secret(key) is None
 
@@ -353,7 +353,7 @@ def test_misc_1019():
     key = (1019, "key")
     secret = b"secret_1019"
     oracledb.save_secret(key, secret)
-    assert oracledb.get_secret(key).value_bytes == secret
+    assert oracledb.get_secret(key) == secret
 
 
 @pytest.mark.parametrize(
@@ -627,13 +627,13 @@ def test_misc_1028():
     key = (1028, "key")
     secret = "secret_1028"
     oracledb.save_secret(key, secret)
-    assert oracledb.get_secret(key).value == secret
+    assert oracledb.get_secret(key) == secret
     oracledb.clear_all_secrets()
     assert oracledb.get_secret(key) is None
-    oracledb.save_secret(key, secret, thread_local=True)
-    assert oracledb.get_secret(key, thread_local=True).value == secret
-    oracledb.clear_all_secrets(thread_local=True)
-    assert oracledb.get_secret(key, thread_local=True) is None
+    oracledb.save_secret(key, secret, context_local=True)
+    assert oracledb.get_secret(key, context_local=True) == secret
+    oracledb.clear_all_secrets(context_local=True)
+    assert oracledb.get_secret(key, context_local=True) is None
 
 
 @pytest.mark.parametrize(
