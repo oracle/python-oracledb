@@ -110,6 +110,10 @@ class Tunnel:
         try:
             while data := src.recv(65536):
                 dst.sendall(data)
+                if self.cut_after_write_event.is_set():
+                    self.cut_after_write_event.clear()
+                    self.cut()
+                    return
         finally:
             self._close(src, dst)
 
@@ -140,6 +144,13 @@ class Tunnel:
                 self._close(*pair)
             self.connections.clear()
 
+    def cut_after_next_write(self):
+        """
+        Cuts the connection on all connections made so far after the next write
+        completes.
+        """
+        self.cut_after_write_event.set()
+
     def get_connect_params(self):
         """
         Return the connection parameters used to establish a connection to the
@@ -165,6 +176,7 @@ class Tunnel:
         Starts the tunnel.
         """
         self.lock = threading.Lock()
+        self.cut_after_write_event = threading.Event()
         self.listener = socket.create_server(("127.0.0.1", 0))
         self.host, self.port = self.listener.getsockname()
         thread = threading.Thread(target=self._serve, daemon=True)
@@ -201,6 +213,10 @@ class AsyncTunnel(Tunnel):
             while data := await reader.read(65536):
                 writer.write(data)
                 await writer.drain()
+                if self.cut_after_write_event.is_set():
+                    self.cut_after_write_event.clear()
+                    await self.cut()
+                    return
         finally:
             writer.close()
             await writer.wait_closed()
@@ -237,6 +253,7 @@ class AsyncTunnel(Tunnel):
         Starts the tunnel.
         """
         self.lock = asyncio.Lock()
+        self.cut_after_write_event = threading.Event()
         self.listener = await asyncio.start_server(
             self._handle_client, host="127.0.0.1"
         )
