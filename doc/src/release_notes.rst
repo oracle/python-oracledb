@@ -19,6 +19,9 @@ oracledb `26.2.0 <https://github.com/oracle/python-oracledb/compare/v26.1.0...v2
 Thin Mode Changes
 +++++++++++++++++
 
+#)  Added support for setting ``TOKEN_AUTH`` in Easy Connect strings and
+    Connect Descriptors for :ref:`OCI IAM <iamauthconnstr>` and
+    :ref:`OAuth 2.0 <oauth2connstr>` token-based authentication.
 #)  Added support for processing `ALTER SESSION SET CONTAINER` statements which
     cause a renegotiation to take place, avoiding the ORA-24964 error
     (`issue 592 <https://github.com/oracle/python-oracledb/issues/592>`__).

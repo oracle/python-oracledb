@@ -86,12 +86,6 @@ In python-oracledb Thin mode:
   and ``wallet_password`` parameters of :func:`~oracledb.connect` or
   :func:`~oracledb.create_pool()`. See, :ref:`autonomousdb`.
 
-- :ref:`Open Authorization (OAuth 2.0) token based authentication connection
-  strings <oauth2connstr>` and :ref:`Oracle Cloud Infrastructure (OCI) Identity
-  and Access Management (IAM) token based authentication connection strings
-  <iamauthconnstr>` are not supported. Use the ``access_token`` parameter of
-  :func:`oracledb.ConnectParams()` instead. See :ref:`tokenauth`.
-
 Transport Layer Security (TLS) Support
 --------------------------------------
 

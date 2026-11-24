@@ -668,11 +668,6 @@ versions of python-oracledb. However, it is recommended to use connection
 parameters introduced in python-oracledb 1.1 instead. See
 :ref:`OCI IAM Token-Based Authentication<iamauth>`.
 
-.. note::
-
-    OCI IAM Token-Based Authentication Connection Strings is only supported in
-    python-oracledb Thick mode. See :ref:`enablingthick`.
-
 The Oracle Cloud Infrastructure command line interface (OCI-CLI) can be used
 externally to get tokens and private keys from OCI IAM, for example with the
 OCI-CLI ``oci iam db-token get`` command.
@@ -681,9 +676,50 @@ The Oracle Net parameter ``TOKEN_AUTH`` must be set when you are using the
 connection string syntax. Also, the ``PROTOCOL`` parameter must be ``tcps``
 and ``SSL_SERVER_DN_MATCH`` should be ``ON``.
 
-You can set ``TOKEN_AUTH=OCI_TOKEN`` in a ``sqlnet.ora`` file.  Alternatively,
-you can specify it in a :ref:`Connect Descriptor <conndescriptor>`, for example
-when using a :ref:`tnsnames.ora <optnetfiles>` file::
+In Thin mode, python-oracledb processes the Oracle Net ``TOKEN_AUTH`` settings
+and configures the selected OCI IAM authentication flow. The supported values
+are *OCI_API_KEY*, *OCI_INSTANCE_PRINCIPAL*, *OCI_RESOURCE_PRINCIPAL*, and
+*OCI_TOKEN*. OCI API key, instance principal, and resource principal
+authentication use the :ref:`oci_tokens <ocicloudnativeauthplugin>` plugin.
+*OCI_TOKEN* authentication uses token and private key files. For details on
+the authentication flows and parameters, see
+:ref:`Thin Mode OCI IAM Authentication Flows <iamauththinflows>`.
+
+In python-oracledb Thick mode, Oracle Client processes the authentication
+settings.
+
+You can specify these parameters in an
+:ref:`Easy Connect string <easyconnect>`. For example, to use OCI IAM token
+files from the default location:
+
+.. code-block:: python
+
+    connection = oracledb.connect(
+        dsn="tcps://xxx.oraclecloud.com/xxx.adb.oraclecloud.com"
+            "?ssl_server_dn_match=yes&token_auth=OCI_TOKEN",
+        externalauth=True,
+    )
+
+Also, you can specify these parameters in a
+:ref:`Connect Descriptor <conndescriptor>` and pass it directly in the ``dsn``
+parameter. For example:
+
+.. code-block:: python
+
+    connection = oracledb.connect(
+        dsn="""(DESCRIPTION=
+            (ADDRESS=(PROTOCOL=TCPS)(HOST=xxx.oraclecloud.com)(PORT=1522))
+            (CONNECT_DATA=(SERVICE_NAME=xxx.adb.oraclecloud.com))
+            (SECURITY=(SSL_SERVER_DN_MATCH=ON)(TOKEN_AUTH=OCI_TOKEN))
+        )""",
+        externalauth=True,
+    )
+
+Alternatively, you can also define the connect descriptor in a
+:ref:`tnsnames.ora <optnetfiles>` file and then pass the
+:ref:`TNS alias <netservice>` in the ``dsn`` parameter. For example:
+
+.. code-block:: python
 
     db_alias =
         (DESCRIPTION =
@@ -696,14 +732,15 @@ when using a :ref:`tnsnames.ora <optnetfiles>` file::
             )
         )
 
-The default location for the token and private key is the same default location
-that the OCI-CLI tool writes to. For example ``~/.oci/db-token/`` on Linux.
+For *OCI_TOKEN* authentication, the default location for the token and private
+key is the same default location that the OCI-CLI tool writes to. For example
+``~/.oci/db-token/`` on Linux.
 
-If the token and private key files are not in the default location then their
+If the token and private key files are not in the default location, then their
 directory must be specified with the ``TOKEN_LOCATION`` parameter in a
-:ref:`sqlnet.ora <optnetfiles>` file or in a :ref:`Connect Descriptor
-<conndescriptor>`, for example when using a :ref:`tnsnames.ora <optnetfiles>`
-file::
+in an :ref:`Easy Connect string <easyconnect>`, or a
+:ref:`Connect Descriptor <conndescriptor>`. For example when using a
+:ref:`tnsnames.ora <optnetfiles>` file::
 
     db_alias =
         (DESCRIPTION =
@@ -716,9 +753,6 @@ file::
                 (TOKEN_LOCATION="/path/to/token/folder")
             )
         )
-
-The ``TOKEN_AUTH`` and ``TOKEN_LOCATION`` values in a connection string take
-precedence over the ``sqlnet.ora`` settings.
 
 Standalone connection example:
 
@@ -734,6 +768,68 @@ Connection pool example:
                                 homogeneous=False, min=1, max=2, increment=1)
 
     connection = pool.acquire()
+
+In python-oracledb Thick mode, you can additionally set ``TOKEN_AUTH`` to
+*OCI_TOKEN* in a ``sqlnet.ora`` file.
+
+The ``TOKEN_AUTH`` and ``TOKEN_LOCATION`` values in a connection string take
+precedence over the ``sqlnet.ora`` settings.
+
+.. _iamauththinflows:
+
+**OCI IAM TOKEN_AUTH values in python-oracledb Thin Mode**
+
+The following table lists the OCI IAM authentication flows supported by
+``TOKEN_AUTH`` in python-oracledb Thin mode.
+
+.. list-table-with-summary:: OCI IAM ``TOKEN_AUTH`` values supported in Thin mode
+    :header-rows: 1
+    :class: wy-table-responsive
+    :align: center
+    :width: 100%
+    :name:  _oci_token_auth_values
+    :summary: The first column displays the TOKEN_AUTH value. The second column displays the authentication flow. The third column displays the optional parameters.
+
+    * - TOKEN_AUTH Value
+      - Authentication flow
+      - Optional parameters
+    * - OCI_API_KEY
+      - ConfigFileBasedAuthentication
+      - ``OCI_CONFIG_FILE``,
+        ``OCI_PROFILE``,
+        ``OCI_COMPARTMENT``,
+        ``OCI_DATABASE``
+    * - OCI_INSTANCE_PRINCIPAL
+      - InstancePrincipal
+      - ``OCI_COMPARTMENT``,
+        ``OCI_DATABASE``
+    * - OCI_RESOURCE_PRINCIPAL
+      - ResourcePrincipal
+      - ``OCI_COMPARTMENT``,
+        ``OCI_DATABASE``
+    * - OCI_TOKEN
+      - File-based OCI database token
+      - ``TOKEN_LOCATION``
+
+The OCI SDK configuration or environment required by an authentication flow
+must also be available to the application. If ``OCI_DATABASE`` is specified,
+``OCI_COMPARTMENT`` must also be specified.
+
+For example, an OCI API key configuration can be specified in a Connect
+Descriptor::
+
+    (DESCRIPTION=
+        (ADDRESS=(PROTOCOL=TCPS)(HOST=dbhost.example.com)(PORT=1522))
+        (SECURITY=
+            (SSL_SERVER_DN_MATCH=TRUE)
+            (TOKEN_AUTH=OCI_API_KEY)
+            (OCI_CONFIG_FILE=/home/app/.oci/config)
+            (OCI_PROFILE=DEFAULT))
+        (CONNECT_DATA=(SERVICE_NAME=myservice.example.com)))
+
+The equivalent Easy Connect Plus string is::
+
+    tcps://dbhost.example.com:1522/myservice.example.com?TOKEN_AUTH=OCI_API_KEY&OCI_CONFIG_FILE=/home/app/.oci/config&OCI_PROFILE=DEFAULT&SSL_SERVER_DN_MATCH=TRUE
 
 .. _cloudnativeauthoci:
 
@@ -1205,11 +1301,6 @@ python-oracledb. However, it is recommended to use connection parameters
 introduced in python-oracledb 1.1 instead. See
 :ref:`OAuth 2.0 Token-Based Authentication<oauth2>`.
 
-.. note::
-
-    OAuth 2.0 Token-Based Authentication Connection Strings is only supported
-    in python-oracledb Thick mode. See :ref:`enablingthick`.
-
 There are different ways to retrieve Entra ID OAuth2 tokens. Some of the ways to
 retrieve OAuth2 tokens are detailed in `Examples of Retrieving Entra ID OAuth2
 Tokens <https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=
@@ -1240,22 +1331,39 @@ token is written and stored in a file. You can save the value of
 of token file. See :ref:`TokenHandlerOAuth class <oauthhandler>` for an example
 of generating tokens.
 
-The Oracle Net parameters ``TOKEN_AUTH`` and ``TOKEN_LOCATION`` must be set when
-you are using the connection string syntax. Also, the ``PROTOCOL``
-parameter must be ``tcps`` and ``SSL_SERVER_DN_MATCH`` should be ``ON``.
+The Oracle Net parameter ``TOKEN_AUTH`` must be set when you are using the
+connection string syntax. Also, the ``PROTOCOL`` parameter must be ``tcps`` and ``SSL_SERVER_DN_MATCH`` should be ``ON``.
 
-You can set ``TOKEN_AUTH=OAUTH``. There is no default location set in this
-case, so you must set ``TOKEN_LOCATION`` to either of the following:
+In Thin mode, python-oracledb processes the Oracle Net ``TOKEN_AUTH`` settings
+and configures the selected OAuth 2.0 authentication flow. The supported values
+are *AZURE_SERVICE_PRINCIPAL*, *AZURE_MANAGED_IDENTITY*, and *OAUTH*. Azure
+Service Principal and Azure Managed Identity authentication flows use the
+:ref:`azure_tokens <azurecloudnativeauthplugin>` plugin. *OAUTH* authentication
+uses a token file specified by ``TOKEN_LOCATION``. For details on these flows
+and their parameters, see
+:ref:`Thin Mode OAuth 2.0 Authentication Flows <oauthtokenauththinflows>`.
 
-*  A directory, in which case, you must create a file named ``token`` which
-   contains the token value
-*  A fully qualified file name, in which case, you must specify the entire path
-   of the file which contains the token value
+In python-oracledb Thick mode, Oracle Client processes the authentication
+settings.
 
-You can either set ``TOKEN_AUTH`` and ``TOKEN_LOCATION`` in a :ref:`sqlnet.ora
-<optnetfiles>` file or alternatively, you can specify it inside a :ref:`Connect
-Descriptor <conndescriptor>`, for example when using a :ref:`tnsnames.ora
-<optnetfiles>` file::
+You can specify the authentication parameters in an
+:ref:`Easy Connect string <easyconnect>`. For example, to use *OAUTH*
+authentication:
+
+.. code-block:: python
+
+    connection = oracledb.connect(
+        dsn="tcps://xxx.oraclecloud.com/xxx.adb.oraclecloud.com"
+            "?ssl_server_dn_match=yes&token_auth=OAUTH"
+            "&token_location=/home/user1/mytokens/oauthtoken",
+        externalauth=True,
+    )
+
+Also, you can specify these authentication parameters in a
+:ref:`Connect Descriptor <conndescriptor>` which can be passed directly in the
+``dsn`` parameter or stored in a ``tnsnames.ora`` file under a
+:ref:`TNS alias <netservice>` and then pass that name in the ``dsn`` parameter.
+For example, when using a :ref:`tnsnames.ora <optnetfiles>` file::
 
     db_alias =
         (DESCRIPTION =
@@ -1269,8 +1377,14 @@ Descriptor <conndescriptor>`, for example when using a :ref:`tnsnames.ora
             )
         )
 
-The ``TOKEN_AUTH`` and ``TOKEN_LOCATION`` values in a connection string take
-precedence over the ``sqlnet.ora`` settings.
+For *OAUTH* authentication, ``TOKEN_LOCATION`` must also be set. There is no
+default location set in this case, so you must set ``TOKEN_LOCATION`` to either
+one of the following:
+
+*  A directory, in which case, you must create a file named ``token`` which
+   contains the token value
+*  A fully qualified file name, in which case, you must specify the entire path
+   of the file which contains the token value
 
 Standalone connection example:
 
@@ -1286,6 +1400,47 @@ Connection pool example:
                                 homogeneous=False, min=1, max=2, increment=1)
 
     connection = pool.acquire()
+
+In python-oracledb Thick mode, you can additionally set ``TOKEN_AUTH`` in a
+:ref:`sqlnet.ora <optnetfiles>` file.
+
+The ``TOKEN_AUTH`` and ``TOKEN_LOCATION`` values in a connection string take
+precedence over the ``sqlnet.ora`` settings.
+
+.. _oauthtokenauththinflows:
+
+**OAuth 2.0 TOKEN_AUTH values in python-oracledb Thin Mode**
+
+The following table lists the OAuth 2.0 authentication flows supported by
+``TOKEN_AUTH`` in python-oracledb Thin mode.
+
+.. list-table-with-summary:: OAuth 2.0 ``TOKEN_AUTH`` values supported in Thin mode
+    :header-rows: 1
+    :class: wy-table-responsive
+    :align: center
+    :width: 100%
+    :name:  _azure_token_auth_values
+    :summary: The first column displays the TOKEN_AUTH value. The second column displays the authentication flow. The third column displays the required parameters. The fourth column displays the optional parameters.
+
+    * - ``TOKEN_AUTH``
+      - Authentication flow
+      - Required parameters
+      - Optional parameters
+    * - AZURE_SERVICE_PRINCIPAL
+      - AzureServicePrincipal
+      - ``AZURE_DB_APP_ID_URI``,
+        ``TENANT_ID``,
+        ``CLIENT_ID``,
+        ``CLIENT_SECRET``
+      - None
+    * - AZURE_MANAGED_IDENTITY
+      - AzureManagedIdentity
+      - ``AZURE_DB_APP_ID_URI``
+      - ``CLIENT_ID``
+    * - OAUTH
+      - File-based OAuth database token
+      - ``TOKEN_LOCATION``
+      - None
 
 .. _cloudnativeauthoauth:
 

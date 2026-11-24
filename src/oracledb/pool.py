@@ -673,6 +673,16 @@ def create_pool(
     ssl_server_dn_match: bool | None = None,
     ssl_server_cert_dn: str | None = None,
     wallet_location: str | None = None,
+    token_auth: str | None = None,
+    token_location: str | None = None,
+    oci_config_file: str | None = None,
+    oci_profile: str | None = None,
+    oci_compartment: str | None = None,
+    oci_database: str | None = None,
+    azure_db_app_id_uri: str | None = None,
+    tenant_id: str | None = None,
+    client_id: str | None = None,
+    client_secret: str | None = None,
     events: bool | None = None,
     externalauth: bool | None = None,
     mode: oracledb.AuthMode | None = None,
@@ -919,6 +929,57 @@ def create_pool(
       contain the file cwallet.sso. If the value specified is the keyword
       ``SYSTEM``, it is handled the same way as an empty string or as not
       specifying ``wallet_location``, and the system trust store is used
+      (default: None)
+
+    - ``token_auth``: the token authentication method. Supported values are
+      "OCI_API_KEY", "OCI_INSTANCE_PRINCIPAL", "OCI_RESOURCE_PRINCIPAL",
+      "OCI_TOKEN", "OCI_DELEGATION_TOKEN", "OAUTH", "AZURE_SERVICE_PRINCIPAL",
+      and "AZURE_MANAGED_IDENTITY". Token authentication requires TCPS and
+      SSL_SERVER_DN_MATCH=TRUE
+      (default: None)
+
+    - ``token_location``: the directory or file used to read a token with
+      TOKEN_AUTH set to "OCI_TOKEN" or "OAUTH". It is optional for "OCI_TOKEN",
+      which defaults to ~/.oci/db-token, and required for "OAUTH"
+      (default: None)
+
+    - ``oci_config_file``: the location of the OCI configuration file used with
+      TOKEN_AUTH set to "OCI_API_KEY". If omitted, the default OCI
+      configuration file is used
+      (default: None)
+
+    - ``oci_profile``: the profile in the OCI configuration file used with
+      TOKEN_AUTH set to "OCI_API_KEY". If omitted, the DEFAULT profile is used
+      (default: None)
+
+    - ``oci_compartment``: the compartment OCID used to scope token
+      authentication with TOKEN_AUTH set to "OCI_API_KEY",
+      "OCI_INSTANCE_PRINCIPAL", "OCI_RESOURCE_PRINCIPAL", or
+      "OCI_DELEGATION_TOKEN"
+      (default: None)
+
+    - ``oci_database``: the database OCID used to further scope token
+      authentication with TOKEN_AUTH set to "OCI_API_KEY",
+      "OCI_INSTANCE_PRINCIPAL", "OCI_RESOURCE_PRINCIPAL", or
+      "OCI_DELEGATION_TOKEN". OCI_COMPARTMENT is also required
+      (default: None)
+
+    - ``azure_db_app_id_uri``: the Azure database application ID URI used as
+      the token scope with TOKEN_AUTH set to "AZURE_SERVICE_PRINCIPAL" or
+      "AZURE_MANAGED_IDENTITY"
+      (default: None)
+
+    - ``tenant_id``: the Azure tenant ID used with TOKEN_AUTH set to
+      "AZURE_SERVICE_PRINCIPAL" to form the authority
+      (default: None)
+
+    - ``client_id``: the Azure client ID used with TOKEN_AUTH set to
+      "AZURE_SERVICE_PRINCIPAL". It can also select a user-assigned identity
+      with TOKEN_AUTH set to "AZURE_MANAGED_IDENTITY"
+      (default: None)
+
+    - ``client_secret``: the client secret credential required with TOKEN_AUTH
+      set to "AZURE_SERVICE_PRINCIPAL"
       (default: None)
 
     - ``events``: a boolean specifying whether events mode should be enabled.
@@ -1304,6 +1365,16 @@ def create_pool_async(
     ssl_server_dn_match: bool | None = None,
     ssl_server_cert_dn: str | None = None,
     wallet_location: str | None = None,
+    token_auth: str | None = None,
+    token_location: str | None = None,
+    oci_config_file: str | None = None,
+    oci_profile: str | None = None,
+    oci_compartment: str | None = None,
+    oci_database: str | None = None,
+    azure_db_app_id_uri: str | None = None,
+    tenant_id: str | None = None,
+    client_id: str | None = None,
+    client_secret: str | None = None,
     events: bool | None = None,
     externalauth: bool | None = None,
     mode: oracledb.AuthMode | None = None,
@@ -1550,6 +1621,57 @@ def create_pool_async(
       contain the file cwallet.sso. If the value specified is the keyword
       ``SYSTEM``, it is handled the same way as an empty string or as not
       specifying ``wallet_location``, and the system trust store is used
+      (default: None)
+
+    - ``token_auth``: the token authentication method. Supported values are
+      "OCI_API_KEY", "OCI_INSTANCE_PRINCIPAL", "OCI_RESOURCE_PRINCIPAL",
+      "OCI_TOKEN", "OCI_DELEGATION_TOKEN", "OAUTH", "AZURE_SERVICE_PRINCIPAL",
+      and "AZURE_MANAGED_IDENTITY". Token authentication requires TCPS and
+      SSL_SERVER_DN_MATCH=TRUE
+      (default: None)
+
+    - ``token_location``: the directory or file used to read a token with
+      TOKEN_AUTH set to "OCI_TOKEN" or "OAUTH". It is optional for "OCI_TOKEN",
+      which defaults to ~/.oci/db-token, and required for "OAUTH"
+      (default: None)
+
+    - ``oci_config_file``: the location of the OCI configuration file used with
+      TOKEN_AUTH set to "OCI_API_KEY". If omitted, the default OCI
+      configuration file is used
+      (default: None)
+
+    - ``oci_profile``: the profile in the OCI configuration file used with
+      TOKEN_AUTH set to "OCI_API_KEY". If omitted, the DEFAULT profile is used
+      (default: None)
+
+    - ``oci_compartment``: the compartment OCID used to scope token
+      authentication with TOKEN_AUTH set to "OCI_API_KEY",
+      "OCI_INSTANCE_PRINCIPAL", "OCI_RESOURCE_PRINCIPAL", or
+      "OCI_DELEGATION_TOKEN"
+      (default: None)
+
+    - ``oci_database``: the database OCID used to further scope token
+      authentication with TOKEN_AUTH set to "OCI_API_KEY",
+      "OCI_INSTANCE_PRINCIPAL", "OCI_RESOURCE_PRINCIPAL", or
+      "OCI_DELEGATION_TOKEN". OCI_COMPARTMENT is also required
+      (default: None)
+
+    - ``azure_db_app_id_uri``: the Azure database application ID URI used as
+      the token scope with TOKEN_AUTH set to "AZURE_SERVICE_PRINCIPAL" or
+      "AZURE_MANAGED_IDENTITY"
+      (default: None)
+
+    - ``tenant_id``: the Azure tenant ID used with TOKEN_AUTH set to
+      "AZURE_SERVICE_PRINCIPAL" to form the authority
+      (default: None)
+
+    - ``client_id``: the Azure client ID used with TOKEN_AUTH set to
+      "AZURE_SERVICE_PRINCIPAL". It can also select a user-assigned identity
+      with TOKEN_AUTH set to "AZURE_MANAGED_IDENTITY"
+      (default: None)
+
+    - ``client_secret``: the client secret credential required with TOKEN_AUTH
+      set to "AZURE_SERVICE_PRINCIPAL"
       (default: None)
 
     - ``events``: a boolean specifying whether events mode should be enabled.

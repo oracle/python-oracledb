@@ -25,7 +25,7 @@
 # -----------------------------------------------------------------------------
 # oci_tokens.py
 #
-# Methods that generates an OCI access token using the OCI SDK
+# OCI token authentication methods and token-file handling
 # -----------------------------------------------------------------------------
 
 import base64
@@ -49,6 +49,7 @@ class AuthType(str, enum.Enum):
     SecurityToken = "SecurityToken".lower()
     SecurityTokenSimple = "SecurityTokenSimple".lower()
     SimpleAuthentication = "SimpleAuthentication".lower()
+    TokenFile = "TokenFile".lower()
 
 
 def _config_file_based_authentication(token_auth_config):
@@ -85,6 +86,23 @@ def _delegation_token_authentication(token_auth_config):
     )
     client = oci.identity_data_plane.DataplaneClient(config={}, signer=signer)
     return _generate_access_token(client, token_auth_config)
+
+
+def _file_based_authentication(token_auth_config):
+    """
+    Returns the token and private key stored in the specified file.
+    """
+    token_location = token_auth_config.get("token_location", "~/.oci/db-token")
+    token_dir = pathlib.Path(token_location).expanduser()
+    token_file = token_dir / "token"
+    private_key_file = token_dir / "oci_db_key.pem"
+    token = token_file.read_text().strip()
+    if not token:
+        raise ValueError("File {token_file} is empty")
+    private_key = private_key_file.read_text().strip()
+    if not private_key:
+        raise ValueError("File {private_key_file} is empty")
+    return token, private_key
 
 
 def _generate_access_token(client, token_auth_config):
@@ -244,10 +262,12 @@ def _simple_authentication(token_auth_config):
 
 def generate_token(token_auth_config, refresh=False):
     """
-    Generates an OCI access token based on provided credentials.
+    Generates or reads an access token based on the provided configuration.
     """
     auth_type = token_auth_config["auth_type"].lower()
-    if auth_type == AuthType.ConfigFileAuthentication:
+    if auth_type == AuthType.TokenFile:
+        return _file_based_authentication(token_auth_config)
+    elif auth_type == AuthType.ConfigFileAuthentication:
         return _config_file_based_authentication(token_auth_config)
     elif auth_type == AuthType.DelegationToken:
         return _delegation_token_authentication(token_auth_config)

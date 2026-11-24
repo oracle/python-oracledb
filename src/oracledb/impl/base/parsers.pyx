@@ -37,7 +37,7 @@ ALTERNATIVE_PARAM_NAMES = {
     "pool_purity": "purity",
     "server": "server_type",
     "transport_connect_timeout": "tcp_connect_timeout",
-    "my_wallet_directory": "wallet_location"
+    "my_wallet_directory": "wallet_location",
 }
 
 # a set of parameter names used as containers for storing additional parameters
@@ -94,23 +94,40 @@ CONNECT_DATA_PARAM_NAMES = set([
 # SECURITY parameter names that are supported by the driver; all other
 # key/value pairs are passed unchanged to the database
 SECURITY_PARAM_NAMES = set([
+    "azure_db_app_id_uri",
+    "client_id",
+    "client_secret",
+    "oci_compartment",
+    "oci_config_file",
+    "oci_database",
+    "oci_profile",
     "ssl_server_cert_dn",
     "ssl_server_dn_match",
     "ssl_version",
+    "tenant_id",
+    "token_auth",
+    "token_location",
     "wallet_location",
 ])
 
 # a set of parameter names supported by the driver in EasyConnect strings that
 # are common to all drivers
 COMMON_PARAM_NAMES = set([
+    "azure_db_app_id_uri",
+    "client_id",
+    "client_secret",
     "expire_time",
     "failover",
     "https_proxy",
     "https_proxy_port",
     "load_balance",
+    "oci_compartment",
+    "oci_config_file",
+    "oci_database",
+    "oci_profile",
     "pool_boundary",
-    "pool_name",
     "pool_connection_class",
+    "pool_name",
     "pool_purity",
     "retry_count",
     "retry_delay",
@@ -118,6 +135,9 @@ COMMON_PARAM_NAMES = set([
     "source_route",
     "ssl_server_cert_dn",
     "ssl_server_dn_match",
+    "tenant_id",
+    "token_auth",
+    "token_location",
     "transport_connect_timeout",
     "use_sni",
     "wallet_location",

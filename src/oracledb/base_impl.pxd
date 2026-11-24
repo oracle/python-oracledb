@@ -557,6 +557,7 @@ cdef class ConnectParamsNode:
     cdef int _copy(self, ConnectParamsNode source) except -1
     cdef list _get_initial_connect_string_parts(self)
     cdef int _set_active_children(self, list children) except -1
+    cdef bint _uses_tcps(self)
 
 
 cdef class Address(ConnectParamsNode):
@@ -569,6 +570,7 @@ cdef class Address(ConnectParamsNode):
         str ip_address
         int ip_family
 
+    cdef bint _uses_tcps(self)
     cdef str build_connect_string(self)
     cdef int set_protocol(self, str value) except -1
     cdef list resolve_host_name(self)
@@ -576,7 +578,6 @@ cdef class Address(ConnectParamsNode):
 
 cdef class AddressList(ConnectParamsNode):
 
-    cdef bint _uses_tcps(self)
     cdef str build_connect_string(self)
 
 
@@ -602,6 +603,16 @@ cdef class Description(ConnectParamsNode):
         public str ssl_server_cert_dn
         public object ssl_version
         public str wallet_location
+        public str token_auth
+        public str token_location
+        public str oci_config_file
+        public str oci_profile
+        public str oci_compartment
+        public str oci_database
+        public str azure_db_app_id_uri
+        public str tenant_id
+        public str client_id
+        public str client_secret
         dict extra_connect_data_args
         dict extra_security_args
         dict extra_args

@@ -30,6 +30,7 @@
 
 import datetime
 import enum
+import pathlib
 
 import msal
 import oracledb
@@ -37,6 +38,7 @@ import requests
 
 
 class AuthType(str, enum.Enum):
+    AzureFile = "AzureFile".lower()
     AzureManagedIdentity = "AzureManagedIdentity".lower()
     AzureServicePrincipal = "AzureServicePrincipal".lower()
 
@@ -47,6 +49,27 @@ def _build_msal_app(params):
         client_credential=params["client_credential"],
         authority=params["authority"],
     )
+
+
+def _file_based_credentials(token_auth_config):
+    """
+    Returns an access token found within a file.
+    """
+    _validate_config(token_auth_config, "token_location")
+    token_path = pathlib.Path(token_auth_config["token_location"]).expanduser()
+    if token_path.is_dir():
+        token_path /= "token"
+    token = token_path.read_text().strip()
+    if not token:
+        raise ValueError(f"File {token_path} is empty")
+    return token
+
+
+def _get_azure_scope(app_id_uri: str) -> str:
+    scope = app_id_uri.rstrip("/")
+    if not scope.endswith("/.default"):
+        scope += "/.default"
+    return scope
 
 
 def _get_token(key, result):
@@ -69,6 +92,7 @@ def _managed_identity_credentials(token_auth_config):
     """
     Returns the access token for authentication with a managed identity.
     """
+    _validate_config(token_auth_config, "scopes")
     client_id = token_auth_config.get("client_id")
     if client_id is None:
         managed_identity = msal.SystemAssignedManagedIdentity()
@@ -80,27 +104,41 @@ def _managed_identity_credentials(token_auth_config):
         managed_identity, http_client=requests.Session()
     )
 
-    # ManagedIdentityClient expects a resource URI, while the existing plugin
-    # configuration uses the OAuth scope convention of appending "/.default".
-    resource = token_auth_config["scopes"].removesuffix("/.default")
-    auth_response = app.acquire_token_for_client(resource=resource)
-    if "access_token" not in auth_response:
-        raise Exception(f"Token acquisition failed: {auth_response}")
-    return auth_response["access_token"]
+    # ManagedIdentityClient expects a resource URI instead of an OAuth scope.
+    resource = _get_azure_scope(token_auth_config["scopes"]).removesuffix(
+        "/.default"
+    )
+    return app.acquire_token_for_client(resource=resource)
 
 
 def _service_principal_credentials(token_auth_config):
     """
     Returns the access token for authentication as a service principal.
     """
-    # Initialize the Confidential Client Application
-    cca = _build_msal_app(token_auth_config)
-    auth_response = cca.acquire_token_for_client(
-        scopes=[token_auth_config["scopes"]]
+    _validate_config(
+        token_auth_config,
+        "authority",
+        "client_id",
+        "client_credential",
+        "scopes",
     )
+    cca = _build_msal_app(token_auth_config)
+    scopes = token_auth_config["scopes"]
+    return cca.acquire_token_for_client(scopes=[scopes])
 
-    if "access_token" in auth_response:
-        return auth_response["access_token"]
+
+def _validate_config(config, *required_names):
+    """
+    Validates the configuration by checking to see if the configuration
+    contains the required parameters.
+    """
+    missing = [name for name in required_names if config.get(name) is None]
+    if missing:
+        auth_type = config["auth_type"]
+        raise ValueError(
+            f"missing required {auth_type} configuration parameters: "
+            f"{', '.join(missing)}"
+        )
 
 
 def generate_token(token_auth_config, refresh=False):
@@ -109,9 +147,15 @@ def generate_token(token_auth_config, refresh=False):
     """
     auth_type = token_auth_config["auth_type"].lower()
     if auth_type == AuthType.AzureServicePrincipal:
-        return _service_principal_credentials(token_auth_config)
+        response = _service_principal_credentials(token_auth_config)
     elif auth_type == AuthType.AzureManagedIdentity:
-        return _managed_identity_credentials(token_auth_config)
+        response = _managed_identity_credentials(token_auth_config)
+    elif auth_type == AuthType.AzureFile:
+        return _file_based_credentials(token_auth_config)
+    token = response.get("access_token")
+    if token is None:
+        raise Exception(f"Token acquisition failed: {response}")
+    return token
 
 
 def get_database_access_token(deepsec_params, user_token):

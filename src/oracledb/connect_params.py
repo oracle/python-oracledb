@@ -80,6 +80,16 @@ class ConnectParams(metaclass=BaseMetaClass):
         ssl_server_dn_match: bool | None = None,
         ssl_server_cert_dn: str | None = None,
         wallet_location: str | None = None,
+        token_auth: str | None = None,
+        token_location: str | None = None,
+        oci_config_file: str | None = None,
+        oci_profile: str | None = None,
+        oci_compartment: str | None = None,
+        oci_database: str | None = None,
+        azure_db_app_id_uri: str | None = None,
+        tenant_id: str | None = None,
+        client_id: str | None = None,
+        client_secret: str | None = None,
         events: bool | None = None,
         externalauth: bool | None = None,
         mode: oracledb.AuthMode | None = None,
@@ -234,6 +244,59 @@ class ConnectParams(metaclass=BaseMetaClass):
           keyword ``SYSTEM``, it is handled the same way as an empty string or
           as not specifying ``wallet_location``, and the system trust store is
           used
+          (default: None)
+
+        - ``token_auth``: the token authentication method. Supported values are
+          "OCI_API_KEY", "OCI_INSTANCE_PRINCIPAL", "OCI_RESOURCE_PRINCIPAL",
+          "OCI_TOKEN", "OCI_DELEGATION_TOKEN", "OAUTH",
+          "AZURE_SERVICE_PRINCIPAL", and "AZURE_MANAGED_IDENTITY". Token
+          authentication requires TCPS and SSL_SERVER_DN_MATCH=TRUE
+          (default: None)
+
+        - ``token_location``: the directory or file used to read a token with
+          TOKEN_AUTH set to "OCI_TOKEN" or "OAUTH". It is optional for
+          "OCI_TOKEN", which defaults to ~/.oci/db-token, and required for
+          "OAUTH"
+          (default: None)
+
+        - ``oci_config_file``: the location of the OCI configuration file used
+          with TOKEN_AUTH set to "OCI_API_KEY". If omitted, the default OCI
+          configuration file is used
+          (default: None)
+
+        - ``oci_profile``: the profile in the OCI configuration file used with
+          TOKEN_AUTH set to "OCI_API_KEY". If omitted, the DEFAULT profile is
+          used
+          (default: None)
+
+        - ``oci_compartment``: the compartment OCID used to scope token
+          authentication with TOKEN_AUTH set to "OCI_API_KEY",
+          "OCI_INSTANCE_PRINCIPAL", "OCI_RESOURCE_PRINCIPAL", or
+          "OCI_DELEGATION_TOKEN"
+          (default: None)
+
+        - ``oci_database``: the database OCID used to further scope token
+          authentication with TOKEN_AUTH set to "OCI_API_KEY",
+          "OCI_INSTANCE_PRINCIPAL", "OCI_RESOURCE_PRINCIPAL", or
+          "OCI_DELEGATION_TOKEN". OCI_COMPARTMENT is also required
+          (default: None)
+
+        - ``azure_db_app_id_uri``: the Azure database application ID URI used
+          as the token scope with TOKEN_AUTH set to "AZURE_SERVICE_PRINCIPAL"
+          or "AZURE_MANAGED_IDENTITY"
+          (default: None)
+
+        - ``tenant_id``: the Azure tenant ID used with TOKEN_AUTH set to
+          "AZURE_SERVICE_PRINCIPAL" to form the authority
+          (default: None)
+
+        - ``client_id``: the Azure client ID used with TOKEN_AUTH set to
+          "AZURE_SERVICE_PRINCIPAL". It can also select a user-assigned
+          identity with TOKEN_AUTH set to "AZURE_MANAGED_IDENTITY"
+          (default: None)
+
+        - ``client_secret``: the client secret credential required with
+          TOKEN_AUTH set to "AZURE_SERVICE_PRINCIPAL"
           (default: None)
 
         - ``events``: a boolean specifying whether events mode should be
@@ -458,6 +521,16 @@ class ConnectParams(metaclass=BaseMetaClass):
             f"ssl_server_dn_match={self.ssl_server_dn_match!r}, "
             f"ssl_server_cert_dn={self.ssl_server_cert_dn!r}, "
             f"wallet_location={self.wallet_location!r}, "
+            f"token_auth={self.token_auth!r}, "
+            f"token_location={self.token_location!r}, "
+            f"oci_config_file={self.oci_config_file!r}, "
+            f"oci_profile={self.oci_profile!r}, "
+            f"oci_compartment={self.oci_compartment!r}, "
+            f"oci_database={self.oci_database!r}, "
+            f"azure_db_app_id_uri={self.azure_db_app_id_uri!r}, "
+            f"tenant_id={self.tenant_id!r}, "
+            f"client_id={self.client_id!r}, "
+            f"client_secret={self.client_secret!r}, "
             f"events={self.events!r}, "
             f"externalauth={self.externalauth!r}, "
             f"mode={self.mode!r}, "
@@ -518,12 +591,43 @@ class ConnectParams(metaclass=BaseMetaClass):
 
     @property
     @_flatten_value
+    def azure_db_app_id_uri(self) -> list | str:
+        """
+        The Azure database application ID URI used as the token scope with
+        TOKEN_AUTH set to "AZURE_SERVICE_PRINCIPAL" or
+        "AZURE_MANAGED_IDENTITY".
+        """
+        return [
+            d.azure_db_app_id_uri for d in self._impl.description_list.children
+        ]
+
+    @property
+    @_flatten_value
     def cclass(self) -> list | str:
         """
         The connection class to use for Database Resident Connection Pooling
         (DRCP).
         """
         return [d.cclass for d in self._impl.description_list.children]
+
+    @property
+    @_flatten_value
+    def client_id(self) -> list | str:
+        """
+        The Azure client ID used with TOKEN_AUTH set to
+        "AZURE_SERVICE_PRINCIPAL". It can also select a user-assigned identity
+        with TOKEN_AUTH set to "AZURE_MANAGED_IDENTITY".
+        """
+        return [d.client_id for d in self._impl.description_list.children]
+
+    @property
+    @_flatten_value
+    def client_secret(self) -> list | str:
+        """
+        The client secret credential required with TOKEN_AUTH set to
+        "AZURE_SERVICE_PRINCIPAL".
+        """
+        return [d.client_secret for d in self._impl.description_list.children]
 
     @property
     def config_dir(self) -> str:
@@ -681,6 +785,49 @@ class ConnectParams(metaclass=BaseMetaClass):
         or :data:`oracledb.AUTH_MODE_SYSRAC`.
         """
         return oracledb.AuthMode(self._impl.mode)
+
+    @property
+    @_flatten_value
+    def oci_compartment(self) -> list | str:
+        """
+        The compartment OCID used to scope token authentication with TOKEN_AUTH
+        set to "OCI_API_KEY", "OCI_INSTANCE_PRINCIPAL",
+        "OCI_RESOURCE_PRINCIPAL", or "OCI_DELEGATION_TOKEN".
+        """
+        return [
+            d.oci_compartment for d in self._impl.description_list.children
+        ]
+
+    @property
+    @_flatten_value
+    def oci_config_file(self) -> list | str:
+        """
+        The location of the OCI configuration file used with TOKEN_AUTH set to
+        "OCI_API_KEY". If omitted, the default OCI configuration file is used.
+        """
+        return [
+            d.oci_config_file for d in self._impl.description_list.children
+        ]
+
+    @property
+    @_flatten_value
+    def oci_database(self) -> list | str:
+        """
+        The database OCID used to further scope token authentication with
+        TOKEN_AUTH set to "OCI_API_KEY", "OCI_INSTANCE_PRINCIPAL",
+        "OCI_RESOURCE_PRINCIPAL", or "OCI_DELEGATION_TOKEN". OCI_COMPARTMENT is
+        also required.
+        """
+        return [d.oci_database for d in self._impl.description_list.children]
+
+    @property
+    @_flatten_value
+    def oci_profile(self) -> list | str:
+        """
+        The profile in the OCI configuration file used with TOKEN_AUTH set to
+        "OCI_API_KEY". If omitted, the DEFAULT profile is used.
+        """
+        return [d.oci_profile for d in self._impl.description_list.children]
 
     @property
     def on_connect_callback(self) -> Callable:
@@ -933,6 +1080,15 @@ class ConnectParams(metaclass=BaseMetaClass):
         ]
 
     @property
+    @_flatten_value
+    def tenant_id(self) -> list | str:
+        """
+        The Azure tenant ID used with TOKEN_AUTH set to
+        "AZURE_SERVICE_PRINCIPAL" to form the authority.
+        """
+        return [d.tenant_id for d in self._impl.description_list.children]
+
+    @property
     def terminal(self) -> str:
         """
         A string recorded by Oracle Database as the terminal identifier from
@@ -950,6 +1106,28 @@ class ConnectParams(metaclass=BaseMetaClass):
         any optional tnsnames.ora configuration file.
         """
         return self._impl.thick_mode_dsn_passthrough
+
+    @property
+    @_flatten_value
+    def token_auth(self) -> list | str:
+        """
+        The token authentication method. Supported values are "OCI_API_KEY",
+        "OCI_INSTANCE_PRINCIPAL", "OCI_RESOURCE_PRINCIPAL", "OCI_TOKEN",
+        "OCI_DELEGATION_TOKEN", "OAUTH", "AZURE_SERVICE_PRINCIPAL", and
+        "AZURE_MANAGED_IDENTITY". Token authentication requires TCPS and
+        SSL_SERVER_DN_MATCH=TRUE.
+        """
+        return [d.token_auth for d in self._impl.description_list.children]
+
+    @property
+    @_flatten_value
+    def token_location(self) -> list | str:
+        """
+        The directory or file used to read a token with TOKEN_AUTH set to
+        "OCI_TOKEN" or "OAUTH". It is optional for "OCI_TOKEN", which defaults
+        to ~/.oci/db-token, and required for "OAUTH".
+        """
+        return [d.token_location for d in self._impl.description_list.children]
 
     @property
     def transaction_priority(self) -> oracledb.TransactionPriority:
@@ -1087,6 +1265,16 @@ class ConnectParams(metaclass=BaseMetaClass):
         ssl_server_dn_match: bool | None = None,
         ssl_server_cert_dn: str | None = None,
         wallet_location: str | None = None,
+        token_auth: str | None = None,
+        token_location: str | None = None,
+        oci_config_file: str | None = None,
+        oci_profile: str | None = None,
+        oci_compartment: str | None = None,
+        oci_database: str | None = None,
+        azure_db_app_id_uri: str | None = None,
+        tenant_id: str | None = None,
+        client_id: str | None = None,
+        client_secret: str | None = None,
         events: bool | None = None,
         externalauth: bool | None = None,
         mode: oracledb.AuthMode | None = None,
@@ -1219,6 +1407,49 @@ class ConnectParams(metaclass=BaseMetaClass):
           keyword ``SYSTEM``, it is handled the same way as an empty string or
           as not specifying ``wallet_location``, and the system trust store is
           used
+
+        - ``token_auth``: the token authentication method. Supported values are
+          "OCI_API_KEY", "OCI_INSTANCE_PRINCIPAL", "OCI_RESOURCE_PRINCIPAL",
+          "OCI_TOKEN", "OCI_DELEGATION_TOKEN", "OAUTH",
+          "AZURE_SERVICE_PRINCIPAL", and "AZURE_MANAGED_IDENTITY". Token
+          authentication requires TCPS and SSL_SERVER_DN_MATCH=TRUE
+
+        - ``token_location``: the directory or file used to read a token with
+          TOKEN_AUTH set to "OCI_TOKEN" or "OAUTH". It is optional for
+          "OCI_TOKEN", which defaults to ~/.oci/db-token, and required for
+          "OAUTH"
+
+        - ``oci_config_file``: the location of the OCI configuration file used
+          with TOKEN_AUTH set to "OCI_API_KEY". If omitted, the default OCI
+          configuration file is used
+
+        - ``oci_profile``: the profile in the OCI configuration file used with
+          TOKEN_AUTH set to "OCI_API_KEY". If omitted, the DEFAULT profile is
+          used
+
+        - ``oci_compartment``: the compartment OCID used to scope token
+          authentication with TOKEN_AUTH set to "OCI_API_KEY",
+          "OCI_INSTANCE_PRINCIPAL", "OCI_RESOURCE_PRINCIPAL", or
+          "OCI_DELEGATION_TOKEN"
+
+        - ``oci_database``: the database OCID used to further scope token
+          authentication with TOKEN_AUTH set to "OCI_API_KEY",
+          "OCI_INSTANCE_PRINCIPAL", "OCI_RESOURCE_PRINCIPAL", or
+          "OCI_DELEGATION_TOKEN". OCI_COMPARTMENT is also required
+
+        - ``azure_db_app_id_uri``: the Azure database application ID URI used
+          as the token scope with TOKEN_AUTH set to "AZURE_SERVICE_PRINCIPAL"
+          or "AZURE_MANAGED_IDENTITY"
+
+        - ``tenant_id``: the Azure tenant ID used with TOKEN_AUTH set to
+          "AZURE_SERVICE_PRINCIPAL" to form the authority
+
+        - ``client_id``: the Azure client ID used with TOKEN_AUTH set to
+          "AZURE_SERVICE_PRINCIPAL". It can also select a user-assigned
+          identity with TOKEN_AUTH set to "AZURE_MANAGED_IDENTITY"
+
+        - ``client_secret``: the client secret credential required with
+          TOKEN_AUTH set to "AZURE_SERVICE_PRINCIPAL"
 
         - ``events``: a boolean specifying whether events mode should be
           enabled. This value is only used in python-oracledb Thick mode and is

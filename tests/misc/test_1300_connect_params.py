@@ -673,6 +673,16 @@ def test_misc_1339():
         ("ssl_server_dn_match", False),
         ("ssl_server_cert_dn", "CN=unknown19a"),
         ("wallet_location", "/tmp/wallet_loc1a"),
+        ("token_auth", "OCI_TOKEN"),
+        ("token_location", "/tmp/token_location"),
+        ("oci_config_file", "/tmp/oci_config"),
+        ("oci_profile", "TEST_PROFILE"),
+        ("oci_compartment", "compartment_id"),
+        ("oci_database", "database_id"),
+        ("azure_db_app_id_uri", "https://database.example.com/app"),
+        ("tenant_id", "tenant_id"),
+        ("client_id", "client_id"),
+        ("client_secret", "client_secret"),
         ("events", True),
         ("externalauth", True),
         ("mode", oracledb.AUTH_MODE_SYSDBA),
@@ -734,6 +744,16 @@ def test_misc_1339():
         ("ssl_server_dn_match", True),
         ("ssl_server_cert_dn", "CN=unknown19_new"),
         ("wallet_location", "/tmp/wallet_loc1_new"),
+        ("token_auth", "AZURE_SERVICE_PRINCIPAL"),
+        ("token_location", "/tmp/token_location_new"),
+        ("oci_config_file", "/tmp/oci_config_new"),
+        ("oci_profile", "NEW_PROFILE"),
+        ("oci_compartment", "new_compartment_id"),
+        ("oci_database", "new_database_id"),
+        ("azure_db_app_id_uri", "https://database.example.com/new_app"),
+        ("tenant_id", "new_tenant_id"),
+        ("client_id", "new_client_id"),
+        ("client_secret", "new_client_secret"),
         ("events", False),
         ("externalauth", False),
         ("mode", oracledb.AUTH_MODE_SYSDGD),
@@ -1043,6 +1063,101 @@ def test_misc_1355(test_env, attr_name, value, value_is_ok):
     else:
         with test_env.assert_raises_full_code("DPY-3029"):
             oracledb.ConnectParams(**args)
+
+
+@pytest.mark.parametrize(
+    "connect_descriptor_fragment,easy_connect_string_fragment,parameters",
+    [
+        (
+            "(TOKEN_AUTH=OCI_API_KEY)(OCI_CONFIG_FILE=/tmp/oci-config)"
+            "(OCI_PROFILE=TEST)(OCI_COMPARTMENT=compartment-id)"
+            "(OCI_DATABASE=database-id)",
+            "token_auth=OCI_API_KEY&oci_config_file=/tmp/oci-config&"
+            "oci_profile=TEST&oci_compartment=compartment-id&"
+            "oci_database=database-id",
+            {
+                "token_auth": "OCI_API_KEY",
+                "oci_config_file": "/tmp/oci-config",
+                "oci_profile": "TEST",
+                "oci_compartment": "compartment-id",
+                "oci_database": "database-id",
+            },
+        ),
+        (
+            "(TOKEN_AUTH=OCI_INSTANCE_PRINCIPAL)"
+            "(OCI_COMPARTMENT=compartment-id)(OCI_DATABASE=database-id)",
+            "token_auth=OCI_INSTANCE_PRINCIPAL&oci_compartment=compartment-id&"
+            "oci_database=database-id",
+            {
+                "token_auth": "OCI_INSTANCE_PRINCIPAL",
+                "oci_compartment": "compartment-id",
+                "oci_database": "database-id",
+            },
+        ),
+        (
+            "(TOKEN_AUTH=OCI_RESOURCE_PRINCIPAL)(OCI_DATABASE=database-id)",
+            "token_auth=OCI_RESOURCE_PRINCIPAL&oci_database=database-id",
+            {
+                "token_auth": "OCI_RESOURCE_PRINCIPAL",
+                "oci_database": "database-id",
+            },
+        ),
+        (
+            "(TOKEN_AUTH=AZURE_SERVICE_PRINCIPAL)"
+            "(AZURE_DB_APP_ID_URI=https://database.example.com/app)"
+            "(TENANT_ID=tenant-id)(CLIENT_ID=client-id)"
+            "(CLIENT_SECRET=client-secret)",
+            "token_auth=AZURE_SERVICE_PRINCIPAL&"
+            "azure_db_app_id_uri=https://database.example.com/app&"
+            "tenant_id=tenant-id&client_id=client-id&"
+            "client_secret=client-secret",
+            {
+                "token_auth": "AZURE_SERVICE_PRINCIPAL",
+                "azure_db_app_id_uri": "https://database.example.com/app",
+                "tenant_id": "tenant-id",
+                "client_id": "client-id",
+                "client_secret": "client-secret",
+            },
+        ),
+        (
+            "(TOKEN_AUTH=AZURE_MANAGED_IDENTITY)"
+            "(AZURE_DB_APP_ID_URI=https://database.example.com/app)",
+            "token_auth=AZURE_MANAGED_IDENTITY&"
+            "azure_db_app_id_uri=https://database.example.com/app",
+            {
+                "token_auth": "AZURE_MANAGED_IDENTITY",
+                "azure_db_app_id_uri": "https://database.example.com/app",
+            },
+        ),
+        (
+            "(TOKEN_AUTH=OAUTH)(TOKEN_LOCATION=/tmp/token)",
+            "token_auth=OAUTH&token_location=/tmp/token",
+            {
+                "token_auth": "OAUTH",
+                "token_location": "/tmp/token",
+            },
+        ),
+    ],
+)
+def test_misc_1356(
+    connect_descriptor_fragment,
+    easy_connect_string_fragment,
+    parameters,
+):
+    connect_descriptor = (
+        "(DESCRIPTION=(ADDRESS=(PROTOCOL=tcps)(HOST=host-1388)(PORT=1388))"
+        "(CONNECT_DATA=(SERVICE_NAME=service-1388))"
+        f"(SECURITY=(SSL_SERVER_DN_MATCH=ON){connect_descriptor_fragment}))"
+    )
+    easy_connect_string = (
+        "tcps://host-1388:1388/service-1388?" + easy_connect_string_fragment
+    )
+    for connect_string in (connect_descriptor, easy_connect_string):
+        params = oracledb.ConnectParams()
+        params.parse_connect_string(connect_string)
+        for name, value in parameters.items():
+            assert getattr(params, name) == value
+        assert params.get_connect_string() == connect_descriptor
 
 
 @pytest.mark.parametrize("attr_name", ["terminal", "driver_name"])

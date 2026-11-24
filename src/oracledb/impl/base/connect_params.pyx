@@ -391,6 +391,89 @@ cdef class ConnectParamsImpl:
         if parser.parameters is not None:
             self.set(parser.parameters)
 
+    def _process_token_auth(self):
+        """
+        Processes token authentication parameters.
+        """
+        cdef:
+            Description description
+            str plugin_name
+            str token_auth
+        for description in self.description_list.children:
+            if description.token_auth is None:
+                continue
+            if self.extra_auth_params is not None \
+                    or self._token is not None \
+                    or self.access_token_callback is not None:
+                raise ValueError(
+                    "token_auth cannot be combined with access_token or "
+                    "extra_auth_params"
+                )
+            token_auth = description.token_auth.lower()
+            if not self.description_list._uses_tcps():
+                raise ValueError("token_auth requires use of the tcps protocol")
+            if not description.ssl_server_dn_match:
+                raise ValueError(
+                    "token_auth requires ssl_server_dn_match=True"
+                )
+            config = {}
+            if token_auth == "oci_api_key":
+                config["auth_type"] = "ConfigFileAuthentication"
+                if description.oci_config_file is not None:
+                    config["file_location"] = description.oci_config_file
+                if description.oci_profile is not None:
+                    config["profile"] = description.oci_profile
+                plugin_name = "oci_tokens"
+            elif token_auth == "oci_instance_principal":
+                config["auth_type"] = "InstancePrincipal"
+                plugin_name = "oci_tokens"
+            elif token_auth == "oci_resource_principal":
+                config["auth_type"] = "ResourcePrincipal"
+                plugin_name = "oci_tokens"
+            elif token_auth == "oci_delegation_token":
+                config["auth_type"] = "DelegationToken"
+                plugin_name = "oci_tokens"
+            elif token_auth == "oci_token":
+                config["auth_type"] = "TokenFile"
+                config["token_location"] = description.token_location
+                plugin_name = "oci_tokens"
+            elif token_auth == "oauth":
+                config["auth_type"] = "AzureFile"
+                config["token_location"] = description.token_location
+                plugin_name = "azure_tokens"
+            elif token_auth == "azure_service_principal":
+                config["auth_type"] = "AzureServicePrincipal"
+                if description.tenant_id is not None:
+                    config["authority"] = (
+                        "https://login.microsoftonline.com/"
+                        + description.tenant_id
+                    )
+                config["client_id"] = description.client_id
+                config["client_credential"] = description.client_credential
+                config["scopes"] = description.azure_db_app_id_uri
+                plugin_name = "azure_tokens"
+            elif token_auth == "azure_managed_identity":
+                config["auth_type"] = "AzureManagedIdentity"
+                config["scopes"] = description.azure_db_app_id_uri
+                if description.client_id is not None:
+                    config["client_id"] = description.client_id
+                plugin_name = "azure_tokens"
+            else:
+                raise ValueError(f"unsupported token_auth value: {token_auth}")
+            if plugin_name == "oci_tokens" and token_auth != "TokenFile":
+                if (description.oci_database is not None
+                        and description.oci_compartment is None):
+                    raise ValueError("oci_database requires oci_compartment")
+                if description.oci_compartment is not None:
+                    config["scope"] = (
+                        "urn:oracle:db::id::" + description.oci_compartment
+                    )
+                    if description.oci_database is not None:
+                        config["scope"] += "::" + description.oci_database
+            self.extra_auth_params = config
+            self.externalauth = True
+            importlib.import_module(f"oracledb.plugins.{plugin_name}")
+
     cdef int _set_access_token(self, object val, int error_num) except -1:
         """
         Sets the access token either supplied directly by the user or
@@ -605,6 +688,7 @@ cdef class ConnectParamsImpl:
             dsn = self._get_connect_string()
         elif thin or not self.thick_mode_dsn_passthrough:
             self.parse_connect_string(dsn)
+        self._process_token_auth()
         if REGISTERED_PARAMS_HOOKS:
             params = self._get_public_instance()
             for hook_fn in REGISTERED_PARAMS_HOOKS:
@@ -696,6 +780,17 @@ cdef class ConnectParamsNode:
             if child.must_have_children:
                 child._set_active_children(child.children)
 
+    cdef bint _uses_tcps(self):
+        """
+        Returns a boolean indicating if any of the child addresses use the
+        protocol TCPS.
+        """
+        cdef ConnectParamsNode child
+        for child in self.children:
+            if child._uses_tcps():
+                return True
+        return False
+
 
 cdef class Address(ConnectParamsNode):
     """
@@ -714,6 +809,12 @@ cdef class Address(ConnectParamsNode):
                 and other.protocol == self.protocol \
                 and other.https_proxy == self.https_proxy \
                 and other.https_proxy_port == self.https_proxy_port
+
+    cdef bint _uses_tcps(self):
+        """
+        Returns a boolean indicating if the address uses the protocol TCPS.
+        """
+        return self.protocol == "tcps"
 
     cdef str build_connect_string(self):
         """
@@ -825,17 +926,6 @@ cdef class AddressList(ConnectParamsNode):
             addresses.extend(address.resolve_host_name())
         self.active_children = addresses
 
-    cdef bint _uses_tcps(self):
-        """
-        Returns a boolean indicating if any of the addresses in the address
-        list use the protocol TCPS.
-        """
-        cdef Address address
-        for address in self.children:
-            if address.protocol == "tcps":
-                return True
-        return False
-
     cdef str build_connect_string(self):
         """
         Build a connect string from the components.
@@ -893,6 +983,16 @@ cdef class Description(ConnectParamsNode):
                 and other.ssl_server_cert_dn == self.ssl_server_cert_dn \
                 and other.ssl_version is self.ssl_version \
                 and other.wallet_location == self.wallet_location \
+                and other.token_auth == self.token_auth \
+                and other.token_location == self.token_location \
+                and other.oci_config_file == self.oci_config_file \
+                and other.oci_profile == self.oci_profile \
+                and other.oci_compartment == self.oci_compartment \
+                and other.oci_database == self.oci_database \
+                and other.azure_db_app_id_uri == self.azure_db_app_id_uri \
+                and other.tenant_id == self.tenant_id \
+                and other.client_id == self.client_id \
+                and other.client_secret == self.client_secret \
                 and other.extra_connect_data_args == \
                         self.extra_connect_data_args \
                 and other.extra_security_args == self.extra_security_args \
@@ -1013,6 +1113,28 @@ cdef class Description(ConnectParamsNode):
             if self.wallet_location is not None:
                 temp = f"(MY_WALLET_DIRECTORY={self.wallet_location})"
                 temp_parts.append(temp)
+            if self.token_auth is not None:
+                temp_parts.append(f"(TOKEN_AUTH={self.token_auth})")
+            if self.token_location is not None:
+                temp_parts.append(f"(TOKEN_LOCATION={self.token_location})")
+            if self.oci_config_file is not None:
+                temp_parts.append(f"(OCI_CONFIG_FILE={self.oci_config_file})")
+            if self.oci_profile is not None:
+                temp_parts.append(f"(OCI_PROFILE={self.oci_profile})")
+            if self.oci_compartment is not None:
+                temp_parts.append(f"(OCI_COMPARTMENT={self.oci_compartment})")
+            if self.oci_database is not None:
+                temp_parts.append(f"(OCI_DATABASE={self.oci_database})")
+            if self.azure_db_app_id_uri is not None:
+                temp_parts.append(
+                    f"(AZURE_DB_APP_ID_URI={self.azure_db_app_id_uri})"
+                )
+            if self.tenant_id is not None:
+                temp_parts.append(f"(TENANT_ID={self.tenant_id})")
+            if self.client_id is not None:
+                temp_parts.append(f"(CLIENT_ID={self.client_id})")
+            if self.client_secret is not None:
+                temp_parts.append(f"(CLIENT_SECRET={self.client_secret})")
             if self.extra_security_args is not None:
                 temp_parts.extend(f"({k.upper()}={self._value_repr(v)})"
                                   for k, v in self.extra_security_args.items())
@@ -1047,6 +1169,16 @@ cdef class Description(ConnectParamsNode):
         description.ssl_version = self.ssl_version
         description.use_sni = self.use_sni
         description.wallet_location = self.wallet_location
+        description.token_auth = self.token_auth
+        description.token_location = self.token_location
+        description.oci_config_file = self.oci_config_file
+        description.oci_profile = self.oci_profile
+        description.oci_compartment = self.oci_compartment
+        description.oci_database = self.oci_database
+        description.azure_db_app_id_uri = self.azure_db_app_id_uri
+        description.tenant_id = self.tenant_id
+        description.client_id = self.client_id
+        description.client_secret = self.client_secret
         description.extra_args = self.extra_args
         description.extra_connect_data_args = self.extra_connect_data_args
         description.extra_security_args = self.extra_security_args
@@ -1111,6 +1243,16 @@ cdef class Description(ConnectParamsNode):
         _set_str_param(args, "ssl_server_cert_dn", self)
         _set_ssl_version_param(args, "ssl_version", self)
         _set_str_param(args, "wallet_location", self)
+        _set_str_param(args, "token_auth", self)
+        _set_str_param(args, "token_location", self)
+        _set_str_param(args, "oci_config_file", self)
+        _set_str_param(args, "oci_profile", self)
+        _set_str_param(args, "oci_compartment", self)
+        _set_str_param(args, "oci_database", self)
+        _set_str_param(args, "azure_db_app_id_uri", self)
+        _set_str_param(args, "tenant_id", self)
+        _set_str_param(args, "client_id", self)
+        _set_str_param(args, "client_secret", self)
         extra_args = args.get("extra_security_args")
         if extra_args is not None:
             self.extra_security_args = extra_args
