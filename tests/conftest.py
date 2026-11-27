@@ -292,6 +292,24 @@ class DbObjectManager:
         self.objects.append(table)
         return table
 
+    def create_type(self, name, body):
+        """
+        Creates a type synchronously.
+        """
+        db_type = DbType(name, body)
+        self.create_object(db_type)
+        self.objects.append(db_type)
+        return db_type
+
+    async def create_type_async(self, name, body):
+        """
+        Creates a type asynchronously.
+        """
+        db_type = DbType(name, body)
+        await self.create_object_async(db_type)
+        self.objects.append(db_type)
+        return db_type
+
     def drop_object(self, obj):
         """
         Drops the object synchronously.
@@ -331,6 +349,15 @@ class DbTable:
         self.name = name
         self.create_sql = f"create table {name} ({body}) {options}"
         self.drop_sql = f"drop table {name} purge"
+
+
+class DbType:
+    ignore_error_code = "ORA-04043"
+
+    def __init__(self, name, body):
+        self.name = name
+        self.create_sql = f"create type {name} as {body}"
+        self.drop_sql = f"drop type {name} force"
 
 
 class TestEnv:

@@ -259,7 +259,8 @@ cdef class ThinDbObjectImpl(BaseDbObjectImpl):
             bytes temp_bytes
         if value is None:
             if metadata.objtype is not None \
-                    and not metadata.objtype.is_collection:
+                    and not metadata.objtype.is_collection \
+                    and not self.type.is_collection:
                 buf.write_uint8(TNS_OBJ_ATOMIC_NULL)
             else:
                 buf.write_uint8(TNS_NULL_LENGTH_INDICATOR)

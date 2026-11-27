@@ -999,3 +999,46 @@ def test_data_types_1949(skip_unless_thin_mode, cursor):
     assert obj.NUMBERVALUE == num_val
     assert obj.XMLVALUE is None
     assert obj.STRINGVALUE == str_val
+
+
+@pytest.mark.parametrize(
+    "expected",
+    [
+        [(1, "Element 1")],
+        [None],
+        [(1, "Element 1"), None, (2, "Element 2")],
+    ],
+)
+def test_data_types_1950(conn, cursor, test_env, db_object_manager, expected):
+    "1950 - test binding a nested table containing null objects (issue 640)"
+    obj_type_name = "TEST_1950_OBJECT"
+    coll_type_name = "TEST_1950_COLLECTION"
+    db_object_manager.create_type(
+        obj_type_name,
+        "object(SubNumberValue number, SubStringValue varchar2(60))",
+    )
+    db_object_manager.create_type(coll_type_name, f"table of {obj_type_name}")
+    obj_type = conn.gettype(obj_type_name)
+    coll_type = conn.gettype(coll_type_name)
+    collection = coll_type.newobject()
+    for value in expected:
+        if value is None:
+            collection.append(None)
+        else:
+            obj = obj_type.newobject()
+            obj.SUBNUMBERVALUE, obj.SUBSTRINGVALUE = value
+            collection.append(obj)
+    result_var = cursor.var(coll_type)
+    cursor.execute(
+        f"""
+        declare
+            l_collection {coll_type_name} := :collection;
+        begin
+            :result := l_collection;
+        end;
+        """,
+        collection=collection,
+        result=result_var,
+    )
+    result = test_env.get_db_object_as_plain_object(result_var.getvalue())
+    assert result == expected

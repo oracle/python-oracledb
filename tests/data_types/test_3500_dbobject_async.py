@@ -655,3 +655,52 @@ async def test_data_types_3519(async_conn, async_cursor):
         assert obj.INNER2 is not None
         assert obj.INNER2.ATTR1 is None
         assert obj.INNER2.ATTR2 == value2
+
+
+@pytest.mark.parametrize(
+    "expected",
+    [
+        [(1, "Element 1")],
+        [None],
+        [(1, "Element 1"), None, (2, "Element 2")],
+    ],
+)
+async def test_data_types_3520(
+    async_conn, async_cursor, test_env, async_db_object_manager, expected
+):
+    "3520 - test binding a nested table containing null objects (issue 640)"
+    obj_type_name = "TEST_3520_OBJECT"
+    coll_type_name = "TEST_3520_COLLECTION"
+    await async_db_object_manager.create_type_async(
+        obj_type_name,
+        "object(SubNumberValue number, SubStringValue varchar2(60))",
+    )
+    await async_db_object_manager.create_type_async(
+        coll_type_name, f"table of {obj_type_name}"
+    )
+    obj_type = await async_conn.gettype(obj_type_name)
+    coll_type = await async_conn.gettype(coll_type_name)
+    collection = coll_type.newobject()
+    for value in expected:
+        if value is None:
+            collection.append(None)
+        else:
+            obj = obj_type.newobject()
+            obj.SUBNUMBERVALUE, obj.SUBSTRINGVALUE = value
+            collection.append(obj)
+    result_var = async_cursor.var(coll_type)
+    await async_cursor.execute(
+        f"""
+        declare
+            l_collection {coll_type_name} := :collection;
+        begin
+            :result := l_collection;
+        end;
+        """,
+        collection=collection,
+        result=result_var,
+    )
+    result = await test_env.get_db_object_as_plain_object_async(
+        result_var.getvalue()
+    )
+    assert result == expected

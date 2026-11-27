@@ -19,6 +19,10 @@ oracledb `26.3.0 <https://github.com/oracle/python-oracledb/compare/v26.2.0...v2
 Thin Mode Changes
 +++++++++++++++++
 
+#)  Fixed bug that caused ORA-00600 [kopp2ucoll233] and a closed connection
+    when binding a nested table of objects containing a null element
+    (`issue 640 <https://github.com/oracle/python-oracledb/issues/640>`__).
+
 Thick Mode Changes
 ++++++++++++++++++
 
