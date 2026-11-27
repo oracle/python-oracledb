@@ -25,6 +25,9 @@ Thick Mode Changes
 Common Changes
 ++++++++++++++
 
+#)  Improved connection performance for Azure token authentication
+    by caching and reusing valid access tokens.
+
 
 oracledb `26.2.0 <https://github.com/oracle/python-oracledb/compare/v26.1.0...v26.2.0>`__ (November 2026)
 ---------------------------------------------------------------------------------------------------------

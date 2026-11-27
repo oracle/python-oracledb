@@ -72,6 +72,22 @@ def _get_azure_scope(app_id_uri: str) -> str:
     return scope
 
 
+def _get_client_credentials_token(params):
+    key = (
+        params["authority"],
+        params["client_id"],
+        params["client_credential"],
+        params["scopes"],
+    )
+    secret_value = oracledb.get_secret(key)
+    if secret_value is not None:
+        return secret_value.value
+
+    app = _build_msal_app(params)
+    result = app.acquire_token_for_client(scopes=[params["scopes"]])
+    return _get_token(key, result)
+
+
 def _get_token(key, result):
     """
     Gets the token from the Azure server response and returns it. The token is
@@ -94,6 +110,15 @@ def _managed_identity_credentials(token_auth_config):
     """
     _validate_config(token_auth_config, "scopes")
     client_id = token_auth_config.get("client_id")
+    key = (
+        client_id,
+        token_auth_config["scopes"],
+    )
+    secret_value = oracledb.get_secret(key)
+    if secret_value is not None:
+        return secret_value.value
+
+    # fetch fresh token, if not present in cache
     if client_id is None:
         managed_identity = msal.SystemAssignedManagedIdentity()
     else:
@@ -108,7 +133,8 @@ def _managed_identity_credentials(token_auth_config):
     resource = _get_azure_scope(token_auth_config["scopes"]).removesuffix(
         "/.default"
     )
-    return app.acquire_token_for_client(resource=resource)
+    result = app.acquire_token_for_client(resource=resource)
+    return _get_token(key, result)
 
 
 def _service_principal_credentials(token_auth_config):
@@ -122,9 +148,7 @@ def _service_principal_credentials(token_auth_config):
         "client_credential",
         "scopes",
     )
-    cca = _build_msal_app(token_auth_config)
-    scopes = token_auth_config["scopes"]
-    return cca.acquire_token_for_client(scopes=[scopes])
+    return _get_client_credentials_token(token_auth_config)
 
 
 def _validate_config(config, *required_names):
@@ -147,15 +171,11 @@ def generate_token(token_auth_config, refresh=False):
     """
     auth_type = token_auth_config["auth_type"].lower()
     if auth_type == AuthType.AzureServicePrincipal:
-        response = _service_principal_credentials(token_auth_config)
+        return _service_principal_credentials(token_auth_config)
     elif auth_type == AuthType.AzureManagedIdentity:
-        response = _managed_identity_credentials(token_auth_config)
+        return _managed_identity_credentials(token_auth_config)
     elif auth_type == AuthType.AzureFile:
         return _file_based_credentials(token_auth_config)
-    token = response.get("access_token")
-    if token is None:
-        raise Exception(f"Token acquisition failed: {response}")
-    return token
 
 
 def get_database_access_token(deepsec_params, user_token):
@@ -169,20 +189,7 @@ def get_database_access_token(deepsec_params, user_token):
 
 
 def get_database_access_token_client_cred_flow(deepsec_params):
-    key = (
-        deepsec_params["authority"],
-        deepsec_params["client_id"],
-        deepsec_params["client_credential"],
-        deepsec_params["scopes"],
-    )
-    secret_value = oracledb.get_secret(key)
-    if secret_value is not None:
-        return secret_value.value
-
-    # fetch fresh token, if not present in cache
-    app = _build_msal_app(deepsec_params)
-    result = app.acquire_token_for_client(scopes=[deepsec_params["scopes"]])
-    return _get_token(key, result)
+    return _get_client_credentials_token(deepsec_params)
 
 
 def get_database_access_token_obo_flow(deepsec_params, user_token):
